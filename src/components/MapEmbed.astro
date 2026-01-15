@@ -29,48 +29,35 @@ const googleMapsUrl = address
   ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`
   : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
-// Apple Maps (solo iOS, pero Google Maps también funciona en iOS)
-const appleMapsUrl = `maps://maps.apple.com/?daddr=${lat},${lng}`;
 
 // URL universal que detecta automáticamente el dispositivo
 const navigationUrl = googleMapsUrl;
 ---
 
-<div class="map-container relative block px-4 md:px-16">
-  <a 
-    href={navigationUrl}
-    target="_blank"
-    rel="noopener noreferrer"
-    class="map-link"
-    aria-label="Abrir en Google Maps para navegar"
-  >
+<div class="map-container relative block px-2 md:px-16">
+  <div class="relative">
     <iframe
-      class="w-full h-64 rounded-xl mt-6 border-none"
+      class="w-full h-52 rounded-xl mt-4 border-none"
       src={mapUrl}
       loading="lazy"
       referrerpolicy="no-referrer-when-downgrade"
       allowfullscreen
     ></iframe>
     {showNavigationLink && (
-      <div class="map-overlay">
-        <span class="map-overlay-text">📍 Ir al mapa</span>
-      </div>
+      <a
+        href={navigationUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="map-overlay"
+        aria-label="Abrir en Google Maps para navegar"
+      >
+        <span class="map-overlay-text">📍 Ir a ubicación</span>
+      </a>
     )}
-  </a>
+  </div>
 </div>
 
 <style>
-  .map-link {
-    display: block;
-    position: relative;
-    text-decoration: none;
-    cursor: pointer;
-  }
-  
-  .map-link:hover .map-overlay {
-    opacity: 1;
-  }
-  
   /* Mobile-first: Estilos base para móviles */
   .map-overlay {
     position: absolute;
@@ -83,10 +70,20 @@ const navigationUrl = googleMapsUrl;
     border-radius: 999px;
     font-size: 0.875rem;
     font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     opacity: 1; /* Siempre visible en móviles */
-    transition: opacity 0.3s ease;
-    pointer-events: none;
+    transition: opacity 0.3s ease, background 0.3s ease;
     z-index: 10;
+    cursor: pointer;
+  }
+  
+  .map-overlay:hover {
+    background: rgba(0, 0, 0, 1);
+    text-decoration: none;
+    color: white;
   }
   
   .map-overlay-text {
@@ -100,6 +97,10 @@ const navigationUrl = googleMapsUrl;
     .map-overlay {
       opacity: 0; /* Solo visible en hover en desktop */
       background: rgba(0, 0, 0, 0.8);
+    }
+    
+    .map-container:hover .map-overlay {
+      opacity: 1;
     }
   }
 </style>

@@ -12,7 +12,7 @@ export const chamaquitos: EventData = {
   time: "4:30 PM",
   address: "Mz F Lt 37 Urb. Rosas del Valle, Trujillo",
   whatsapp: "51966761177",
-  msgRedirectAlbum: "Mira cuanto hemos crecido",
+  msgRedirectAlbum: "Mira cuánto hemos crecido",
   msgTooltip: "Asegura tu comida 😜",
   map: {
     lat: -8.088108,
