@@ -10,16 +10,64 @@ type Props = EventLayoutProps;
 const { eventData } = Astro.props;
 const coverImagePath = getEventImagePath(eventData.slug, "cover.png");
 
-// Configurar video de YouTube si está disponible
-const hasVideo = eventData.backgroundVideo?.youtubeId;
-const videoId = eventData.backgroundVideo?.youtubeId || "";
-const videoMuted = eventData.backgroundVideo?.muted !== false; // default: true
-const videoLoop = eventData.backgroundVideo?.loop !== false; // default: true
+// Detectar qué página está activa
+const currentPath = Astro.url.pathname;
+const isAlbumPage = currentPath.includes('/album');
+
+// Configurar video de YouTube según la página
+let videoConfig: { youtubeId: string; muted: boolean; loop: boolean; start?: number } | null = null;
+
+if (eventData.backgroundVideo) {
+  if (isAlbumPage && eventData.backgroundVideo.album) {
+    // Video específico para la página del álbum
+    videoConfig = {
+      youtubeId: eventData.backgroundVideo.album.youtubeId,
+      muted: eventData.backgroundVideo.album.muted !== false,
+      loop: eventData.backgroundVideo.album.loop !== false,
+      start: eventData.backgroundVideo.album.start,
+    };
+  } else if (!isAlbumPage && eventData.backgroundVideo.invitation) {
+    // Video específico para la página de invitación
+    videoConfig = {
+      youtubeId: eventData.backgroundVideo.invitation.youtubeId,
+      muted: eventData.backgroundVideo.invitation.muted !== false,
+      loop: eventData.backgroundVideo.invitation.loop !== false,
+      start: eventData.backgroundVideo.invitation.start,
+    };
+  } else if (eventData.backgroundVideo.youtubeId) {
+    // Video único para todas las páginas (compatibilidad)
+    videoConfig = {
+      youtubeId: eventData.backgroundVideo.youtubeId,
+      muted: eventData.backgroundVideo.muted !== false,
+      loop: eventData.backgroundVideo.loop !== false,
+      start: eventData.backgroundVideo.start,
+    };
+  }
+}
 
 // Construir URL de YouTube embed con parámetros
-const youtubeUrl = hasVideo
-  ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=${videoMuted ? 1 : 0}&loop=${videoLoop ? 1 : 0}&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`
-  : "";
+let youtubeUrl = "";
+if (videoConfig) {
+  const params = new URLSearchParams({
+    autoplay: "1",
+    mute: videoConfig.muted ? "1" : "0",
+    loop: videoConfig.loop ? "1" : "0",
+    playlist: videoConfig.loop ? videoConfig.youtubeId : "",
+    controls: "0",
+    showinfo: "0",
+    rel: "0",
+    modestbranding: "1",
+    playsinline: "1",
+    enablejsapi: "1",
+  });
+  
+  // Agregar start si está definido
+  if (videoConfig.start !== undefined) {
+    params.set("start", videoConfig.start.toString());
+  }
+  
+  youtubeUrl = `https://www.youtube.com/embed/${videoConfig.youtubeId}?${params.toString()}`;
+}
 ---
 
 <html lang="es">
@@ -29,7 +77,7 @@ const youtubeUrl = hasVideo
     <FontLoader titleFont={eventData.fonts.title} textFont={eventData.fonts.text} />
   </head>
   <body class={`theme-${eventData.slug}`}>
-    {hasVideo ? (
+    {videoConfig ? (
       <div class="background-video-container">
         <iframe
           class="background-video"

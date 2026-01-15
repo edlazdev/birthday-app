@@ -106,8 +106,23 @@ export type EventData = {
     instagram: boolean;
   };
   backgroundVideo?: {
-    youtubeId: string; // ID del video de YouTube (ej: "dQw4w9WgXcQ")
-    muted?: boolean; // Si el video debe estar sin sonido por defecto (default: true)
-    loop?: boolean; // Si el video debe repetirse (default: true)
+    // Video único para todas las páginas (compatibilidad hacia atrás)
+    youtubeId?: string;
+    muted?: boolean;
+    loop?: boolean;
+    start?: number; // Segundo en el que iniciar el video (ej: 30 para empezar en el segundo 30)
+    // Videos específicos por página
+    invitation?: {
+      youtubeId: string;
+      muted?: boolean;
+      loop?: boolean;
+      start?: number; // Segundo en el que iniciar el video
+    };
+    album?: {
+      youtubeId: string;
+      muted?: boolean;
+      loop?: boolean;
+      start?: number; // Segundo en el que iniciar el video
+    };
   };
 };

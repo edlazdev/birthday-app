@@ -36,8 +36,19 @@ export const chamaquitos: EventData = {
     facebook: true,
   },
   backgroundVideo: {
-    youtubeId: "7QAe_RFewEQ&list=RD7QAe_RFewEQ",
-    muted: false,
-    loop: true,
+    // Video para la página de invitación
+    invitation: {
+      youtubeId: "7QAe_RFewEQ", // Reemplaza con el ID del video para invitación
+      muted: false,
+      loop: true,
+      start: 0,
+    },
+    // Video para la página del álbum
+    album: {
+      youtubeId: "QN5RobQ6L04", // Reemplaza con el ID del video para álbum (puede ser diferente)
+      muted: false,
+      loop: true,
+      start: 8,
+    },
   },
 };
