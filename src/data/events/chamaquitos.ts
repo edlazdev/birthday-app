@@ -35,4 +35,9 @@ export const chamaquitos: EventData = {
     instagram: true,
     facebook: true,
   },
+  backgroundVideo: {
+    youtubeId: "7QAe_RFewEQ&list=RD7QAe_RFewEQ",
+    muted: false,
+    loop: true,
+  },
 };

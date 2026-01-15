@@ -9,6 +9,17 @@ type Props = EventLayoutProps;
 
 const { eventData } = Astro.props;
 const coverImagePath = getEventImagePath(eventData.slug, "cover.png");
+
+// Configurar video de YouTube si está disponible
+const hasVideo = eventData.backgroundVideo?.youtubeId;
+const videoId = eventData.backgroundVideo?.youtubeId || "";
+const videoMuted = eventData.backgroundVideo?.muted !== false; // default: true
+const videoLoop = eventData.backgroundVideo?.loop !== false; // default: true
+
+// Construir URL de YouTube embed con parámetros
+const youtubeUrl = hasVideo
+  ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=${videoMuted ? 1 : 0}&loop=${videoLoop ? 1 : 0}&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`
+  : "";
 ---
 
 <html lang="es">
@@ -17,7 +28,21 @@ const coverImagePath = getEventImagePath(eventData.slug, "cover.png");
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <FontLoader titleFont={eventData.fonts.title} textFont={eventData.fonts.text} />
   </head>
-  <body class={`theme-${eventData.slug}`} style={`background-image: url('${coverImagePath}');`}>
+  <body class={`theme-${eventData.slug}`}>
+    {hasVideo ? (
+      <div class="background-video-container">
+        <iframe
+          class="background-video"
+          src={youtubeUrl}
+          frameborder="0"
+          allow="autoplay; encrypted-media"
+          allowfullscreen
+          aria-hidden="true"
+        ></iframe>
+      </div>
+    ) : (
+      <div class="background-image" style={`background-image: url('${coverImagePath}');`}></div>
+    )}
     <slot />
   </body>
 </html>
@@ -25,11 +50,60 @@ const coverImagePath = getEventImagePath(eventData.slug, "cover.png");
 <style>
   /* Mobile-first: Estilos base para móviles */
   body {
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .background-video-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+  }
+
+  .background-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100vw;
+    height: 100vh;
+    transform: translate(-50%, -50%);
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+  }
+
+  /* Asegurar que el video cubra toda la pantalla en diferentes aspect ratios */
+  @media (min-aspect-ratio: 16/9) {
+    .background-video {
+      width: 100vw;
+      height: 56.25vw; /* 16:9 aspect ratio */
+    }
+  }
+
+  @media (max-aspect-ratio: 16/9) {
+    .background-video {
+      width: 177.78vh; /* 16:9 aspect ratio */
+      height: 100vh;
+    }
+  }
+
+  .background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-attachment: scroll; /* Mejor rendimiento en móviles */
-    min-height: 100vh;
+    background-attachment: scroll;
+    z-index: -1;
   }
   
   /* Overlay semi-transparente para mejorar legibilidad del contenido */
@@ -46,7 +120,7 @@ const coverImagePath = getEventImagePath(eventData.slug, "cover.png");
   
   /* Tablet y desktop: min-width 768px */
   @media (min-width: 768px) {
-    body {
+    .background-image {
       background-attachment: fixed; /* Efecto parallax en pantallas grandes */
     }
   }

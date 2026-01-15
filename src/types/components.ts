@@ -105,4 +105,9 @@ export type EventData = {
     facebook: boolean;
     instagram: boolean;
   };
+  backgroundVideo?: {
+    youtubeId: string; // ID del video de YouTube (ej: "dQw4w9WgXcQ")
+    muted?: boolean; // Si el video debe estar sin sonido por defecto (default: true)
+    loop?: boolean; // Si el video debe repetirse (default: true)
+  };
 };
