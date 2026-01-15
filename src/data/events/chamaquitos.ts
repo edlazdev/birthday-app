@@ -18,7 +18,7 @@ export const chamaquitos: EventData = {
     lat: -8.0881487,
     lng: -79.0530356,
   },
-  albumCount: 9,
+  albumCount: 12,
   fonts: {
     title: {
       type: "local",

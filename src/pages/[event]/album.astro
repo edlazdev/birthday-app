@@ -16,7 +16,7 @@ const { event } = Astro.params;
 const eventKey = event && event in events ? event : DEFAULT_EVENT;
 const data = events[eventKey as keyof typeof events];
 const albumImages = Array.from({ length: data.albumCount }).map((_, i) => 
-  getEventImagePath(data.slug, `album/photo (${i + 1}).jpeg`)
+  getEventImagePath(data.slug, `album/photo (${i}).jpeg`)
 );
 ---
 

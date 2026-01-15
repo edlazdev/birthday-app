@@ -15,6 +15,17 @@ export default function RSVPSectionWrapper({ whatsapp, msgTooltip }: RSVPSection
     setIsModalOpen(false);
   };
 
+  // Manejar eventos táctiles para mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    setShowTooltip(true);
+  };
+
+  const handleTouchEnd = () => {
+    // Mantener el tooltip visible por 2 segundos en mobile antes de ocultarlo
+    setTimeout(() => setShowTooltip(false), 2000);
+  };
+
   return (
     <>
       <section className="flex flex-row justify-center gap-4 text-center my-5">
@@ -22,6 +33,8 @@ export default function RSVPSectionWrapper({ whatsapp, msgTooltip }: RSVPSection
           className="tooltip-wrapper relative inline-block"
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
           <button 
             onClick={handleOpen}
@@ -31,8 +44,8 @@ export default function RSVPSectionWrapper({ whatsapp, msgTooltip }: RSVPSection
           </button>
           {msgTooltip && (
             <div 
-              className={`tooltip absolute z-50 px-3 py-2 text-sm text-white bg-black rounded-lg shadow-lg whitespace-nowrap pointer-events-none transition-opacity duration-200 bottom-full left-1/2 -translate-x-1/2 ${
-                showTooltip ? 'opacity-100' : 'opacity-0'
+              className={`tooltip absolute z-50 px-3 py-2 text-sm text-white bg-black rounded-lg shadow-lg whitespace-nowrap pointer-events-none transition-opacity duration-200 bottom-full left-1/2 -translate-x-1/2 mb-1 ${
+                showTooltip ? 'opacity-100 block' : 'opacity-0 hidden md:block'
               }`}
             >
               {msgTooltip}
