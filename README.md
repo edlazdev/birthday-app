@@ -1,43 +1,76 @@
-# Astro Starter Kit: Minimal
+# Birthday App
 
-```sh
-npm create astro@latest -- --template minimal
+Una aplicación web para crear invitaciones de cumpleaños personalizadas con Astro, React y Tailwind CSS.
+
+## 🚀 Despliegue en GitHub Pages
+
+Este proyecto está configurado para desplegarse automáticamente en GitHub Pages.
+
+### Configuración inicial
+
+1. **Crear el repositorio en GitHub** (si aún no lo has hecho):
+   ```bash
+   git remote add origin https://github.com/tu-usuario/birthday-app.git
+   git branch -M main
+   git push -u origin main
+   ```
+
+2. **Habilitar GitHub Pages**:
+   - Ve a tu repositorio en GitHub
+   - Click en **Settings** → **Pages**
+   - En **Source**, selecciona **GitHub Actions**
+   - Guarda los cambios
+
+3. **El despliegue se ejecutará automáticamente**:
+   - Cada vez que hagas push a la rama `main`
+   - O manualmente desde la pestaña **Actions**
+
+### Acceso a la aplicación
+
+Una vez desplegado, tu aplicación estará disponible en:
+```
+https://tu-usuario.github.io/birthday-app/
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+### Configuración actual
 
-## 🚀 Project Structure
+- **Base path**: `/birthday-app` (configurado en `astro.config.mjs`)
+- **Site URL**: `https://edlazdev.github.io/` (actualizar con tu usuario si es diferente)
 
-Inside of your Astro project, you'll see the following folders and files:
+## 📦 Instalación y desarrollo
 
-```text
+```bash
+# Instalar dependencias
+npm install
+
+# Ejecutar en desarrollo
+npm run dev
+
+# Construir para producción
+npm run build
+
+# Vista previa de la build
+npm run preview
+```
+
+## 🛠️ Tecnologías
+
+- [Astro](https://astro.build/) - Framework web
+- [React](https://react.dev/) - Biblioteca UI
+- [Tailwind CSS](https://tailwindcss.com/) - Framework CSS
+
+## 📁 Estructura del proyecto
+
+```
 /
-├── public/
+├── public/          # Archivos estáticos (imágenes, fuentes)
 ├── src/
-│   └── pages/
-│       └── index.astro
+│   ├── components/  # Componentes Astro y React
+│   ├── data/        # Datos de eventos
+│   ├── layouts/     # Layouts de página
+│   ├── pages/       # Páginas de la aplicación
+│   ├── styles/      # Estilos globales
+│   ├── types/       # Tipos TypeScript
+│   └── utils/       # Utilidades
 └── package.json
 ```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
