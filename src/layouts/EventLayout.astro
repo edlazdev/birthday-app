@@ -9,7 +9,7 @@ import "../styles/theme.css";
 type Props = EventLayoutProps;
 
 const { eventData } = Astro.props;
-const coverImagePath = getEventImagePath(eventData.slug, "cover.png");
+const coverImagePath = getEventImagePath(eventData.slug, "cover.jpg");
 
 // Detectar qué página está activa
 const currentPath = Astro.url.pathname;
@@ -22,9 +22,9 @@ const basePath = base.endsWith("/") ? base : `${base}/`;
 // Construir URL completa de la página actual
 const pathWithoutBase = currentPath.replace(base, '').replace(/^\//, '');
 const fullUrl = `${site}${basePath}${pathWithoutBase}`;
-// La imagen cover.png está en public/assets/events/${slug}/cover.png
+// La imagen cover.jpg está en public/assets/events/${slug}/cover.jpg
 // Construir URL absoluta de la imagen
-const ogImageUrl = `${site}${basePath}assets/events/${eventData.slug}/cover.png`;
+const ogImageUrl = `${site}${basePath}assets/events/${eventData.slug}/cover.jpg`;
 
 // Generar título y descripción para la vista previa
 const pageTitle = isAlbumPage 
@@ -116,6 +116,10 @@ if (videoConfig) {
     
     {/* Meta tags adicionales para WhatsApp */}
     <meta name="format-detection" content="telephone=no" />
+    <meta name="theme-color" content="#ff9800" />
+    
+    {/* Meta tags adicionales para mejor compatibilidad */}
+    <link rel="image_src" href={ogImageUrl} />
     
     {/* Twitter Card */}
     <meta name="twitter:card" content="summary_large_image" />
