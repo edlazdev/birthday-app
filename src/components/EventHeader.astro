@@ -1,0 +1,113 @@
+---
+import type { EventHeaderProps } from "@/types";
+
+type Props = EventHeaderProps;
+const { eventData } = Astro.props;
+---
+
+<section class="event-header animate-bounce-soft">
+  <div class="subtitle">{eventData.beforeCelebrant}</div>
+  <div class="title">{eventData.celebrant}</div>
+  <div class="after-title">
+    <span>{eventData.title}</span>
+    <div class="age">{eventData.age}</div>
+    <span>{eventData.afterAge}</span>
+  </div>
+</section>
+
+<style>
+  /* Mobile-first: Estilos base para móviles */
+  .event-header {
+    text-align: center;
+  }
+  
+  .event-header .subtitle {
+    font-size: 1.25rem;
+    font-family: var(--font-title, sans-serif);
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: var(--secondary);
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .event-header .title {
+    font-family: var(--font-title, sans-serif);
+    font-weight: 900;
+    color: var(--primary);
+    font-size: 3rem;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    letter-spacing: 1px;
+  }
+
+  .after-title {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--secondary);
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .after-title span {
+    font-family: var(--font-text, sans-serif);
+    font-weight: bold;
+    color: var(--secondary);
+    font-size: 1.25rem;
+    margin: 0;
+  }
+
+  .age {
+    font-size: 4rem;
+    color: var(--tertiary);
+    font-weight: bold;
+    font-family: var(--font-text, sans-serif);
+  }
+  
+  .after-age {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  /* Tablet y desktop: min-width 768px */
+  @media (min-width: 768px) {
+    .event-header .subtitle {
+      font-size: 2rem;
+      letter-spacing: 2px;
+    }
+    
+    .event-header .title {
+      font-size: 6rem;
+      letter-spacing: 2px;
+    }
+
+    .after-title {
+      font-size: 2rem;
+    }
+
+    .after-title span {
+      font-size: 2rem;
+    }
+
+    .age {
+      font-size: 8rem;
+    }
+    
+    .after-age {
+      font-size: 3rem;
+    }
+  }
+</style>

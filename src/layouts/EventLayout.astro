@@ -1,0 +1,53 @@
+---
+import FontLoader from "@/components/FontLoader.astro";
+import type { EventLayoutProps } from "@/types";
+import { getEventImagePath } from "@/utils/images";
+import "../styles/global.css";
+import "../styles/theme.css";
+
+type Props = EventLayoutProps;
+
+const { eventData } = Astro.props;
+const coverImagePath = getEventImagePath(eventData.slug, "cover.png");
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <FontLoader titleFont={eventData.fonts.title} textFont={eventData.fonts.text} />
+  </head>
+  <body class={`theme-${eventData.slug}`} style={`background-image: url('${coverImagePath}');`}>
+    <slot />
+  </body>
+</html>
+
+<style>
+  /* Mobile-first: Estilos base para móviles */
+  body {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: scroll; /* Mejor rendimiento en móviles */
+    min-height: 100vh;
+  }
+  
+  /* Overlay semi-transparente para mejorar legibilidad del contenido */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* background: rgba(255, 255, 255, 0.881); */
+    z-index: -1;
+  }
+  
+  /* Tablet y desktop: min-width 768px */
+  @media (min-width: 768px) {
+    body {
+      background-attachment: fixed; /* Efecto parallax en pantallas grandes */
+    }
+  }
+</style>

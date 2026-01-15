@@ -1,0 +1,11 @@
+---
+import RSVPSectionWrapper from "./RSVPSectionWrapper.tsx";
+import type { RSVPSectionProps } from "@/types";
+
+type Props = RSVPSectionProps;
+
+const { whatsapp, msgTooltip } = Astro.props;
+---
+
+<RSVPSectionWrapper client:load whatsapp={whatsapp} msgTooltip={msgTooltip} />
+

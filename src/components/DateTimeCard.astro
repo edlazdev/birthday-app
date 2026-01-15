@@ -1,0 +1,140 @@
+---
+import type { DateTimeCardProps } from "@/types";
+
+type Props = DateTimeCardProps;
+
+const { date, time } = Astro.props;
+
+// Parsear la fecha: "Sábado 08 de Febrero"
+const dateParts = date.split(' ');
+const dayOfWeek = dateParts[0]; // "Sábado"
+const dayOfMonth = dateParts[1]; // "08"
+const month = dateParts.slice(2).join(' '); // "de Febrero"
+
+// Convertir hora a minúsculas: "4:30 PM" -> "4:30 pm"
+const formattedTime = time.toLowerCase();
+---
+
+<div class="datetime-card">
+  <div class="datetime-section datetime-day">
+    <span class="datetime-text">{dayOfWeek}</span>
+  </div>
+  
+  <div class="datetime-section datetime-date">
+    <span class="datetime-day-number">{dayOfMonth}</span>
+    <span class="datetime-month">{month}</span>
+  </div>
+  
+  <div class="datetime-section datetime-time">
+    <span class="datetime-text">{formattedTime}</span>
+  </div>
+</div>
+
+<style>
+  .datetime-card {
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    align-items: center;
+  }
+
+  /* Mobile-first: Estilos base para móviles */
+  .datetime-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 0.5rem;
+    min-height: 80px;
+  }
+
+  .datetime-date {
+    background: var(--secondary, #26B5BA);
+    color: white;
+    border: none;
+    min-height: 110px;
+    padding: 1.25rem 0.5rem;
+    border-radius: 1rem;
+  }
+
+  .datetime-day {
+    background: white;
+    border-top: 2px solid var(--secondary, #26B5BA);
+    border-bottom: 2px solid var(--secondary, #26B5BA);
+    border-left: 2px solid var(--secondary, #26B5BA);
+    border-right: none;
+    border-radius: 1rem 0 0 1rem;
+  }
+
+  .datetime-time {
+    background: white;
+    border-top: 2px solid var(--secondary, #26B5BA);
+    border-bottom: 2px solid var(--secondary, #26B5BA);
+    border-right: 2px solid var(--secondary, #26B5BA);
+    border-left: none;
+    border-radius: 0 1rem 1rem 0;
+  }
+
+  .datetime-text {
+    font-family: var(--font-text, sans-serif);
+    font-weight: 500;
+    color: var(--secondary, #26B5BA);
+    font-size: 0.95rem;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .datetime-day .datetime-text {
+    color: var(--secondary, #26B5BA);
+  }
+
+  .datetime-time .datetime-text {
+    color: var(--secondary, #26B5BA);
+  }
+
+  .datetime-day-number {
+    font-family: var(--font-text, sans-serif);
+    font-weight: 700;
+    color: white;
+    font-size: 2.5rem;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+    text-align: center;
+  }
+
+  .datetime-month {
+    font-family: var(--font-text, sans-serif);
+    font-weight: 400;
+    color: white;
+    font-size: 0.875rem;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  /* Tablet y desktop: min-width 768px */
+  @media (min-width: 768px) {
+    .datetime-section {
+      padding: 1.25rem 0.75rem;
+      min-height: 100px;
+    }
+
+    .datetime-date {
+      min-height: 140px;
+      padding: 1.5rem 0.75rem;
+    }
+
+    .datetime-text {
+      font-size: 1.7rem;
+    }
+
+    .datetime-day-number {
+      font-size: 4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .datetime-month {
+      font-size: 1.2rem;
+    }
+  }
+</style>

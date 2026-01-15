@@ -1,0 +1,105 @@
+---
+import type { MapEmbedProps } from "@/types";
+
+type Props = MapEmbedProps;
+
+const { lat, lng, provider = "google", zoom = 15, apiKey, address, showNavigationLink = true } = Astro.props;
+
+// Generar URL según el proveedor
+let mapUrl: string;
+
+if (provider === "google") {
+  if (apiKey) {
+    // Google Maps Embed API con API key (recomendado para producción)
+    const query = address ? encodeURIComponent(address) : `${lat},${lng}`;
+    mapUrl = `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${query}&zoom=${zoom}`;
+  } else {
+    // Google Maps iframe estándar (sin API key, pero menos control)
+    // Usa la URL de "Compartir" de Google Maps
+    mapUrl = `https://www.google.com/maps?q=${lat},${lng}&hl=es&z=${zoom}&output=embed`;
+  }
+} else {
+  // OpenStreetMap (fallback)
+  mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.005}%2C${lat - 0.005}%2C${lng + 0.005}%2C${lat + 0.005}&layer=mapnik&marker=${lat}%2C${lng}`;
+}
+
+// Generar URLs para abrir en apps de mapas móviles
+// Google Maps (funciona en Android y iOS)
+const googleMapsUrl = address 
+  ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`
+  : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+// Apple Maps (solo iOS, pero Google Maps también funciona en iOS)
+const appleMapsUrl = `maps://maps.apple.com/?daddr=${lat},${lng}`;
+
+// URL universal que detecta automáticamente el dispositivo
+const navigationUrl = googleMapsUrl;
+---
+
+<div class="map-container relative block px-4 md:px-16">
+  <a 
+    href={navigationUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    class="map-link"
+    aria-label="Abrir en Google Maps para navegar"
+  >
+    <iframe
+      class="w-full h-64 rounded-xl mt-6 border-none"
+      src={mapUrl}
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+      allowfullscreen
+    ></iframe>
+    {showNavigationLink && (
+      <div class="map-overlay">
+        <span class="map-overlay-text">📍 Ir al mapa</span>
+      </div>
+    )}
+  </a>
+</div>
+
+<style>
+  .map-link {
+    display: block;
+    position: relative;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+  .map-link:hover .map-overlay {
+    opacity: 1;
+  }
+  
+  /* Mobile-first: Estilos base para móviles */
+  .map-overlay {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    opacity: 1; /* Siempre visible en móviles */
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 10;
+  }
+  
+  .map-overlay-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  /* Tablet y desktop: min-width 768px */
+  @media (min-width: 768px) {
+    .map-overlay {
+      opacity: 0; /* Solo visible en hover en desktop */
+      background: rgba(0, 0, 0, 0.8);
+    }
+  }
+</style>

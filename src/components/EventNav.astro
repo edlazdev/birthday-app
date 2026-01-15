@@ -1,0 +1,32 @@
+---
+import type { EventNavProps } from "@/types";
+
+type Props = EventNavProps;
+const { slug } = Astro.props;
+
+// Obtener la ruta actual
+const currentPath = Astro.url.pathname;
+const base = import.meta.env.BASE_URL || "";
+// Normalizar basePath: asegurar que termine con / y que slug empiece sin /
+const basePath = base.endsWith("/") ? base : `${base}/`;
+
+// Determinar qué link está activo basándose en si la ruta contiene '/album'
+const isAlbumActive = currentPath.includes('/album');
+const isInvitationActive = !isAlbumActive;
+---
+
+<nav class="event-nav">
+  <a 
+    href={`${basePath}${slug}`} 
+    class={isInvitationActive ? "active" : ""}
+  >
+    INVITACIÓN
+  </a>
+  <a 
+    href={`${basePath}${slug}/album`}
+    class={isAlbumActive ? "active" : ""}
+  >
+    ÁLBUM
+  </a>
+</nav>
+

@@ -1,0 +1,98 @@
+---
+import type { FontLoaderProps, FontConfig } from "@/types";
+
+type Props = FontLoaderProps;
+
+const { titleFont, textFont } = Astro.props;
+
+// Función para generar URL de Google Fonts
+function getGoogleFontsUrl(fonts: FontConfig[]): string {
+  const googleFonts = fonts.filter((f) => f.type === "google") as Array<{
+    type: "google";
+    family: string;
+    weights?: string[];
+  }>;
+
+  if (googleFonts.length === 0) return "";
+
+  const families = googleFonts.map((font) => {
+    const family = font.family.replace(/\s+/g, "+");
+    const weights = font.weights?.join(";") || "400;700";
+    return `family=${family}:wght@${weights}`;
+  });
+
+  return `https://fonts.googleapis.com/css2?${families.join("&")}&display=swap`;
+}
+
+// Función para generar @font-face para fuentes locales
+function generateLocalFontFace(font: FontConfig & { type: "local" }, basePath: string = ""): string {
+  const srcArray = Array.isArray(font.src) ? font.src : [font.src];
+  const src = srcArray
+    .map((path) => {
+      // Asegurar que la ruta tenga el base path si es necesario
+      let fullPath = path;
+      if (path.startsWith("/") && basePath && !path.startsWith(basePath)) {
+        fullPath = basePath + path;
+      }
+      
+      // Detectar el formato correctamente
+      const extension = path.split(".").pop()?.toLowerCase() || "";
+      let format = font.format;
+      
+      if (!format) {
+        // Mapear extensiones a formatos CSS
+        const formatMap: Record<string, string> = {
+          "woff2": "woff2",
+          "woff": "woff",
+          "ttf": "truetype",
+          "otf": "opentype",
+          "eot": "embedded-opentype",
+        };
+        format = formatMap[extension] || "truetype";
+      }
+      
+      return `url("${fullPath}") format("${format}")`;
+    })
+    .join(", ");
+
+  return `
+    @font-face {
+      font-family: "${font.family}";
+      src: ${src};
+      font-display: swap;
+      font-weight: normal;
+      font-style: normal;
+    }
+  `;
+}
+
+const googleFontsUrl = getGoogleFontsUrl([titleFont, textFont]);
+const localFonts = [titleFont, textFont].filter(
+  (f) => f.type === "local"
+) as Array<FontConfig & { type: "local" }>;
+
+// Obtener el base path de Astro
+const basePath = import.meta.env.BASE_URL || "";
+
+// Construir el CSS con las variables interpoladas correctamente
+const fontStyles = `
+  :root {
+    --font-title: "${titleFont.family}", sans-serif;
+    --font-text: "${textFont.family}", sans-serif;
+  }
+  
+  
+`;
+---
+
+{googleFontsUrl && (
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href={googleFontsUrl} />
+)}
+
+{localFonts.length > 0 && (
+  <style set:html={localFonts.map(font => generateLocalFontFace(font, basePath)).join("\n")}></style>
+)}
+
+<style set:html={fontStyles}></style>

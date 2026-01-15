@@ -1,0 +1,44 @@
+---
+import DateTimeCard from "./DateTimeCard.astro";
+import MapEmbed from "@/components/MapEmbed.astro";
+import type { EventDetailsProps } from "@/types";
+
+type Props = EventDetailsProps;
+const { eventData } = Astro.props;
+---
+
+<section class="details animate-fade-up animate-delay-2 text-center my-4 bg-white shadow-lg rounded-2xl">
+  <p class="tagline text-lg md:text-2xl font-black tracking-wider text-[var(--tertiary)] m-0 p-4">{eventData.tagline}</p>
+  <div class="event-info text-base md:text-2xl font-normal tracking-wider m-0 px-4 md:px-16 pt-0 md:pt-4 text-[var(--secondary)]">
+    <DateTimeCard date={eventData.date} time={eventData.time} />
+    <span class="text-base md:text-xl font-normal tracking-wider py-4 m-0 text-gray-600">Te esperamos en:</span>
+    <p>📍 {eventData.address}</p>
+  </div>
+  <MapEmbed
+    lat={eventData.map.lat}
+    lng={eventData.map.lng}
+    address={eventData.address}
+    provider="openstreetmap"
+  />
+
+  <p class="text-base md:text-xl font-normal m-0 py-4">
+    📷
+    <a href={`/birthday-app/${eventData.slug}/album`} class="album-link text-gray-600 underline transition-colors duration-200 hover:text-[var(--secondary)]">
+      {eventData.msgRedirectAlbum}
+    </a>
+  </p>
+</section>
+<style>
+  .details .tagline {
+    font-family: var(--font-text, sans-serif);
+  }
+  .details .event-info {
+    font-family: var(--font-text, sans-serif);
+  }
+  .details .event-info span {
+    font-family: var(--font-text, sans-serif);
+  }
+  .album-link {
+    font-family: var(--font-text, sans-serif);
+  }
+</style>

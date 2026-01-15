@@ -1,0 +1,60 @@
+---
+import type { TooltipProps } from "@/types";
+
+type Props = TooltipProps;
+
+const { 
+  text, 
+  position = "top", 
+  className = "",
+  delay = 200,
+  showOnMobile = false
+} = Astro.props;
+
+const positionClasses = {
+  top: "bottom-full left-1/2 -translate-x-1/2",
+  bottom: "top-full left-1/2 -translate-x-1/2",
+  left: "right-full top-1/2 -translate-y-1/2",
+  right: "left-full top-1/2 -translate-y-1/2",
+};
+
+const arrowClasses = {
+  top: "top-full left-1/2 -translate-x-1/2 border-t-black border-l-transparent border-r-transparent border-b-transparent",
+  bottom: "bottom-full left-1/2 -translate-x-1/2 border-b-black border-l-transparent border-r-transparent border-t-transparent",
+  left: "left-full top-1/2 -translate-y-1/2 border-l-black border-t-transparent border-b-transparent border-r-transparent",
+  right: "right-full top-1/2 -translate-y-1/2 border-r-black border-t-transparent border-b-transparent border-l-transparent",
+};
+
+const tooltipId = `tooltip-${Math.random().toString(36).substr(2, 9)}`;
+---
+
+<div class={`tooltip-wrapper relative inline-block ${className}`}>
+  <slot />
+  <div 
+    id={tooltipId}
+    role="tooltip"
+    class={`tooltip absolute z-50 px-3 py-2 text-sm text-white bg-black rounded-lg shadow-lg whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-200 ${positionClasses[position]} ${showOnMobile ? '' : 'hidden md:block'}`}
+    style={`transition-delay: ${delay}ms`}
+  >
+    {text}
+    <div class={`tooltip-arrow absolute w-0 h-0 border-4 ${arrowClasses[position]}`}></div>
+  </div>
+</div>
+
+<style>
+  .tooltip-wrapper:hover .tooltip {
+    opacity: 1;
+  }
+
+  .tooltip-wrapper:hover .tooltip-arrow {
+    opacity: 1;
+  }
+
+  /* Mejorar visibilidad en dispositivos táctiles */
+  @media (hover: none) {
+    .tooltip-wrapper:active .tooltip {
+      opacity: 1;
+    }
+  }
+</style>
+

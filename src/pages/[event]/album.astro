@@ -1,0 +1,29 @@
+---
+import EventLayout from "@/layouts/EventLayout.astro";
+import { events } from "@/data/events";
+import { DEFAULT_EVENT } from "@/utils";  
+import EventNav from "@/components/EventNav.astro";
+import { getEventImagePath } from "@/utils/images";
+import ImageGallery from "@/components/ImageGallery.tsx";
+
+export function getStaticPaths() {
+  return Object.keys(events).map((eventKey) => ({
+    params: { event: eventKey },
+  }));
+}
+
+const { event } = Astro.params;
+const eventKey = event && event in events ? event : DEFAULT_EVENT;
+const data = events[eventKey as keyof typeof events];
+const albumImages = Array.from({ length: data.albumCount }).map((_, i) => 
+  getEventImagePath(data.slug, `album/photo (${i + 1}).jpeg`)
+);
+---
+
+<EventLayout eventData={data}>
+  <main class="event-container">
+    <EventNav slug={data.slug} />
+    
+    <ImageGallery client:load images={albumImages} altPrefix="Mes" />
+  </main>
+</EventLayout>

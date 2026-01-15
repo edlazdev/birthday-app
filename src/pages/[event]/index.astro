@@ -1,0 +1,52 @@
+---
+import EventLayout from "@/layouts/EventLayout.astro";
+import EventNav from "@/components/EventNav.astro";
+import EventHeader from "@/components/EventHeader.astro";
+import EventDetails from "@/components/EventDetails.astro";
+import Footer from "@/components/Footer.astro";
+import RSVPSection from "@/components/RSVPSection.astro";
+
+import { events } from "@/data/events";
+import { DEFAULT_EVENT } from "@/utils";
+import { getEventImagePath } from "@/utils/images";
+
+export function getStaticPaths() {
+  return Object.keys(events).map((eventKey) => ({
+    params: { event: eventKey },
+  }));
+}
+
+const { event } = Astro.params;
+const eventKey = event && event in events ? event : DEFAULT_EVENT;
+const data = events[eventKey as keyof typeof events];
+console.log("🚀 ~ data:", data);
+
+if (!data) {
+  throw new Error("Evento no encontrado");
+}
+---
+
+<EventLayout eventData={data}>
+  <main class="event-container">
+    <EventNav slug={data.slug} />
+
+    <EventHeader eventData={data} />
+
+    <EventDetails eventData={data} />
+    
+    <RSVPSection whatsapp={data.whatsapp} msgTooltip={data.msgTooltip} />
+    
+    <Footer
+      year={new Date().getFullYear()}
+      socialLinks={{
+        facebook: data.socialLinks.facebook
+          ? "https://www.facebook.com/elr28"
+          : undefined,
+        instagram: data.socialLinks.instagram
+          ? "https://www.instagram.com/_edgar.lazaro/"
+          : undefined,
+      }}
+      celebrant={data.celebrant}
+    />
+  </main>
+</EventLayout>
