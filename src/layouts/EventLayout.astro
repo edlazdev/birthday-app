@@ -1,5 +1,6 @@
 ---
 import FontLoader from "@/components/FontLoader.astro";
+import VolumeButton from "@/components/VolumeButton.tsx";
 import type { EventLayoutProps } from "@/types";
 import { getEventImagePath } from "@/utils/images";
 import "../styles/global.css";
@@ -75,19 +76,37 @@ if (videoConfig) {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <FontLoader titleFont={eventData.fonts.title} textFont={eventData.fonts.text} />
+    {videoConfig && (
+      <script is:inline>
+        // Cargar YouTube IFrame API si no está cargada
+        if (!window.YT) {
+          const tag = document.createElement("script");
+          tag.src = "https://www.youtube.com/iframe_api";
+          const firstScriptTag = document.getElementsByTagName("script")[0];
+          if (firstScriptTag && firstScriptTag.parentNode) {
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+          }
+        }
+      </script>
+    )}
   </head>
   <body class={`theme-${eventData.slug}`}>
     {videoConfig ? (
-      <div class="background-video-container">
-        <iframe
-          class="background-video"
-          src={youtubeUrl}
-          frameborder="0"
-          allow="autoplay; encrypted-media"
-          allowfullscreen
-          aria-hidden="true"
-        ></iframe>
-      </div>
+      <>
+        <div class="background-video-container">
+          <iframe
+            id={`yt-background-${videoConfig.youtubeId}`}
+            class="background-video"
+            src={youtubeUrl}
+            frameborder="0"
+            allow="autoplay; encrypted-media; accelerometer; gyroscope; picture-in-picture"
+            allowfullscreen
+            aria-hidden="true"
+            loading="eager"
+          ></iframe>
+        </div>
+        <VolumeButton client:load videoId={videoConfig.youtubeId} initialMuted={videoConfig.muted} />
+      </>
     ) : (
       <div class="background-image" style={`background-image: url('${coverImagePath}');`}></div>
     )}
@@ -170,6 +189,57 @@ if (videoConfig) {
   @media (min-width: 768px) {
     .background-image {
       background-attachment: fixed; /* Efecto parallax en pantallas grandes */
+    }
+  }
+
+  /* Botón de volumen */
+  :global(.volume-button) {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid var(--primary, #ff9800);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  :global(.volume-button:hover) {
+    background: var(--primary, #ff9800);
+    transform: scale(1.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  :global(.volume-button:hover .volume-icon) {
+    color: white;
+  }
+
+  :global(.volume-icon) {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--primary, #ff9800);
+    transition: color 0.3s ease;
+  }
+
+  /* Tablet y desktop: ajustes del botón */
+  @media (min-width: 768px) {
+    :global(.volume-button) {
+      width: 3.5rem;
+      height: 3.5rem;
+      bottom: 2rem;
+      right: 2rem;
+    }
+
+    :global(.volume-icon) {
+      width: 1.75rem;
+      height: 1.75rem;
     }
   }
 </style>

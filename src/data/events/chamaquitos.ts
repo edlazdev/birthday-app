@@ -39,14 +39,14 @@ export const chamaquitos: EventData = {
     // Video para la página de invitación
     invitation: {
       youtubeId: "7QAe_RFewEQ", // Reemplaza con el ID del video para invitación
-      muted: false,
+      muted: true, // Cambiado a true para permitir autoplay
       loop: true,
-      start: 0,
+      start: 2,
     },
     // Video para la página del álbum
     album: {
       youtubeId: "QN5RobQ6L04", // Reemplaza con el ID del video para álbum (puede ser diferente)
-      muted: false,
+      muted: true, // Cambiado a true para permitir autoplay
       loop: true,
       start: 8,
     },

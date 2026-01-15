@@ -9,7 +9,8 @@ export type { FontConfig } from "./utils";
 // Component types - React
 export type { 
   ConfirmFormProps, 
-  RSVPSectionWrapperProps 
+  RSVPSectionWrapperProps,
+  VolumeButtonProps,
 } from "./components";
 
 // Component types - Astro

@@ -17,6 +17,11 @@ export interface ImageGalleryProps {
   altPrefix?: string;
 }
 
+export interface VolumeButtonProps {
+  videoId: string;
+  initialMuted?: boolean;
+}
+
 // Astro Component Props
 export interface TooltipProps {
   text: string;
