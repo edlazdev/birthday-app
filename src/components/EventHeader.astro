@@ -5,10 +5,10 @@ type Props = EventHeaderProps;
 const { eventData } = Astro.props;
 ---
 
-<section class="event-header animate-bounce-soft">
-  <div class="subtitle">{eventData.beforeCelebrant}</div>
-  <div class="title">{eventData.celebrant}</div>
-  <div class="after-title">
+<section class="event-header">
+  <div class="subtitle animate-fade-up animate-delay-1">{eventData.beforeCelebrant}</div>
+  <div class="title animate-fade-up animate-delay-2">{eventData.celebrant}</div>
+  <div class="after-title animate-fade-up animate-delay-3">
     <span>{eventData.title}</span>
     <div class="age">{eventData.age}</div>
     <span>{eventData.afterAge}</span>

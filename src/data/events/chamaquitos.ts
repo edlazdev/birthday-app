@@ -15,8 +15,8 @@ export const chamaquitos: EventData = {
   msgRedirectAlbum: "Mira cuánto hemos crecido",
   msgTooltip: "Asegura tu comida 😜",
   map: {
-    lat: -8.088108,
-    lng: -79.053003,
+    lat: -8.0881487,
+    lng: -79.0530356,
   },
   albumCount: 9,
   fonts: {
