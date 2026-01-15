@@ -19,12 +19,16 @@ const isAlbumPage = currentPath.includes('/album');
 const site = 'https://edlazdev.github.io';
 const base = '/birthday-app';
 const basePath = base.endsWith("/") ? base : `${base}/`;
+
 // Construir URL completa de la página actual
-const pathWithoutBase = currentPath.replace(base, '').replace(/^\//, '');
-const fullUrl = `${site}${basePath}${pathWithoutBase}`;
+let cleanPath = currentPath.replace(/^\/+/, '').replace(base.replace(/^\/+/, ''), '');
+if (cleanPath && !cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
+if (!cleanPath || cleanPath === '/') cleanPath = '';
+const fullUrl = `${site}${basePath}${cleanPath}`.replace(/\/+/g, '/').replace(':/', '://');
+
 // La imagen cover.jpg está en public/assets/events/${slug}/cover.jpg
-// Construir URL absoluta de la imagen
-const ogImageUrl = `${site}${basePath}assets/events/${eventData.slug}/cover.jpg`;
+// Construir URL absoluta de la imagen (asegurar formato correcto)
+const ogImageUrl = `${site}${basePath}assets/events/${eventData.slug}/cover.jpg`.replace(/\/+/g, '/').replace(':/', '://');
 
 // Generar título y descripción para la vista previa
 const pageTitle = isAlbumPage 
@@ -107,19 +111,26 @@ if (videoConfig) {
     <meta property="og:description" content={pageDescription} />
     <meta property="og:image" content={ogImageUrl} />
     <meta property="og:image:secure_url" content={ogImageUrl} />
-    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={`Vista previa de ${eventData.celebrant}`} />
     <meta property="og:locale" content="es_ES" />
     <meta property="og:site_name" content="Invitación de Cumpleaños" />
     
-    {/* Meta tags adicionales para WhatsApp */}
+    {/* Meta tags adicionales para WhatsApp y TikTok */}
     <meta name="format-detection" content="telephone=no" />
     <meta name="theme-color" content="#ff9800" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     
     {/* Meta tags adicionales para mejor compatibilidad */}
     <link rel="image_src" href={ogImageUrl} />
+    <link rel="canonical" href={fullUrl} />
+    
+    {/* Meta tags específicos para WhatsApp (mejor compatibilidad) */}
+    <meta property="og:image:url" content={ogImageUrl} />
+    <meta name="twitter:image:src" content={ogImageUrl} />
     
     {/* Twitter Card */}
     <meta name="twitter:card" content="summary_large_image" />

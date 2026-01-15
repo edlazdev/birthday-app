@@ -8,7 +8,7 @@ export const chamaquitos: EventData = {
   age: "1",
   afterAge: "añito",
   tagline: "¡Acompáñanos a celebrar este lindo momento!",
-  date: "Sábado 08 de Febrero",
+  date: "Sábado 07 de Febrero",
   time: "4:30 PM",
   address: "Mz F Lt 37 Urb. Rosas del Valle, Trujillo",
   whatsapp: "51966761177",
