@@ -2,9 +2,13 @@
 import DateTimeCard from "./DateTimeCard.astro";
 import MapEmbed from "@/components/MapEmbed.astro";
 import type { EventDetailsProps } from "@/types";
+import RSVPSection from "./RSVPSection.astro";
 
 type Props = EventDetailsProps;
 const { eventData } = Astro.props;
+const base = import.meta.env.BASE_URL || "";
+const basePath = base.endsWith("/") ? base : `${base}/`;
+const albumHref = `${basePath}${eventData.slug}/album`;
 ---
 
 <section class="details text-center my-4 bg-white shadow-lg rounded-2xl">
@@ -13,6 +17,7 @@ const { eventData } = Astro.props;
     <div class="animate-fade-up animate-delay-2">
       <DateTimeCard date={eventData.date} time={eventData.time} />
     </div>
+    <RSVPSection whatsapp={eventData.whatsapp} celebrant={eventData.celebrant} whatsappName={eventData.whatsappName} msgTooltip={eventData.msgTooltip} />
     <span class="animate-fade-up animate-delay-3 text-base md:text-xl font-normal tracking-wider py-2 m-0 text-gray-600">Te esperamos en:</span>
     <p class="animate-fade-up animate-delay-4">📍 {eventData.address}</p>
   </div>
@@ -25,12 +30,14 @@ const { eventData } = Astro.props;
     />
   </div>
 
-  <p class="animate-fade-up animate-delay-6 text-base md:text-xl font-normal m-0 py-4">
-    📷
-    <a href={`/birthday-app/${eventData.slug}/album`} class="album-link text-gray-600 underline transition-colors duration-200 hover:text-[var(--secondary)]">
-      {eventData.msgRedirectAlbum}
-    </a>
-  </p>
+  {eventData.showAlbum !== false && eventData.msgRedirectAlbum && (
+    <p class="animate-fade-up animate-delay-6 text-base md:text-xl font-normal m-0 py-4">
+      📷
+      <a href={albumHref} class="album-link text-gray-600 underline transition-colors duration-200 hover:text-[var(--secondary)]">
+        {eventData.msgRedirectAlbum}
+      </a>
+    </p>
+  )}
 </section>
 <style>
   .details .tagline {

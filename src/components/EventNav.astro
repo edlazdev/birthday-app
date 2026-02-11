@@ -2,7 +2,7 @@
 import type { EventNavProps } from "@/types";
 
 type Props = EventNavProps;
-const { slug } = Astro.props;
+const { slug, showAlbum = true } = Astro.props;
 
 // Obtener la ruta actual
 const currentPath = Astro.url.pathname;
@@ -22,11 +22,13 @@ const isInvitationActive = !isAlbumActive;
   >
     INVITACIÓN
   </a>
-  <a 
-    href={`${basePath}${slug}/album`}
-    class={isAlbumActive ? "active" : ""}
-  >
-    ÁLBUM
-  </a>
+  {showAlbum && (
+    <a 
+      href={`${basePath}${slug}/album`}
+      class={isAlbumActive ? "active" : ""}
+    >
+      ÁLBUM
+    </a>
+  )}
 </nav>
 

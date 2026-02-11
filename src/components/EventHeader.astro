@@ -1,14 +1,21 @@
 ---
 import type { EventHeaderProps } from "@/types";
+import Avatar from "./Avatar.astro";
 
 type Props = EventHeaderProps;
 const { eventData } = Astro.props;
 ---
 
 <section class="event-header">
-  <div class="subtitle animate-fade-up animate-delay-1">{eventData.beforeCelebrant}</div>
-  <div class="title animate-fade-up animate-delay-2">{eventData.celebrant}</div>
-  <div class="after-title animate-fade-up animate-delay-3">
+  <div class="subtitle animate-fade-up animate-delay-2">{eventData.beforeCelebrant}</div>
+  {eventData.showAvatar !== false && (
+    <div class="event-header__avatar mt-4 animate-fade-up animate-delay-1">
+      <Avatar slug={eventData.slug} showAvatar={eventData.showAvatar} alt={`${eventData.celebrant}, cumpleañero`} />
+    </div>
+  )}
+  
+  <div class="title animate-fade-up animate-delay-3">{eventData.celebrant}</div>
+  <div class="after-title animate-fade-up animate-delay-4">
     <span>{eventData.title}</span>
     <div class="age">{eventData.age}</div>
     <span>{eventData.afterAge}</span>

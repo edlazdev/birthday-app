@@ -3,11 +3,16 @@ import type { FontConfig } from "./utils";
 // React Component Props
 export interface RSVPSectionWrapperProps {
   whatsapp: string;
+  celebrant: string;
+  /** Nombre para el saludo en el mensaje (ej. "Hola [whatsappName], ..."). Si no se define, se usa "Hola,". */
+  whatsappName?: string;
   msgTooltip?: string;
 }
 
 export interface ConfirmFormProps {
   whatsapp: string;
+  celebrant: string;
+  whatsappName?: string;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -67,11 +72,20 @@ export interface EventLayoutProps {
 
 export interface RSVPSectionProps {
   whatsapp: string;
+  celebrant: string;
+  whatsappName?: string;
   msgTooltip?: string;
 }
 
 export interface EventHeaderProps {
   eventData: EventData;
+}
+
+export interface AvatarProps {
+  slug: string;
+  /** Si es false no se renderiza. Por defecto true. */
+  showAvatar?: boolean;
+  alt?: string;
 }
 
 export interface EventDetailsProps {
@@ -80,9 +94,18 @@ export interface EventDetailsProps {
 
 export interface EventNavProps {
   slug: string;
+  showAlbum?: boolean;
 }
 
 // Data Types
+/** Variables CSS del tema (--primary, --secondary, etc.). Definir por slug para que las variables cambien según el evento. */
+export type ThemeVariables = {
+  primary?: string;
+  secondary?: string;
+  tertiary?: string;
+  bg?: string;
+};
+
 export type EventData = {
   slug: string;
   beforeCelebrant?: string;
@@ -95,6 +118,7 @@ export type EventData = {
   time: string;
   address: string;
   whatsapp: string;
+  whatsappName?: string;
   msgRedirectAlbum?: string;
   msgTooltip?: string;
   map: {
@@ -110,6 +134,14 @@ export type EventData = {
     facebook: boolean;
     instagram: boolean;
   };
+  /** Si es true (por defecto), se muestra el enlace al álbum y la página /album está accesible. Si es false, se ocultan enlaces y se redirige desde /album. */
+  showAlbum?: boolean;
+  /** Colores del tema por evento. Se inyectan como variables CSS (--primary, --secondary, --tertiary, --bg) en el body. Si no se define, se usan los de :root en theme.css. */
+  theme?: ThemeVariables;
+  /** Si es true, se usa el video de backgroundVideo como fondo. Si es false, se usa la imagen cover del slug. Por defecto true cuando existe backgroundVideo. */
+  showVideoBackground?: boolean;
+  /** Si es true, se muestra la foto del cumpleañero (avatar) desde assets/events/[slug]/avatar.jpg. Si es false, no se muestra. Por defecto true. */
+  showAvatar?: boolean;
   backgroundVideo?: {
     // Video único para todas las páginas (compatibilidad hacia atrás)
     youtubeId?: string;

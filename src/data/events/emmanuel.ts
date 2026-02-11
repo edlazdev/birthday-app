@@ -1,22 +1,23 @@
 import type { EventData } from "@/types";
 
-export const chamaquitos: EventData = {
-  slug: "chamaquitos",
-  beforeCelebrant: "Nuestros",
-  celebrant: "Chamaquitos",
-  title: "Cumplen",
-  age: "1",
-  afterAge: "añito",
-  tagline: "¡Acompáñanos a celebrar este lindo momento!",
-  date: "Sábado 07 de Febrero",
-  time: "4:30 PM",
-  address: "Mz F Lt 37 Urb. Rosas del Valle, Trujillo",
-  whatsapp: "51966761177",
+export const emmanuel: EventData = {
+  slug: "emmanuel",
+  beforeCelebrant: "Soy",
+  celebrant: "Emmanuel",
+  title: "Cumplo",
+  age: "2",
+  afterAge: "añitos",
+  tagline: "¡Acompáñame a celebrar mi cumpleaños!",
+  date: "Jueves 19 de Febrero",
+  time: "5:00 PM",
+  address: "Manuel Arevalo III Etapa, Mz  A38 Lt 30",
+  whatsapp: "51902767559",
+  whatsappName: "Ronal",
   msgRedirectAlbum: "Mira cuánto hemos crecido",
   msgTooltip: "Asegura tu comida 😜",
   map: {
-    lat: -8.0881487,
-    lng: -79.0530356,
+    lat: -8.0699676,
+    lng: -79.0701625,
   },
   albumCount: 12,
   fonts: {
@@ -35,22 +36,22 @@ export const chamaquitos: EventData = {
     instagram: true,
     facebook: true,
   },
-  showAlbum: true,
+  showAlbum: false,
   showAvatar: true,
   theme: {
-    primary: "#FBBD0B",
-    secondary: "#26B5BA",
+    primary: "#F7710A",
+    secondary: "#36BA2C",
     tertiary: "#EA5C4A",
-    bg: "#fff8ee",
+    bg: "#eef2ff",
   },
-  showVideoBackground: true,
+  showVideoBackground: false,
   backgroundVideo: {
     // Video para la página de invitación
     invitation: {
-      youtubeId: "7QAe_RFewEQ", // Reemplaza con el ID del video para invitación
+      youtubeId: "4XJ5XaTalIw", // Reemplaza con el ID del video para invitación
       muted: true, // Cambiado a true para permitir autoplay
       loop: true,
-      start: 2,
+      start: 12,
     },
     // Video para la página del álbum
     album: {

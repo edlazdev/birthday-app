@@ -4,7 +4,6 @@ import EventNav from "@/components/EventNav.astro";
 import EventHeader from "@/components/EventHeader.astro";
 import EventDetails from "@/components/EventDetails.astro";
 import Footer from "@/components/Footer.astro";
-import RSVPSection from "@/components/RSVPSection.astro";
 
 import { events } from "@/data/events";
 import { DEFAULT_EVENT } from "@/utils";
@@ -19,7 +18,6 @@ export function getStaticPaths() {
 const { event } = Astro.params;
 const eventKey = event && event in events ? event : DEFAULT_EVENT;
 const data = events[eventKey as keyof typeof events];
-console.log("🚀 ~ data:", data);
 
 if (!data) {
   throw new Error("Evento no encontrado");
@@ -28,13 +26,13 @@ if (!data) {
 
 <EventLayout eventData={data}>
   <main class="event-container">
-    <EventNav slug={data.slug} />
+    <EventNav slug={data.slug} showAlbum={data.showAlbum} />
 
     <EventHeader eventData={data} />
 
+    
     <EventDetails eventData={data} />
     
-    <RSVPSection whatsapp={data.whatsapp} msgTooltip={data.msgTooltip} />
     
     <Footer
       year={new Date().getFullYear()}

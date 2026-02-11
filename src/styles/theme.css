@@ -1,12 +1,8 @@
+/* Valores por defecto cuando el evento no define theme. Por slug, las variables se inyectan desde EventLayout con eventData.theme (body.theme-${slug}). */
 :root {
   --primary: #ff9800;
   --secondary: #ffe0b2;
-}
-
-.theme-chamaquitos {
-  --primary: #FBBD0B;
-  --secondary: #26B5BA;
-  --tertiary: #EA5C4A;
+  --tertiary: #ea5c4a;
   --bg: #fff8ee;
 }
 

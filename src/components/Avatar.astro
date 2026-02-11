@@ -1,0 +1,70 @@
+---
+import type { AvatarProps } from "@/types";
+import { getEventImagePath } from "@/utils/images";
+
+type Props = AvatarProps;
+const { slug, showAvatar = true, alt = "Foto del cumpleañero" } = Astro.props;
+
+if (!showAvatar) {
+  return null;
+}
+
+const avatarSrc = getEventImagePath(slug, "avatar.jpg");
+---
+
+<figure class="avatar-wrapper avatar" data-avatar>
+  <img
+    src={avatarSrc}
+    alt={alt}
+    width="200"
+    height="200"
+    class="avatar__img"
+    loading="eager"
+    onerror="this.closest('.avatar-wrapper')?.classList.add('avatar--hidden')"
+  />
+</figure>
+
+<style>
+  .avatar-wrapper {
+    display: block;
+    margin: 0 auto 1rem;
+    width: fit-content;
+  }
+
+  .avatar-wrapper.avatar--hidden {
+    display: none !important;
+  }
+
+  .avatar {
+    --avatar-size: 7rem;
+    --avatar-ring: 4px;
+    --avatar-ring-color: var(--primary, #ff9800);
+    --avatar-shadow: var(--secondary, #ffe0b2);
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: 50%;
+    padding: var(--avatar-ring);
+    background: linear-gradient(135deg, var(--avatar-ring-color), var(--avatar-shadow));
+    /* box-shadow:
+      0 4px 14px rgba(0, 0, 0, 0.12),
+      0 0 0 var(--avatar-ring) var(--avatar-ring-color); */
+    overflow: hidden;
+  }
+
+  .avatar__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+    background: var(--avatar-shadow);
+  }
+
+  @media (min-width: 768px) {
+    .avatar {
+      --avatar-size: 12rem;
+      --avatar-ring: 5px;
+      margin-bottom: 1.25rem;
+    }
+  }
+</style>

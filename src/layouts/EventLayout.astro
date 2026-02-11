@@ -3,108 +3,52 @@ import FontLoader from "@/components/FontLoader.astro";
 import VolumeButton from "@/components/VolumeButton.tsx";
 import type { EventLayoutProps } from "@/types";
 import { getEventImagePath } from "@/utils/images";
+import {
+  getVideoConfig,
+  getYoutubeEmbedUrl,
+  getThemeColor,
+  getThemeInjectCSS,
+  getOgImageUrl,
+  getFullUrl,
+} from "@/utils/layout";
 import "../styles/global.css";
 import "../styles/theme.css";
 
-type Props = EventLayoutProps;
-
 const { eventData } = Astro.props;
+const currentPath = Astro.url.pathname;
+const isAlbumPage = currentPath.includes("/album");
+
+// Cover siempre según slug (se usa cuando no hay video o showVideoBackground es false)
 const coverImagePath = getEventImagePath(eventData.slug, "cover.jpg");
 
-// Detectar qué página está activa
-const currentPath = Astro.url.pathname;
-const isAlbumPage = currentPath.includes('/album');
+// Video: solo si showVideoBackground !== false y hay config
+let videoConfig = getVideoConfig(eventData, isAlbumPage);
+if (eventData.showVideoBackground === false) videoConfig = null;
+const youtubeUrl = videoConfig ? getYoutubeEmbedUrl(videoConfig) : "";
 
-// Construir URLs para meta tags
-const site = 'https://edlazdev.github.io';
-const base = '/birthday-app';
-const basePath = base.endsWith("/") ? base : `${base}/`;
-
-// Construir URL completa de la página actual
-let cleanPath = currentPath.replace(/^\/+/, '').replace(base.replace(/^\/+/, ''), '');
-if (cleanPath && !cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
-if (!cleanPath || cleanPath === '/') cleanPath = '';
-const fullUrl = `${site}${basePath}${cleanPath}`.replace(/\/+/g, '/').replace(':/', '://');
-
-// La imagen cover.jpg está en public/assets/events/${slug}/cover.jpg
-// Construir URL absoluta de la imagen (asegurar formato correcto)
-const ogImageUrl = `${site}${basePath}assets/events/${eventData.slug}/cover.jpg`.replace(/\/+/g, '/').replace(':/', '://');
-
-// Generar título y descripción para la vista previa
-const pageTitle = isAlbumPage 
+// URLs y meta
+const fullUrl = getFullUrl(currentPath);
+const ogImageUrl = getOgImageUrl(eventData.slug);
+const pageTitle = isAlbumPage
   ? `Álbum - ${eventData.celebrant}`
-  : `${eventData.celebrant} - ${eventData.title} ${eventData.age} ${eventData.afterAge || ''}`;
-
+  : `${eventData.celebrant} - ${eventData.title} ${eventData.age} ${eventData.afterAge ?? ""}`;
 const pageDescription = isAlbumPage
   ? `Mira las fotos del álbum de ${eventData.celebrant}`
-  : `${eventData.tagline || `Invitación para celebrar ${eventData.title.toLowerCase()} ${eventData.age} ${eventData.afterAge || ''} de ${eventData.celebrant}`}. ${eventData.date} a las ${eventData.time}. ${eventData.address}`;
+  : `${eventData.tagline ?? `Invitación para celebrar ${eventData.title.toLowerCase()} ${eventData.age} ${eventData.afterAge ?? ""} de ${eventData.celebrant}`}. ${eventData.date} a las ${eventData.time}. ${eventData.address}`;
 
-// Configurar video de YouTube según la página
-let videoConfig: { youtubeId: string; muted: boolean; loop: boolean; start?: number } | null = null;
-
-if (eventData.backgroundVideo) {
-  if (isAlbumPage && eventData.backgroundVideo.album) {
-    // Video específico para la página del álbum
-    videoConfig = {
-      youtubeId: eventData.backgroundVideo.album.youtubeId,
-      muted: eventData.backgroundVideo.album.muted !== false,
-      loop: eventData.backgroundVideo.album.loop !== false,
-      start: eventData.backgroundVideo.album.start,
-    };
-  } else if (!isAlbumPage && eventData.backgroundVideo.invitation) {
-    // Video específico para la página de invitación
-    videoConfig = {
-      youtubeId: eventData.backgroundVideo.invitation.youtubeId,
-      muted: eventData.backgroundVideo.invitation.muted !== false,
-      loop: eventData.backgroundVideo.invitation.loop !== false,
-      start: eventData.backgroundVideo.invitation.start,
-    };
-  } else if (eventData.backgroundVideo.youtubeId) {
-    // Video único para todas las páginas (compatibilidad)
-    videoConfig = {
-      youtubeId: eventData.backgroundVideo.youtubeId,
-      muted: eventData.backgroundVideo.muted !== false,
-      loop: eventData.backgroundVideo.loop !== false,
-      start: eventData.backgroundVideo.start,
-    };
-  }
-}
-
-// Construir URL de YouTube embed con parámetros
-let youtubeUrl = "";
-if (videoConfig) {
-  const params = new URLSearchParams({
-    autoplay: "1",
-    mute: videoConfig.muted ? "1" : "0",
-    loop: videoConfig.loop ? "1" : "0",
-    playlist: videoConfig.loop ? videoConfig.youtubeId : "",
-    controls: "0",
-    showinfo: "0",
-    rel: "0",
-    modestbranding: "1",
-    playsinline: "1",
-    enablejsapi: "1",
-  });
-  
-  // Agregar start si está definido
-  if (videoConfig.start !== undefined) {
-    params.set("start", videoConfig.start.toString());
-  }
-  
-  youtubeUrl = `https://www.youtube.com/embed/${videoConfig.youtubeId}?${params.toString()}`;
-}
+// Tema
+const themeColor = getThemeColor(eventData);
+const themeCSS = getThemeInjectCSS(eventData);
 ---
 
 <html lang="es">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    
-    {/* Meta tags básicos */}
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />
-    
-    {/* Open Graph / Facebook / WhatsApp */}
+
+    <!-- Open Graph / Facebook / WhatsApp -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content={fullUrl} />
     <meta property="og:title" content={pageTitle} />
@@ -115,42 +59,36 @@ if (videoConfig) {
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={`Vista previa de ${eventData.celebrant}`} />
+    <meta property="og:image:url" content={ogImageUrl} />
     <meta property="og:locale" content="es_ES" />
     <meta property="og:site_name" content="Invitación de Cumpleaños" />
-    
-    {/* Meta tags adicionales para WhatsApp y TikTok */}
+
     <meta name="format-detection" content="telephone=no" />
-    <meta name="theme-color" content="#ff9800" />
+    <meta name="theme-color" content={themeColor} />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    
-    {/* Meta tags adicionales para mejor compatibilidad */}
     <link rel="image_src" href={ogImageUrl} />
     <link rel="canonical" href={fullUrl} />
-    
-    {/* Meta tags específicos para WhatsApp (mejor compatibilidad) */}
-    <meta property="og:image:url" content={ogImageUrl} />
-    <meta name="twitter:image:src" content={ogImageUrl} />
-    
-    {/* Twitter Card */}
+    {themeCSS && <style set:html={themeCSS} />}
+
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content={fullUrl} />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={pageDescription} />
     <meta name="twitter:image" content={ogImageUrl} />
+    <meta name="twitter:image:src" content={ogImageUrl} />
     <meta name="twitter:image:alt" content={`Vista previa de ${eventData.celebrant}`} />
-    
+
     <FontLoader titleFont={eventData.fonts.title} textFont={eventData.fonts.text} />
+
     {videoConfig && (
       <script is:inline>
-        // Cargar YouTube IFrame API si no está cargada
         if (!window.YT) {
           const tag = document.createElement("script");
           tag.src = "https://www.youtube.com/iframe_api";
-          const firstScriptTag = document.getElementsByTagName("script")[0];
-          if (firstScriptTag && firstScriptTag.parentNode) {
-            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-          }
+          const first = document.getElementsByTagName("script")[0];
+          if (first?.parentNode) first.parentNode.insertBefore(tag, first);
         }
       </script>
     )}
@@ -168,19 +106,18 @@ if (videoConfig) {
             allowfullscreen
             aria-hidden="true"
             loading="eager"
-          ></iframe>
+          />
         </div>
         <VolumeButton client:load videoId={videoConfig.youtubeId} initialMuted={videoConfig.muted} />
       </>
     ) : (
-      <div class="background-image" style={`background-image: url('${coverImagePath}');`}></div>
+      <div class="background-image" style={`background-image: url('${coverImagePath}');`} />
     )}
     <slot />
   </body>
 </html>
 
 <style>
-  /* Mobile-first: Estilos base para móviles */
   body {
     position: relative;
     min-height: 100vh;
@@ -189,10 +126,7 @@ if (videoConfig) {
 
   .background-video-container {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     z-index: -1;
     overflow: hidden;
   }
@@ -203,61 +137,42 @@ if (videoConfig) {
     left: 50%;
     width: 100vw;
     height: 100vh;
-    transform: translate(-50%, -50%);
     min-width: 100%;
     min-height: 100%;
+    transform: translate(-50%, -50%);
     object-fit: cover;
     pointer-events: none;
   }
 
-  /* Asegurar que el video cubra toda la pantalla en diferentes aspect ratios */
   @media (min-aspect-ratio: 16/9) {
     .background-video {
       width: 100vw;
-      height: 56.25vw; /* 16:9 aspect ratio */
+      height: 56.25vw;
     }
   }
 
   @media (max-aspect-ratio: 16/9) {
     .background-video {
-      width: 177.78vh; /* 16:9 aspect ratio */
+      width: 177.78vh;
       height: 100vh;
     }
   }
 
   .background-image {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
+    z-index: -1;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-attachment: scroll;
-    z-index: -1;
   }
-  
-  /* Overlay semi-transparente para mejorar legibilidad del contenido */
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    /* background: rgba(255, 255, 255, 0.881); */
-    z-index: -1;
-  }
-  
-  /* Tablet y desktop: min-width 768px */
+
   @media (min-width: 768px) {
     .background-image {
-      background-attachment: fixed; /* Efecto parallax en pantallas grandes */
+      background-attachment: fixed;
     }
   }
 
-  /* Botón de volumen */
   :global(.volume-button) {
     position: fixed;
     bottom: 1.5rem;
@@ -293,7 +208,6 @@ if (videoConfig) {
     transition: color 0.3s ease;
   }
 
-  /* Tablet y desktop: ajustes del botón */
   @media (min-width: 768px) {
     :global(.volume-button) {
       width: 3.5rem;
@@ -301,7 +215,6 @@ if (videoConfig) {
       bottom: 2rem;
       right: 2rem;
     }
-
     :global(.volume-icon) {
       width: 1.75rem;
       height: 1.75rem;

@@ -15,6 +15,14 @@ export function getStaticPaths() {
 const { event } = Astro.params;
 const eventKey = event && event in events ? event : DEFAULT_EVENT;
 const data = events[eventKey as keyof typeof events];
+
+// Si el evento tiene el álbum deshabilitado, redirigir a la invitación
+if (data.showAlbum === false) {
+  const base = import.meta.env.BASE_URL || "";
+  const basePath = base.endsWith("/") ? base : `${base}/`;
+  return Astro.redirect(`${basePath}${data.slug}`);
+}
+
 const albumImages = Array.from({ length: data.albumCount }).map((_, i) => 
   getEventImagePath(data.slug, `album/photo (${i}).jpeg`)
 );
@@ -22,7 +30,7 @@ const albumImages = Array.from({ length: data.albumCount }).map((_, i) =>
 
 <EventLayout eventData={data}>
   <main class="event-container">
-    <EventNav slug={data.slug} />
+    <EventNav slug={data.slug} showAlbum={data.showAlbum} />
     
     <ImageGallery client:load images={albumImages} altPrefix="Mes" />
   </main>

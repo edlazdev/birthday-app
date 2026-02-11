@@ -25,8 +25,9 @@ export type {
   EventHeaderProps,
   EventDetailsProps,
   EventNavProps,
-  ImageGalleryProps
+  ImageGalleryProps,
+  AvatarProps
 } from "./components";
 
 // Data types
-export type { EventData } from "./components";
+export type { EventData, ThemeVariables } from "./components";
