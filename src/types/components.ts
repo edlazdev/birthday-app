@@ -162,4 +162,6 @@ export type EventData = {
       start?: number; // Segundo en el que iniciar el video
     };
   };
+  /** Recomendaciones de regalo para mostrar en la invitación. Si está vacío o no se define, no se muestra la sección. */
+  giftRecommendations?: string[];
 };

@@ -3,6 +3,7 @@ import DateTimeCard from "./DateTimeCard.astro";
 import MapEmbed from "@/components/MapEmbed.astro";
 import type { EventDetailsProps } from "@/types";
 import RSVPSection from "./RSVPSection.astro";
+import GiftRecommendations from "./GiftRecommendations.astro";
 
 type Props = EventDetailsProps;
 const { eventData } = Astro.props;
@@ -37,6 +38,10 @@ const albumHref = `${basePath}${eventData.slug}/album`;
         {eventData.msgRedirectAlbum}
       </a>
     </p>
+  )}
+
+  {eventData.giftRecommendations && eventData.giftRecommendations.length > 0 && (
+    <GiftRecommendations items={eventData.giftRecommendations} />
   )}
 </section>
 <style>

@@ -44,6 +44,12 @@ export const emmanuel: EventData = {
     tertiary: "#EA5C4A",
     bg: "#eef2ff",
   },
+  giftRecommendations: [
+    "Mesa de regalos",
+    "Libros didácticos",
+    "Libros de cuentos",
+    "Libros para colorear"
+  ],
   showVideoBackground: false,
   backgroundVideo: {
     // Video para la página de invitación
