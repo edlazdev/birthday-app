@@ -1,6 +1,7 @@
 import type { EventData } from "@/types";
 
 export const chamaquitos: EventData = {
+  type: "birthday",
   slug: "chamaquitos",
   beforeCelebrant: "Nuestros",
   celebrant: "Chamaquitos",

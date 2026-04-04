@@ -7,6 +7,7 @@ export interface RSVPSectionWrapperProps {
   /** Nombre para el saludo en el mensaje (ej. "Hola [whatsappName], ..."). Si no se define, se usa "Hola,". */
   whatsappName?: string;
   msgTooltip?: string;
+  type: "wedding" | "birthday";
 }
 
 export interface ConfirmFormProps {
@@ -15,6 +16,7 @@ export interface ConfirmFormProps {
   whatsappName?: string;
   isOpen: boolean;
   onClose: () => void;
+  type: "wedding" | "birthday";
 }
 
 export interface ImageGalleryProps {
@@ -75,6 +77,7 @@ export interface RSVPSectionProps {
   celebrant: string;
   whatsappName?: string;
   msgTooltip?: string;
+  type: "wedding" | "birthday";
 }
 
 export interface EventHeaderProps {
@@ -107,7 +110,10 @@ export type ThemeVariables = {
 };
 
 export type EventData = {
+  type: "wedding" | "birthday" | "other";
   slug: string;
+  recommendationsTitle?: string;
+  recommendationsDescription?: string;
   beforeCelebrant?: string;
   celebrant: string;
   title: string;
@@ -164,4 +170,6 @@ export type EventData = {
   };
   /** Recomendaciones de regalo para mostrar en la invitación. Si está vacío o no se define, no se muestra la sección. */
   giftRecommendations?: string[];
+  /** Nombre del sitio para Open Graph (og:site_name). Si no se define, se deriva del tipo de evento y el celebrant. */
+  ogSiteName?: string;
 };

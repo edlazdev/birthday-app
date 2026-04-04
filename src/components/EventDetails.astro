@@ -13,12 +13,20 @@ const albumHref = `${basePath}${eventData.slug}/album`;
 ---
 
 <section class="details text-center my-4 bg-white shadow-lg rounded-2xl">
-  <p class="tagline animate-fade-up animate-delay-1 text-lg md:text-2xl font-black tracking-wider text-[var(--tertiary)] m-0 p-4">{eventData.tagline}</p>
+  { eventData.tagline && (
+    <p class="tagline animate-fade-up animate-delay-1 text-lg md:text-2xl font-black tracking-wider text-[var(--tertiary)] m-0 p-4">{eventData.tagline}</p>
+  )}
   <div class="event-info text-base md:text-2xl font-normal tracking-wider m-0 px-4 md:px-16 pt-0 md:pt-4 text-[var(--secondary)]">
     <div class="animate-fade-up animate-delay-2">
       <DateTimeCard date={eventData.date} time={eventData.time} />
     </div>
-    <RSVPSection whatsapp={eventData.whatsapp} celebrant={eventData.celebrant} whatsappName={eventData.whatsappName} msgTooltip={eventData.msgTooltip} />
+    <RSVPSection whatsapp={eventData.whatsapp} celebrant={eventData.celebrant} whatsappName={eventData.whatsappName} msgTooltip={eventData.msgTooltip} type={eventData.type as "wedding" | "birthday"}/>
+  {eventData.type === "wedding" && (
+    <div class="animate-fade-up animate-delay-5 py-4">
+      <span class="text-sm font-normal tracking-wider py-2 m-0 text-gray-600">Amamos a los niños, pero hemos reservado sitios solo para adultos.</span>
+      <span class="text-sm font-normal tracking-wider py-2 m-0 text-gray-600">Niños dulces sueños.</span>
+    </div>
+  )}
     <span class="animate-fade-up animate-delay-3 text-base md:text-xl font-normal tracking-wider py-2 m-0 text-gray-600">Te esperamos en:</span>
     <p class="animate-fade-up animate-delay-4">📍 {eventData.address}</p>
   </div>
@@ -31,6 +39,7 @@ const albumHref = `${basePath}${eventData.slug}/album`;
     />
   </div>
 
+
   {eventData.showAlbum !== false && eventData.msgRedirectAlbum && (
     <p class="animate-fade-up animate-delay-6 text-base md:text-xl font-normal m-0 py-4">
       📷
@@ -41,20 +50,6 @@ const albumHref = `${basePath}${eventData.slug}/album`;
   )}
 
   {eventData.giftRecommendations && eventData.giftRecommendations.length > 0 && (
-    <GiftRecommendations items={eventData.giftRecommendations} />
+    <GiftRecommendations items={eventData.giftRecommendations} recommendationsTitle={eventData.recommendationsTitle} recommendationsDescription={eventData.recommendationsDescription} />
   )}
 </section>
-<style>
-  .details .tagline {
-    font-family: var(--font-text, sans-serif);
-  }
-  .details .event-info {
-    font-family: var(--font-text, sans-serif);
-  }
-  .details .event-info span {
-    font-family: var(--font-text, sans-serif);
-  }
-  .album-link {
-    font-family: var(--font-text, sans-serif);
-  }
-</style>

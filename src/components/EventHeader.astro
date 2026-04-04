@@ -3,22 +3,41 @@ import type { EventHeaderProps } from "@/types";
 import Avatar from "./Avatar.astro";
 
 type Props = EventHeaderProps;
-const { eventData } = Astro.props;
+const {
+  eventData: {
+    beforeCelebrant,
+    showAvatar,
+    slug,
+    celebrant,
+    title,
+    age,
+    afterAge,
+    type,
+  },
+} = Astro.props;
 ---
 
 <section class="event-header">
-  <div class="subtitle animate-fade-up animate-delay-2">{eventData.beforeCelebrant}</div>
-  {eventData.showAvatar !== false && (
-    <div class="event-header__avatar mt-4 animate-fade-up animate-delay-1">
-      <Avatar slug={eventData.slug} showAvatar={eventData.showAvatar} alt={`${eventData.celebrant}, cumpleañero`} />
-    </div>
-  )}
-  
-  <div class="title animate-fade-up animate-delay-3">{eventData.celebrant}</div>
-  <div class="after-title animate-fade-up animate-delay-4">
-    <span>{eventData.title}</span>
-    <div class="age">{eventData.age}</div>
-    <span>{eventData.afterAge}</span>
+  <div class={`subtitle animate-fade-up animate-delay-2 type-${type}`}>
+    {beforeCelebrant}
+  </div>
+  {
+    showAvatar !== false && (
+      <div class="event-header__avatar mt-4 animate-fade-up animate-delay-1">
+        <Avatar
+          slug={slug}
+          showAvatar={showAvatar}
+          alt={`${celebrant}, cumpleañero`}
+        />
+      </div>
+    )
+  }
+
+  <div class="title animate-fade-up animate-delay-3">{celebrant}</div>
+  <div class={`after-title animate-fade-up animate-delay-4 after-title-${type}`}>
+    <span>{title}</span>
+    <div class="age">{age}</div>
+    <span>{afterAge}</span>
   </div>
 </section>
 
@@ -27,15 +46,11 @@ const { eventData } = Astro.props;
   .event-header {
     text-align: center;
   }
-  
+
   .event-header .subtitle {
-    font-size: 1.25rem;
     font-family: var(--font-title, sans-serif);
-    font-weight: 900;
-    letter-spacing: 1px;
     color: var(--secondary);
     margin: 0;
-    padding: 0;
     line-height: 1;
     display: flex;
     flex-direction: row;
@@ -43,7 +58,21 @@ const { eventData } = Astro.props;
     justify-content: center;
     gap: 0.5rem;
   }
-  
+
+  .event-header .type-wedding {
+    font-weight: 700;
+    padding: 3rem 0;
+    font-size: 2rem;
+    letter-spacing: 0;
+  }
+
+  .event-header .type-birthday {
+    font-weight: 900;
+    padding: 0;
+    font-size: 1.25rem;
+    letter-spacing: 1px;
+  }
+
   .event-header .title {
     font-family: var(--font-title, sans-serif);
     font-weight: 900;
@@ -52,7 +81,7 @@ const { eventData } = Astro.props;
     margin: 0;
     padding: 0;
     line-height: 1;
-    letter-spacing: 1px;
+    /* letter-spacing: 1px; */
   }
 
   .after-title {
@@ -62,7 +91,7 @@ const { eventData } = Astro.props;
     align-items: center;
     gap: 0.5rem;
     color: var(--secondary);
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: bold;
     margin: 0;
     padding: 0;
@@ -77,13 +106,27 @@ const { eventData } = Astro.props;
     margin: 0;
   }
 
+  .after-title-wedding span{ 
+    font-size: 1rem;
+    padding: 3rem 0;
+    letter-spacing: 2px;
+    font-weight: 400;
+  }
+
+  .after-title-birthday span{ 
+    font-size: 1.5rem;
+    padding: 0;
+    letter-spacing: 1px;
+    font-weight: bold;
+  }
+
   .age {
     font-size: 4rem;
     color: var(--tertiary);
     font-weight: bold;
     font-family: var(--font-text, sans-serif);
   }
-  
+
   .after-age {
     font-size: 1.5rem;
     font-weight: bold;
@@ -92,13 +135,13 @@ const { eventData } = Astro.props;
   /* Tablet y desktop: min-width 768px */
   @media (min-width: 768px) {
     .event-header .subtitle {
-      font-size: 2rem;
-      letter-spacing: 2px;
+      font-size: 3rem;
+      /* letter-spacing: 2px; */
     }
-    
+
     .event-header .title {
       font-size: 6rem;
-      letter-spacing: 2px;
+      /* letter-spacing: 2px; */
     }
 
     .after-title {
@@ -106,13 +149,13 @@ const { eventData } = Astro.props;
     }
 
     .after-title span {
-      font-size: 2rem;
+      font-size: 1.5rem;
     }
 
     .age {
       font-size: 8rem;
     }
-    
+
     .after-age {
       font-size: 3rem;
     }

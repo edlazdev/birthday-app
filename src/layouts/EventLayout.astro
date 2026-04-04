@@ -6,6 +6,7 @@ import { getEventImagePath } from "@/utils/images";
 import {
   getVideoConfig,
   getYoutubeEmbedUrl,
+  getOgSiteName,
   getThemeColor,
   getThemeInjectCSS,
   getOgImageUrl,
@@ -39,6 +40,7 @@ const pageDescription = isAlbumPage
 // Tema
 const themeColor = getThemeColor(eventData);
 const themeCSS = getThemeInjectCSS(eventData);
+const ogSiteName = getOgSiteName(eventData);
 ---
 
 <html lang="es">
@@ -61,7 +63,7 @@ const themeCSS = getThemeInjectCSS(eventData);
     <meta property="og:image:alt" content={`Vista previa de ${eventData.celebrant}`} />
     <meta property="og:image:url" content={ogImageUrl} />
     <meta property="og:locale" content="es_ES" />
-    <meta property="og:site_name" content="Invitación de Cumpleaños" />
+    <meta property="og:site_name" content={ogSiteName} />
 
     <meta name="format-detection" content="telephone=no" />
     <meta name="theme-color" content={themeColor} />

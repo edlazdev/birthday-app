@@ -3,7 +3,7 @@ import ConfirmForm from './ConfirmForm';
 import type { RSVPSectionWrapperProps } from '@/types';
 
 
-export default function RSVPSectionWrapper({ whatsapp, celebrant, whatsappName, msgTooltip }: RSVPSectionWrapperProps) {
+export default function RSVPSectionWrapper({ whatsapp, celebrant, whatsappName, msgTooltip, type }: RSVPSectionWrapperProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -54,7 +54,7 @@ export default function RSVPSectionWrapper({ whatsapp, celebrant, whatsappName, 
           )}
         </div>
       </section>
-      <ConfirmForm whatsapp={whatsapp} celebrant={celebrant} whatsappName={whatsappName} isOpen={isModalOpen} onClose={handleClose} />
+      <ConfirmForm whatsapp={whatsapp} celebrant={celebrant} whatsappName={whatsappName} isOpen={isModalOpen} onClose={handleClose} type={type} />
     </>
   );
 }

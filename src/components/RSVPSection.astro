@@ -4,8 +4,8 @@ import type { RSVPSectionProps } from "@/types";
 
 type Props = RSVPSectionProps;
 
-const { whatsapp, celebrant, whatsappName, msgTooltip } = Astro.props;
+const { whatsapp, celebrant, whatsappName, msgTooltip, type } = Astro.props;
 ---
 
-<RSVPSectionWrapper client:load whatsapp={whatsapp} celebrant={celebrant} whatsappName={whatsappName} msgTooltip={msgTooltip} />
+<RSVPSectionWrapper client:load whatsapp={whatsapp} celebrant={celebrant} whatsappName={whatsappName} msgTooltip={msgTooltip} type={type} />
 

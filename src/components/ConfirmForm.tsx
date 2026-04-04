@@ -1,14 +1,13 @@
 import { useState } from "react";
 import type { ConfirmFormProps } from "@/types";
 
-const GREETING_NAME = "organizador";
-
 export default function ConfirmForm({
   whatsapp,
   celebrant,
   whatsappName,
   isOpen,
   onClose,
+  type,
 }: ConfirmFormProps) {
   const [formData, setFormData] = useState({
     name: "",
@@ -19,6 +18,8 @@ export default function ConfirmForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const isWedding = type === "wedding";
+
   if (!isOpen) return null;
 
   const validateForm = (): boolean => {
@@ -28,9 +29,13 @@ export default function ConfirmForm({
       newErrors.name = "El nombre es requerido";
     }
 
-    const total = formData.adults + formData.boys + formData.girls;
-    if (total === 0) {
-      newErrors.guests = "Indica al menos una persona (adulto, niño o niña)";
+    const totalGuests = isWedding
+      ? formData.adults
+      : formData.adults + formData.boys + formData.girls;
+    if (totalGuests === 0) {
+      newErrors.guests = isWedding
+        ? "Indica al menos un adulto"
+        : "Indica al menos una persona (adulto, niño o niña)";
     }
 
     setErrors(newErrors);
@@ -41,15 +46,23 @@ export default function ConfirmForm({
     const greeting = whatsappName?.trim()
       ? `Hola 👋 ${whatsappName.trim()},`
       : "Hola 👋,";
+    const eventLine = isWedding
+      ? `Confirmo mi asistencia a la boda 💒 de ${celebrant}.`
+      : `Confirmo mi asistencia al cumpleaños 🎂 de ${celebrant}.`;
+    const quantityLines = isWedding
+      ? [`  👨‍👩‍👧‍👦 Adultos: ${formData.adults}`]
+      : [
+          `  👨‍👩‍👧‍👦 Adultos: ${formData.adults}`,
+          `  👦 Niños: ${formData.boys}`,
+          `  👧 Niñas: ${formData.girls}`,
+        ];
     const lines = [
       `${greeting}`,
       "",
-      `Confirmo mi asistencia al cumpleaños 🎂 de ${celebrant}.`,
+      eventLine,
       "",
       "📋 Cantidades:",
-      `  👨‍👩‍👧‍👦 Adultos: ${formData.adults}`,
-      `  👦 Niños: ${formData.boys}`,
-      `  👧 Niñas: ${formData.girls}`,
+      ...quantityLines,
       "",
       `— ${formData.name.trim()}`,
     ];
@@ -182,63 +195,67 @@ export default function ConfirmForm({
               </div>
             </div>
 
-            {/* Niños */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                👦 Niños <span className="text-red-500">*</span>
-              </label>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => adjustNumber("boys", -1)}
-                  disabled={formData.boys === 0}
-                  className={counterBtnClass}
-                  aria-label="Disminuir niños"
-                >
-                  −
-                </button>
-                <div className="flex-1 text-center">
-                  <div className={counterDisplayClass}>{formData.boys}</div>
+            {!isWedding && (
+              <>
+                {/* Niños */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    👦 Niños <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => adjustNumber("boys", -1)}
+                      disabled={formData.boys === 0}
+                      className={counterBtnClass}
+                      aria-label="Disminuir niños"
+                    >
+                      −
+                    </button>
+                    <div className="flex-1 text-center">
+                      <div className={counterDisplayClass}>{formData.boys}</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => adjustNumber("boys", 1)}
+                      className={counterBtnClass}
+                      aria-label="Aumentar niños"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => adjustNumber("boys", 1)}
-                  className={counterBtnClass}
-                  aria-label="Aumentar niños"
-                >
-                  +
-                </button>
-              </div>
-            </div>
 
-            {/* Niñas */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                👧 Niñas <span className="text-red-500">*</span>
-              </label>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => adjustNumber("girls", -1)}
-                  disabled={formData.girls === 0}
-                  className={counterBtnClass}
-                  aria-label="Disminuir niñas"
-                >
-                  −
-                </button>
-                <div className="flex-1 text-center">
-                  <div className={counterDisplayClass}>{formData.girls}</div>
+                {/* Niñas */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    👧 Niñas <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => adjustNumber("girls", -1)}
+                      disabled={formData.girls === 0}
+                      className={counterBtnClass}
+                      aria-label="Disminuir niñas"
+                    >
+                      −
+                    </button>
+                    <div className="flex-1 text-center">
+                      <div className={counterDisplayClass}>{formData.girls}</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => adjustNumber("girls", 1)}
+                      className={counterBtnClass}
+                      aria-label="Aumentar niñas"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => adjustNumber("girls", 1)}
-                  className={counterBtnClass}
-                  aria-label="Aumentar niñas"
-                >
-                  +
-                </button>
-              </div>
-            </div>
+              </>
+            )}
 
             {errors.guests && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-xl">

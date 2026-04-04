@@ -1,6 +1,7 @@
 import type { EventData } from "@/types";
 
 export const emmanuel: EventData = {
+  type: "birthday",
   slug: "emmanuel",
   beforeCelebrant: "Soy",
   celebrant: "Emmanuel",

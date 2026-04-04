@@ -60,6 +60,16 @@ export function getYoutubeEmbedUrl(config: VideoConfig): string {
   return `https://www.youtube.com/embed/${config.youtubeId}?${params.toString()}`;
 }
 
+/** Nombre para og:site_name: explícito o según tipo + celebrant. */
+export function getOgSiteName(eventData: EventData): string {
+  const custom = eventData.ogSiteName?.trim();
+  if (custom) return custom;
+  const c = eventData.celebrant.trim();
+  if (eventData.type === "wedding") return `Boda · ${c}`;
+  if (eventData.type === "birthday") return `Cumpleaños · ${c}`;
+  return `Invitación · ${c}`;
+}
+
 /** Color para meta theme-color (primary del tema o fallback). */
 export function getThemeColor(eventData: EventData): string {
   return eventData.theme?.primary ?? "#ff9800";
