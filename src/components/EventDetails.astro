@@ -12,7 +12,7 @@ const basePath = base.endsWith("/") ? base : `${base}/`;
 const albumHref = `${basePath}${eventData.slug}/album`;
 ---
 
-<section class="details text-center my-4 bg-white shadow-lg rounded-2xl">
+<section class="details text-center my-4">
   { eventData.tagline && (
     <p class="tagline animate-fade-up animate-delay-1 text-lg md:text-2xl font-black tracking-wider text-[var(--tertiary)] m-0 p-4">{eventData.tagline}</p>
   )}
