@@ -47,15 +47,21 @@ export const ronalymaria: EventData = {
     bg: "#F5F5F0",
   },
   recommendationsTitle: "Sugerencias de regalo",
-  recommendationsDescription: "El mejor regalo es que estés presente en este día, pero si deseas hacernos un obsequio, aquí algunas sugerencias.",
+  recommendationsDescription:
+    "El mejor regalo es que estés presente en este día, pero si deseas hacernos un obsequio pueden dejarlo en: 📍 Manuel Arévalo 3era etapa Mz A 38 lote 30 Botica Malena (Frente al colegio Divino Jesús), tambien te dejamos algunas sugerencias.",
   giftRecommendations: [
-    "Viajes",
-    "Cenas",
-    "Electrodomésticos",
-    "Efectivo",
-    "Transferencia bancaria",
+    "✈ Viajes",
+    "🍽 Cenas",
+    "🔌 Electrodomésticos",
+    "💰 Efectivo",
+    "🏦 Transferencia BCP: 57070984724094",
+    "🏦 Transferencia Interbancaria: 00257017098472409407",
   ],
   showVideoBackground: false,
+  sponsors: {
+    groom: ["Carlos A. Ramos Bazán", "Lucy M. Sánchez Pavón "],
+    bride: ["Yeiner E. Vasquez Valle", "Esther Arenas Limas"],
+  },
   backgroundVideo: {
     // Video para la página de invitación
     invitation: {

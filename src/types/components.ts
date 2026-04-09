@@ -172,4 +172,9 @@ export type EventData = {
   giftRecommendations?: string[];
   /** Nombre del sitio para Open Graph (og:site_name). Si no se define, se deriva del tipo de evento y el celebrant. */
   ogSiteName?: string;
+  /** Bodas: padrinos por lado (novio / novia). Si no se define, no se muestra el bloque. */
+  sponsors?: {
+    groom: string[];
+    bride: string[];
+  };
 };
