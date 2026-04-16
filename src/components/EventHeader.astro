@@ -14,6 +14,7 @@ const {
     afterAge,
     type,
     sponsors,
+    witnesses,
   },
 } = Astro.props;
 
@@ -21,6 +22,9 @@ const showSponsors =
   type === "wedding" &&
   sponsors &&
   (sponsors.groom?.length > 0 || sponsors.bride?.length > 0);
+
+const showWitnesses =
+  type === "wedding" && witnesses && witnesses.length > 0;
 ---
 
 <section class="event-header">
@@ -74,6 +78,29 @@ const showSponsors =
       </div>
     )
   }
+  {
+    showWitnesses && (
+      <div
+        class:list={[
+          "event-header__sponsors",
+          "event-header__witnesses",
+          "animate-fade-up",
+          "animate-delay-4",
+          { "event-header__witnesses--after-sponsors": showSponsors },
+        ]}
+      >
+        <p class="event-header__sponsors-kicker" aria-hidden="true">
+          <span class="event-header__sponsors-ornament" />
+        </p>
+        <p class="event-header__sponsors-intro">Nuestros testigos</p>
+        <ul class="event-header__sponsors-list event-header__witnesses-list">
+          {witnesses!.map((name) => (
+            <li>{name}</li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
 </section>
 
 <style>
@@ -96,7 +123,7 @@ const showSponsors =
 
   .event-header .type-wedding {
     font-weight: 700;
-    padding: 2rem 0;
+    padding: 1rem 0;
     font-size: 2rem;
     letter-spacing: 0;
   }
@@ -143,7 +170,7 @@ const showSponsors =
 
   .after-title-wedding span{ 
     font-size: 1rem;
-    padding: 2rem 0;
+    padding: 1.5rem 0;
     letter-spacing: 2px;
     font-weight: 400;
   }
@@ -183,7 +210,7 @@ const showSponsors =
     font-family: var(--font-title, serif);
     font-size: clamp(1.65rem, 4.2vw, 2.35rem);
     color: var(--secondary);
-    margin: 0 0 1.85rem;
+    margin: 0 0 1rem;
     line-height: 1.15;
     font-weight: 400;
   }
@@ -259,9 +286,28 @@ const showSponsors =
     }
   }
 
+  .event-header__witnesses {
+    padding-top: 0.5rem;
+  }
+
+  .event-header__witnesses-list {
+    margin: 0 auto;
+    max-width: 22rem;
+    align-items: center;
+  }
+
+  .event-header__witnesses--after-sponsors {
+    margin-top: 2.25rem;
+    padding-top: 0;
+  }
+
   @media (min-width: 768px) {
     .event-header__sponsors {
       margin-top: 3.25rem;
+    }
+
+    .event-header__sponsors.event-header__witnesses--after-sponsors {
+      margin-top: 2.75rem;
     }
 
     .event-header__sponsors-list li {

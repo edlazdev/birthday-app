@@ -62,6 +62,10 @@ export const ronalymaria: EventData = {
     groom: ["Carlos A. Ramos Bazán", "Lucy M. Sánchez Pavón "],
     bride: ["Yeiner E. Vasquez Valle", "Esther Arenas Limas"],
   },
+  witnesses: [
+    "Jose L. Plasencia Carrera",
+    "Enrique Aguilar Vasquez",
+  ],
   backgroundVideo: {
     // Video para la página de invitación
     invitation: {

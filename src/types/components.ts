@@ -177,4 +177,6 @@ export type EventData = {
     groom: string[];
     bride: string[];
   };
+  /** Bodas: testigos (lista única para ambos). Si está vacío o no se define, no se muestra el bloque. */
+  witnesses?: string[];
 };
