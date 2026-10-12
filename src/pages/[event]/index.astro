@@ -13,7 +13,7 @@ const eventKey = event ? event : DEFAULT_EVENT;
 const data = await getTenantBySlug(eventKey);
 
 if (!data) {
-  return Astro.redirect(`/${DEFAULT_EVENT}/`);
+  return Astro.redirect("/");
 }
 
 // Si está en borrador, mostrar pantalla de cortesía

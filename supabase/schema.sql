@@ -6,8 +6,9 @@
 CREATE TABLE IF NOT EXISTS public.event_tenants (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     slug VARCHAR(100) UNIQUE NOT NULL,
+    owner_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     type VARCHAR(30) NOT NULL DEFAULT 'birthday', -- 'birthday', 'wedding', 'other'
-    status VARCHAR(20) NOT NULL DEFAULT 'published', -- 'published', 'draft', 'archived'
+    status VARCHAR(30) NOT NULL DEFAULT 'draft', -- 'published', 'draft', 'pending_approval', 'archived'
     
     -- Información del Festejado / Pareja
     celebrant VARCHAR(150) NOT NULL,
@@ -107,12 +108,45 @@ CREATE TABLE IF NOT EXISTS public.rsvp_confirmations (
     confirmed_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. Row Level Security (RLS)
+-- 3. Tabla de Perfiles de Usuario (Supabase Auth Profiles)
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    email VARCHAR(150),
+    full_name VARCHAR(150),
+    role VARCHAR(30) NOT NULL DEFAULT 'client', -- 'client', 'super_admin'
+    avatar_url TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. Tabla de Solicitudes de Publicación y Abonos Yape / Plin (S/ 50)
+CREATE TABLE IF NOT EXISTS public.publication_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID REFERENCES public.event_tenants(id) ON DELETE CASCADE,
+    tenant_slug VARCHAR(100) NOT NULL,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_email VARCHAR(150) NOT NULL,
+    user_name VARCHAR(150),
+    user_phone VARCHAR(50),
+    amount NUMERIC(10,2) NOT NULL DEFAULT 50.00,
+    payment_method VARCHAR(20) NOT NULL DEFAULT 'yape', -- 'yape', 'plin'
+    operation_code VARCHAR(100),
+    voucher_url TEXT,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
+    admin_notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    reviewed_at TIMESTAMPTZ,
+    reviewed_by UUID REFERENCES auth.users(id)
+);
+
+-- 5. Row Level Security (RLS)
 ALTER TABLE public.event_tenants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.rsvp_confirmations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.publication_requests ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para event_tenants:
--- Invitados pueden consultar eventos publicados (y los autenticados ven todos)
+-- Invitados pueden consultar eventos publicados (y los autenticados ven todos o sus propios eventos)
 DROP POLICY IF EXISTS "Public can view published events" ON public.event_tenants;
 CREATE POLICY "Public can view published events"
 ON public.event_tenants FOR SELECT
@@ -126,19 +160,48 @@ USING (true)
 WITH CHECK (true);
 
 -- Políticas para rsvp_confirmations:
--- Invitados pueden registrar su asistencia
 DROP POLICY IF EXISTS "Public can insert rsvp" ON public.rsvp_confirmations;
 CREATE POLICY "Public can insert rsvp"
 ON public.rsvp_confirmations FOR INSERT
 WITH CHECK (true);
 
--- Administradores autenticados pueden ver y gestionar confirmaciones
 DROP POLICY IF EXISTS "Authenticated users full access to rsvp_confirmations" ON public.rsvp_confirmations;
 CREATE POLICY "Authenticated users full access to rsvp_confirmations"
 ON public.rsvp_confirmations FOR ALL
 TO authenticated
 USING (true)
 WITH CHECK (true);
+
+-- Políticas para profiles:
+DROP POLICY IF EXISTS "Public can read profiles" ON public.profiles;
+CREATE POLICY "Public can read profiles"
+ON public.profiles FOR SELECT
+USING (true);
+
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+CREATE POLICY "Users can update own profile"
+ON public.profiles FOR UPDATE
+TO authenticated
+USING (auth.uid() = id);
+
+-- Políticas para publication_requests:
+DROP POLICY IF EXISTS "Users can view own publication requests" ON public.publication_requests;
+CREATE POLICY "Users can view own publication requests"
+ON public.publication_requests FOR SELECT
+TO authenticated
+USING (auth.uid() = user_id OR auth.jwt() ->> 'email' = 'edgar.lazaro23@gmail.com');
+
+DROP POLICY IF EXISTS "Users can create publication requests" ON public.publication_requests;
+CREATE POLICY "Users can create publication requests"
+ON public.publication_requests FOR INSERT
+TO authenticated
+WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Admins can update publication requests" ON public.publication_requests;
+CREATE POLICY "Admins can update publication requests"
+ON public.publication_requests FOR UPDATE
+TO authenticated
+USING (true);
 
 -- 4. Storage Bucket para Medios (Fotos, Portadas, Avatares, Álbumes)
 INSERT INTO storage.buckets (id, name, public)

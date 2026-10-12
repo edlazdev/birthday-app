@@ -16,7 +16,7 @@ import {
   type EditorSectionId,
 } from "@/constants/editor";
 import LivePhonePreview from "./editor/LivePhonePreview";
-import AdminLoginForm from "./AdminLoginForm";
+import UnifiedLoginForm from "@/components/auth/UnifiedLoginForm";
 import AdminUserBadge from "./AdminUserBadge";
 import PublicationRequestModal from "@/components/profile/PublicationRequestModal";
 
@@ -48,6 +48,25 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
   const [dirtySections, setDirtySections] = useState<Record<string, boolean>>({});
   const [feedback, setFeedback] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsDarkMode(document.documentElement.classList.contains("dark"));
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextDark = !isDarkMode;
+    setIsDarkMode(nextDark);
+    if (nextDark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("freeloader-theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("freeloader-theme", "light");
+    }
+  };
 
   // Check Supabase Auth
   useEffect(() => {
@@ -101,7 +120,12 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
       try {
         const data = await getTenantBySlug(initialSlug);
         if (data) {
-          setTenant(data);
+          const isSuper = user?.email === "edgar.lazaro23@gmail.com" || profile?.role === "super_admin";
+          if (!isSuper && data.ownerId && user && data.ownerId !== user.id) {
+            setLoadError("No tienes permisos para editar esta invitación.");
+          } else {
+            setTenant(data);
+          }
         } else {
           setLoadError(`No se encontró ningún evento con el slug '${initialSlug}'.`);
         }
@@ -225,7 +249,7 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
     if (supabase) {
       await supabase.auth.signOut();
       setUser(null);
-      window.location.href = "/admin";
+      window.location.href = "/login";
     }
   };
 
@@ -234,22 +258,22 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center text-slate-400 gap-3 font-sans">
         <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-xs font-medium">Verificando sesión administrativa...</p>
+        <p className="text-xs font-medium">Verificando sesión...</p>
       </div>
     );
   }
 
   // 2. Strict Protection: Login Screen if not authenticated
   if (isSupabaseConfigured && !user) {
-    return <AdminLoginForm onLogin={handleLogin} />;
+    return <UnifiedLoginForm redirectTo={`/admin/events/${initialSlug}`} />;
   }
 
   // 3. Loading screen for tenant data
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 gap-3 font-sans">
+      <div className="min-h-screen bg-[#FAF7F2] dark:bg-slate-950 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 gap-3 font-sans">
         <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-sm font-medium">Cargando editor del evento...</p>
+        <p className="text-sm font-semibold">Cargando editor del evento...</p>
       </div>
     );
   }
@@ -257,21 +281,21 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
   // 4. Not found / error screen
   if (loadError || !tenant) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 font-sans">
-        <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center space-y-4">
+      <div className="min-h-screen bg-[#FAF7F2] dark:bg-slate-950 flex items-center justify-center p-4 font-sans">
+        <div className="max-w-md w-full bg-white dark:bg-slate-900 border border-amber-900/[0.08] dark:border-slate-800 rounded-3xl p-6 text-center space-y-4 shadow-xl">
           <div className="text-4xl">⚠️</div>
-          <h2 className="text-lg font-bold text-white">Evento no disponible</h2>
-          <p className="text-xs text-slate-400">{loadError || "No se pudo cargar el evento solicitado."}</p>
+          <h2 className="text-lg font-bold text-slate-950 dark:text-white">Evento no disponible</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400">{loadError || "No se pudo cargar el evento solicitado."}</p>
           <div className="pt-2 flex justify-center gap-3">
             <a
               href="/admin"
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200"
+              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200"
             >
               ← Volver al Panel
             </a>
             <a
               href="/admin/events/new"
-              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-xs font-bold text-white"
+              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-xs font-bold text-slate-950"
             >
               Crear Nuevo Evento
             </a>
@@ -292,17 +316,17 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
     user?.email === "edgar.lazaro23@gmail.com";
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#FAF7F2] dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors duration-300">
       {/* =========================================================================
           TOP COMMAND HEADER
       ========================================================================== */}
-      <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 sm:px-6 py-2.5 transition">
+      <header className="sticky top-0 z-40 bg-[#FAF7F2]/95 dark:bg-slate-900/95 backdrop-blur border-b border-amber-900/[0.06] dark:border-slate-800 px-4 sm:px-6 py-2.5 transition">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 flex-wrap">
           {/* Left: Back & Event Info */}
           <div className="flex items-center gap-3 min-w-0">
             <a
               href={isSuperAdmin ? "/admin" : "/perfil"}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition shrink-0"
+              className="p-2 rounded-xl bg-white/80 dark:bg-slate-800 hover:bg-white dark:hover:bg-slate-700 text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white border border-amber-900/[0.08] dark:border-slate-700/80 transition shrink-0 shadow-xs"
               title={isSuperAdmin ? "Volver al Panel Admin" : "Volver a Mi Perfil"}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -312,34 +336,34 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
 
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-base font-bold text-white truncate">
+                <h1 className="text-base font-bold text-slate-950 dark:text-white truncate">
                   {tenant.celebrant || "Nuevo Evento"}
                 </h1>
                 <span
                   className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${
                     tenant.status === "draft"
-                      ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
-                      : "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                      ? "bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30"
+                      : "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30"
                   }`}
                 >
                   {tenant.status === "draft" ? "Borrador" : "Publicado"}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-mono truncate">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono truncate">
                 freeloader.artizaro.com/{tenant.slug}
               </p>
             </div>
           </div>
 
           {/* Center: VIEW SELECTOR (Editor vs Lado a Lado vs Previa) */}
-          <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <div className="flex items-center bg-white/80 dark:bg-slate-950 p-1 rounded-xl border border-amber-900/[0.08] dark:border-slate-800 shadow-xs">
             <button
               type="button"
               onClick={() => setViewMode("editor")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 viewMode === "editor"
-                  ? "bg-amber-500 text-slate-950 font-bold shadow"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-amber-500 text-slate-950 font-bold shadow-xs"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white"
               }`}
               title="Solo formulario de edición"
             >
@@ -348,10 +372,10 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
             <button
               type="button"
               onClick={() => setViewMode("split")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 viewMode === "split"
-                  ? "bg-amber-500 text-slate-950 font-bold shadow"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-amber-500 text-slate-950 font-bold shadow-xs"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white"
               }`}
               title="Ver formulario y previsualización lado a lado"
             >
@@ -361,25 +385,25 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
             <button
               type="button"
               onClick={() => setViewMode("preview")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
                 viewMode === "preview"
-                  ? "bg-amber-500 text-slate-950 font-bold shadow"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-amber-500 text-slate-950 font-bold shadow-xs"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white"
               }`}
               title="Solo previsualización en vivo"
             >
               <span>👁️ Previa</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             </button>
           </div>
 
-          {/* Right: Actions, Public Link, Global Save & User Badge with Logout */}
-          <div className="flex items-center gap-2.5 shrink-0">
+          {/* Right: Actions, Public Link, Global Save, Theme Toggle & User Badge */}
+          <div className="flex items-center gap-2 shrink-0">
             <a
               href={`/${tenant.slug}`}
               target="_blank"
               rel="noreferrer"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium border border-slate-700/80 transition"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 dark:bg-slate-800 hover:bg-white dark:hover:bg-slate-700 text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white text-xs font-medium border border-amber-900/[0.08] dark:border-slate-700/80 transition shadow-xs"
               title="Abrir página pública final"
             >
               <span>🔗</span>
@@ -404,7 +428,7 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
               type="button"
               onClick={() => handleSaveSection("General (Completo)")}
               disabled={savingSection !== null}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/20 active:scale-95 transition disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/20 active:scale-95 transition disabled:opacity-50 cursor-pointer"
             >
               {savingSection ? (
                 <>
@@ -417,6 +441,17 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                   <span>Guardar Todo</span>
                 </>
               )}
+            </button>
+
+            {/* Alternador de tema */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label="Alternar tema claro y oscuro"
+              className="w-8 h-8 rounded-xl bg-white/90 dark:bg-slate-800 border border-amber-900/[0.08] dark:border-slate-700 text-slate-700 dark:text-amber-400 flex items-center justify-center text-xs shadow-xs hover:scale-105 transition cursor-pointer"
+              title="Cambiar tema claro / oscuro"
+            >
+              {isDarkMode ? "☀️" : "🌙"}
             </button>
 
             {/* User display and Logout */}

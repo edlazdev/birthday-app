@@ -1,6 +1,1099 @@
 ---
-import { DEFAULT_EVENT } from "@/utils";
+import "@/styles/global.css";
+import { getPublishedTenants } from "@/services/tenants";
 
-// Redirige a la página del evento por defecto
-return Astro.redirect(`/${DEFAULT_EVENT}/`, 301);
+Astro.response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+Astro.response.headers.set("Pragma", "no-cache");
+Astro.response.headers.set("Expires", "0");
+
+const publishedTenants = await getPublishedTenants();
 ---
+
+<!doctype html>
+<html lang="es" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Freeloader | Invitaciones Digitales para Eventos</title>
+    <meta
+      name="description"
+      content="Crea invitaciones digitales interactivas, cálidas y memorables para cumpleaños, bodas, fiestas y baby showers. Música ambiente, confirmación RSVP, mapas y fotos por un único costo de S/ 50."
+    />
+    <link rel="canonical" href="https://freeloader.artizaro.com" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://freeloader.artizaro.com" />
+    <meta property="og:title" content="Freeloader | Invitaciones Digitales para Eventos" />
+    <meta
+      property="og:description"
+      content="Invitaciones interactivas con música, confirmación RSVP, mapas y fotos. Un solo costo por evento."
+    />
+
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <script is:inline>
+      // Sincronizar tema antes del primer renderizado para evitar parpadeo
+      const savedTheme = localStorage.getItem('freeloader-theme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
+
+    <style>
+      /* Animaciones sutiles para elementos que flotan y llaman la atención de forma amigable */
+      @keyframes floatSlow {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+      }
+      @keyframes floatReverse {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(8px); }
+      }
+      @keyframes pulseGlow {
+        0%, 100% { opacity: 0.8; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.04); }
+      }
+      .animate-float-slow {
+        animation: floatSlow 4s ease-in-out infinite;
+      }
+      .animate-float-reverse {
+        animation: floatReverse 4.5s ease-in-out infinite;
+      }
+      .animate-pulse-glow {
+        animation: pulseGlow 2.5s ease-in-out infinite;
+      }
+      .eq-bar {
+        display: inline-block;
+        width: 3px;
+        background-color: currentColor;
+        border-radius: 9999px;
+        animation: eqPulse 1s ease-in-out infinite alternate;
+      }
+      @keyframes eqPulse {
+        0% { height: 4px; }
+        100% { height: 16px; }
+      }
+      .eq-bar:nth-child(2) { animation-delay: 0.2s; }
+      .eq-bar:nth-child(3) { animation-delay: 0.4s; }
+      .eq-bar:nth-child(4) { animation-delay: 0.1s; }
+    </style>
+  </head>
+  <body class="bg-[#FAF7F2] dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased transition-colors duration-300 selection:bg-amber-500 selection:text-white relative">
+    
+    <!-- Canvas para efecto Confeti amigable en pantalla completa -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+    <!-- Fondos decorativos cálidos, luminosos y amigables -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+      <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[750px] h-[600px] bg-gradient-to-b from-amber-300/25 via-orange-200/20 to-transparent dark:from-amber-500/[0.05] dark:via-transparent rounded-full blur-[140px]"></div>
+      <div class="absolute top-1/3 -right-32 w-[550px] h-[550px] bg-rose-300/20 dark:bg-slate-800/[0.12] rounded-full blur-[140px]"></div>
+      <div class="absolute -bottom-20 -left-40 w-[600px] h-[600px] bg-amber-200/25 dark:bg-transparent rounded-full blur-[140px]"></div>
+    </div>
+
+    <!-- =========================================================================
+         1. NAVBAR AMIGABLE & ACCESIBLE
+    ========================================================================== -->
+    <header class="sticky top-0 z-40 bg-[#FAF7F2]/90 dark:bg-slate-950/80 backdrop-blur-md border-b border-amber-900/[0.06] dark:border-slate-900 transition-colors">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <!-- Logo con toque festivo -->
+        <a href="/" class="flex items-center gap-2.5 group" id="nav-brand-logo">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 flex items-center justify-center font-bold text-slate-950 text-xs shadow-md shadow-amber-500/25 group-hover:scale-105 transition transform">
+            🎉
+          </div>
+          <div class="flex items-baseline gap-1.5">
+            <span class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
+              Freeloader
+            </span>
+            <span class="text-[10px] text-amber-700/80 dark:text-amber-400 font-semibold hidden sm:inline bg-amber-100/60 dark:bg-amber-950/40 px-2 py-0.5 rounded-full">
+              Invitaciones
+            </span>
+          </div>
+        </a>
+
+        <!-- Enlaces de navegación -->
+        <nav class="hidden md:flex items-center gap-6 text-xs font-medium text-slate-600 dark:text-slate-400">
+          <a href="#caracteristicas" class="hover:text-amber-600 dark:hover:text-slate-200 transition" id="nav-link-features">Características</a>
+          <a href="#invitaciones" class="hover:text-amber-600 dark:hover:text-slate-200 transition" id="nav-link-invitaciones">Eventos Reales</a>
+          <a href="#costo" class="hover:text-amber-600 dark:hover:text-slate-200 transition" id="nav-link-costo">Costo Único</a>
+          <a href="#faq" class="hover:text-amber-600 dark:hover:text-slate-200 transition" id="nav-link-faq">Preguntas</a>
+        </nav>
+
+        <!-- Acciones: Lanzador de Confeti, Selector de Tema (☀️/🌙) y Acceder -->
+        <div class="flex items-center gap-2.5">
+          <button
+            type="button"
+            id="btn-celebrate"
+            aria-label="Lanzar confeti de celebración"
+            class="px-2.5 py-1.5 rounded-xl bg-amber-100/80 hover:bg-amber-200/80 dark:bg-slate-900 border border-amber-300/40 dark:border-slate-800 text-amber-800 dark:text-amber-400 text-xs font-semibold flex items-center gap-1.5 shadow-sm hover:scale-105 transition cursor-pointer"
+            title="¡Haz clic para celebrar!"
+          >
+            <span>✨</span>
+            <span class="hidden sm:inline">Celebrar</span>
+          </button>
+
+          <button
+            type="button"
+            id="theme-toggle"
+            aria-label="Alternar tema claro y oscuro"
+            class="w-9 h-9 rounded-xl bg-white/90 dark:bg-slate-900 border border-amber-900/[0.08] dark:border-slate-800 text-slate-700 dark:text-amber-400 flex items-center justify-center text-sm shadow-sm hover:scale-105 transition cursor-pointer"
+            title="Cambiar tema claro / oscuro"
+          >
+            <span class="dark:hidden">🌙</span>
+            <span class="hidden dark:inline">☀️</span>
+          </button>
+
+          <a
+            href="/login"
+            id="nav-btn-access"
+            class="px-4 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white bg-white/90 dark:bg-slate-900 hover:bg-white dark:hover:bg-slate-800 border border-amber-900/[0.08] dark:border-slate-800 rounded-xl shadow-sm transition"
+          >
+            Acceder
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- =========================================================================
+           2. HERO SECTION CÁLIDA, LUMINOSA & AMIGABLE
+      ========================================================================== -->
+      <section class="relative pt-12 pb-16 sm:pt-20 sm:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="text-center max-w-3xl mx-auto mb-10">
+          <!-- Tag Badge Celebratorio & Cálido -->
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/15 dark:bg-slate-900 border border-amber-500/30 dark:border-slate-800 text-amber-900 dark:text-amber-300 text-xs font-semibold mb-5 shadow-sm">
+            <span class="text-base">🎈</span>
+            <span>La forma más linda y fácil de invitar a tus seres queridos</span>
+          </div>
+
+          <!-- Main Heading -->
+          <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-950 dark:text-white leading-tight sm:leading-tight mb-4">
+            Invitaciones digitales que <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-orange-500 to-rose-600">emocionan</span> a tus invitados
+          </h1>
+
+          <!-- Subtitle -->
+          <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed mb-6 max-w-2xl mx-auto font-normal">
+            Con música de fondo, confirmación RSVP en vivo, ruta en Waze y Google Maps y álbum de fotos. Olvídate del papel caro: crea tu invitación en minutos y envíala con un toque a WhatsApp.
+          </p>
+
+          <!-- Single Hero Action & Secondary Anchor -->
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5 mb-6">
+            <a
+              href="/login"
+              id="hero-btn-start"
+              class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/25 hover:shadow-xl transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+            >
+              <span>Empezar mi Invitación</span>
+              <span>✨</span>
+            </a>
+            <a
+              href="#invitaciones"
+              id="hero-btn-invitaciones"
+              class="w-full sm:w-auto px-5 py-3.5 rounded-2xl text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white text-sm font-semibold bg-white/80 dark:bg-slate-900 border border-amber-900/[0.08] dark:border-slate-800 shadow-sm transition hover:bg-white"
+            >
+              Ver invitaciones publicadas ↓
+            </a>
+          </div>
+
+          <!-- Cost Highlight Tag & Social Proof -->
+          <div class="flex flex-wrap items-center justify-center gap-3 text-xs">
+            <div class="inline-flex items-center gap-2 text-slate-700 dark:text-slate-300 bg-white/80 dark:bg-slate-900/70 border border-amber-900/[0.08] dark:border-slate-800 px-4 py-1.5 rounded-full shadow-sm">
+              <span>🏷️</span>
+              <span>Costo único de <strong class="text-amber-700 dark:text-amber-400 font-bold text-sm">S/ 50</strong></span>
+              <span class="text-slate-300 dark:text-slate-600">•</span>
+              <span>Cero suscripciones ni cobros mensuales</span>
+            </div>
+
+            <!-- Avatares de Anfitriones Felices -->
+            <div class="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 bg-amber-50/70 dark:bg-slate-900/60 border border-amber-200/50 dark:border-slate-800 px-3.5 py-1.5 rounded-full shadow-sm">
+              <div class="flex -space-x-1.5">
+                <span class="w-5 h-5 rounded-full bg-rose-400 text-white text-[9px] flex items-center justify-center font-bold">👩</span>
+                <span class="w-5 h-5 rounded-full bg-amber-400 text-white text-[9px] flex items-center justify-center font-bold">👨</span>
+                <span class="w-5 h-5 rounded-full bg-emerald-400 text-white text-[9px] flex items-center justify-center font-bold">🎉</span>
+              </div>
+              <span class="font-medium text-[11px]">+150 anfitriones felices</span>
+              <span class="text-amber-500 font-bold text-xs">★★★★★</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- =========================================================================
+             PREVIEW INTERACTIVO DEL CELULAR (MUY LLAMATIVO Y AMIGABLE)
+        ========================================================================== -->
+        <div id="demo-interactivo" class="relative max-w-4xl mx-auto pt-4">
+          <!-- Selector interactivo de tipos de evento con iconos amigables -->
+          <div class="flex items-center justify-center gap-2 mb-6 flex-wrap">
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mr-1 hidden sm:inline">Elige tu ocasión:</span>
+            <button
+              type="button"
+              data-type="cumple"
+              class="event-preview-tab active-tab px-4 py-2 rounded-full text-xs font-bold bg-amber-500 text-slate-950 shadow-md transition cursor-pointer"
+            >
+              🎂 Cumpleaños
+            </button>
+            <button
+              type="button"
+              data-type="boda"
+              class="event-preview-tab px-4 py-2 rounded-full text-xs font-bold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-amber-900/[0.08] dark:border-slate-800 hover:border-amber-500 transition cursor-pointer shadow-sm"
+            >
+              💍 Boda
+            </button>
+            <button
+              type="button"
+              data-type="quince"
+              class="event-preview-tab px-4 py-2 rounded-full text-xs font-bold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-amber-900/[0.08] dark:border-slate-800 hover:border-amber-500 transition cursor-pointer shadow-sm"
+            >
+              👑 Quinceañero
+            </button>
+            <button
+              type="button"
+              data-type="baby"
+              class="event-preview-tab px-4 py-2 rounded-full text-xs font-bold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-amber-900/[0.08] dark:border-slate-800 hover:border-amber-500 transition cursor-pointer shadow-sm"
+            >
+              🍼 Baby Shower
+            </button>
+          </div>
+
+          <!-- Contenedor del Preview con pills flotantes decorativos -->
+          <div class="relative bg-gradient-to-b from-white/95 via-amber-50/40 to-white/95 dark:from-slate-900/60 dark:to-slate-900/40 border border-amber-900/[0.08] dark:border-slate-800/80 rounded-3xl p-6 sm:p-10 backdrop-blur-md shadow-xl flex flex-col md:flex-row items-center justify-center gap-10">
+            
+            <!-- Pill flotante Izquierda (Desktop) -->
+            <div class="hidden lg:flex flex-col gap-4 absolute -left-8 top-1/4 pointer-events-none z-20">
+              <div class="animate-float-slow bg-white dark:bg-slate-900/90 border border-amber-900/[0.08] dark:border-slate-800 rounded-2xl p-3 shadow-lg flex items-center gap-3 backdrop-blur-md">
+                <span class="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 flex items-center justify-center text-sm font-bold">🎵</span>
+                <div>
+                  <p class="text-xs font-bold text-slate-900 dark:text-white">Música Elegida</p>
+                  <p class="text-[10px] text-slate-500">Reproduce tu tema favorito</p>
+                </div>
+              </div>
+
+              <div class="animate-float-reverse bg-white dark:bg-slate-900/90 border border-amber-900/[0.08] dark:border-slate-800 rounded-2xl p-3 shadow-lg flex items-center gap-3 backdrop-blur-md">
+                <span class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-sm font-bold">🗺️</span>
+                <div>
+                  <p class="text-xs font-bold text-slate-900 dark:text-white">Waze & Maps</p>
+                  <p class="text-[10px] text-slate-500">Nadie se pierde al llegar</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pill flotante Derecha (Desktop) -->
+            <div class="hidden lg:flex flex-col gap-4 absolute -right-8 bottom-1/4 pointer-events-none z-20">
+              <div class="animate-float-slow bg-white dark:bg-slate-900/90 border border-amber-900/[0.08] dark:border-slate-800 rounded-2xl p-3 shadow-lg flex items-center gap-3 backdrop-blur-md">
+                <span class="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-400 flex items-center justify-center text-sm font-bold">💌</span>
+                <div>
+                  <p class="text-xs font-bold text-slate-900 dark:text-white">RSVP Inteligente</p>
+                  <p class="text-[10px] text-slate-500">Directo a tu WhatsApp</p>
+                </div>
+              </div>
+
+              <div class="animate-float-reverse bg-white dark:bg-slate-900/90 border border-amber-900/[0.08] dark:border-slate-800 rounded-2xl p-3 shadow-lg flex items-center gap-3 backdrop-blur-md">
+                <span class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400 flex items-center justify-center text-sm font-bold">📸</span>
+                <div>
+                  <p class="text-xs font-bold text-slate-900 dark:text-white">Álbum de Recuerdos</p>
+                  <p class="text-[10px] text-slate-500">Fotos en alta definición</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Celular Interactivo Ultra Detallado -->
+            <div class="relative w-[275px] sm:w-[305px] rounded-[38px] bg-slate-950 p-2.5 shadow-2xl border-4 border-slate-800 shrink-0">
+              <!-- Notch & Parlante -->
+              <div class="absolute top-3.5 left-1/2 -translate-x-1/2 w-24 h-3.5 bg-slate-900 rounded-full z-20 flex items-center justify-center">
+                <div class="w-3 h-1 bg-slate-700 rounded-full"></div>
+              </div>
+
+              <!-- Phone Screen Content -->
+              <div class="relative rounded-[30px] overflow-hidden bg-slate-900 border border-slate-800/80 aspect-[9/18.5] flex flex-col justify-between text-center p-3.5 text-white">
+                
+                <!-- Notificación Toast interactiva cuando prueban el RSVP -->
+                <div
+                  id="mockup-rsvp-toast"
+                  class="hidden absolute top-12 left-3 right-3 z-30 bg-emerald-500 text-slate-950 p-2.5 rounded-xl shadow-xl font-bold text-xs transform transition-all duration-300"
+                >
+                  <div class="flex items-center gap-2 justify-center">
+                    <span>🎉</span>
+                    <span>¡Asistencia Confirmada!</span>
+                  </div>
+                  <p class="text-[10px] text-emerald-950 font-normal mt-0.5">Notificación enviada al WhatsApp del anfitrión</p>
+                </div>
+
+                <!-- Cover Card Dinámico -->
+                <div
+                  id="mockup-cover"
+                  class="relative rounded-2xl overflow-hidden h-36 bg-gradient-to-br from-amber-500 to-rose-600 border border-white/20 flex flex-col justify-between p-3 text-white transition-all duration-500 shadow-md"
+                >
+                  <div class="flex justify-between items-center text-[10px]">
+                    <div class="px-2 py-0.5 rounded bg-black/40 backdrop-blur font-medium flex items-center gap-1">
+                      <span class="inline-flex gap-0.5 items-end h-3 text-amber-300">
+                        <span class="eq-bar"></span>
+                        <span class="eq-bar"></span>
+                        <span class="eq-bar"></span>
+                        <span class="eq-bar"></span>
+                      </span>
+                      <span class="text-[9px]">Música</span>
+                    </div>
+                    <span id="mockup-date" class="px-2.5 py-0.5 rounded bg-amber-500 text-slate-950 font-bold shadow-sm">25 OCT</span>
+                  </div>
+                  <div>
+                    <span id="mockup-badge" class="text-[9px] font-extrabold tracking-wider uppercase text-amber-200 block mb-0.5">🎂 CUMPLEAÑOS</span>
+                    <h3 id="mockup-title" class="text-base font-bold text-white leading-tight">¡Mis 28 Años!</h3>
+                    <p id="mockup-subtitle" class="text-[11px] opacity-90">Edgar Lázaro</p>
+                  </div>
+                </div>
+
+                <!-- Cuenta Regresiva Realista con Segundero Animado -->
+                <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-2 my-2 shadow-inner">
+                  <div class="flex items-center justify-between px-1 mb-1">
+                    <span class="text-[9px] text-amber-400 font-semibold uppercase tracking-wider">⏳ Faltan solo</span>
+                    <span class="text-[8px] text-emerald-400 font-mono">EN VIVO</span>
+                  </div>
+                  <div class="grid grid-cols-4 gap-1 text-center">
+                    <div class="bg-slate-900 rounded p-1">
+                      <span class="text-xs font-bold text-white block">14</span>
+                      <span class="text-[7px] text-slate-400 uppercase">Días</span>
+                    </div>
+                    <div class="bg-slate-900 rounded p-1">
+                      <span class="text-xs font-bold text-white block">08</span>
+                      <span class="text-[7px] text-slate-400 uppercase">Hrs</span>
+                    </div>
+                    <div class="bg-slate-900 rounded p-1">
+                      <span class="text-xs font-bold text-white block">42</span>
+                      <span class="text-[7px] text-slate-400 uppercase">Min</span>
+                    </div>
+                    <div class="bg-slate-900 rounded p-1">
+                      <span id="mockup-seconds" class="text-xs font-bold text-amber-400 block font-mono">19</span>
+                      <span class="text-[7px] text-slate-400 uppercase">Seg</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Acciones interactivas en el mockup -->
+                <div class="space-y-1.5 text-[10px]">
+                  <div class="p-2 bg-slate-950/60 border border-slate-800/40 rounded-lg flex items-center justify-between text-slate-300">
+                    <span id="mockup-location" class="truncate pr-1 text-[9px]">📍 Villa Jardín, Lima</span>
+                    <span class="text-amber-400 font-semibold shrink-0 text-[9px] bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-500/20">Waze / Maps</span>
+                  </div>
+                  
+                  <!-- Botón Interactivo para probar RSVP -->
+                  <button
+                    type="button"
+                    id="mockup-rsvp-btn"
+                    class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-[11px] shadow-md transition transform active:scale-95 cursor-pointer flex items-center justify-center gap-1"
+                  >
+                    <span>Confirmar Asistencia (RSVP)</span>
+                    <span>💌</span>
+                  </button>
+                  <p class="text-[8px] text-slate-400">↑ Haz clic para probar cómo responde</p>
+                </div>
+
+                <p class="text-[9px] text-slate-400 mt-1 font-mono">
+                  freeloader.artizaro.com/[tu-evento]
+                </p>
+              </div>
+            </div>
+
+            <!-- Destacados al costado del mockup -->
+            <div class="flex-1 space-y-4 max-w-sm text-left">
+              <div class="p-4 rounded-2xl bg-white/90 dark:bg-slate-950/40 border border-amber-900/[0.08] dark:border-slate-800/60 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center gap-2.5 mb-1.5">
+                  <span class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center text-sm font-bold">🎵</span>
+                  <h4 class="text-xs font-bold text-slate-900 dark:text-white">Música con botón flotante</h4>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Tus invitados escuchan tu canción de fondo elegida al abrir el enlace, con opción para pausar o subir el volumen.
+                </p>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-white/90 dark:bg-slate-950/40 border border-amber-900/[0.08] dark:border-slate-800/60 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center gap-2.5 mb-1.5">
+                  <span class="w-7 h-7 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 flex items-center justify-center text-sm font-bold">💌</span>
+                  <h4 class="text-xs font-bold text-slate-900 dark:text-white">RSVP directo a tu WhatsApp</h4>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Conoce con anticipación cuántos confirmaron y con cuántos acompañantes van. Cero llamadas incómodas.
+                </p>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-white/90 dark:bg-slate-950/40 border border-amber-900/[0.08] dark:border-slate-800/60 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center gap-2.5 mb-1.5">
+                  <span class="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-sm font-bold">🗺️</span>
+                  <h4 class="text-xs font-bold text-slate-900 dark:text-white">Llegada guiada por GPS</h4>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Botones directos para abrir la ruta en Google Maps o Waze con un solo toque desde el celular.
+                </p>
+              </div>
+
+              <!-- Botón amigable para escuchar muestra de audio -->
+              <div class="pt-2">
+                <button
+                  type="button"
+                  id="btn-play-chime"
+                  class="w-full py-2.5 px-4 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 dark:bg-slate-900 border border-amber-500/30 dark:border-slate-800 text-amber-900 dark:text-amber-300 font-semibold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+                >
+                  <span id="chime-icon">🔔</span>
+                  <span id="chime-text">Escuchar sonido festivo de muestra</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+
+      <!-- =========================================================================
+           4. FEATURES SECTION (AMIGABLE & FESTIVA)
+      ========================================================================== -->
+      <section id="caracteristicas" class="py-16 sm:py-20 border-t border-amber-900/[0.06] dark:border-slate-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center max-w-2xl mx-auto mb-12">
+            <h2 class="text-xs font-semibold text-amber-600 dark:text-amber-400 tracking-wider uppercase mb-2">
+              Funciones
+            </h2>
+            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight">
+              Todo lo que necesitas para tu celebración
+            </h3>
+            <p class="text-slate-600 dark:text-slate-400 text-xs sm:text-sm mt-2">
+              Diseñado para que organizar tu evento sea una experiencia divertida y libre de complicaciones.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
+            <div class="bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/60 rounded-3xl p-6 shadow-sm hover:shadow-md transition">
+              <span class="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-slate-800 text-amber-700 dark:text-amber-400 flex items-center justify-center text-xl mb-3">🎶</span>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1.5">Música de Fondo</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Reproducción de tu canción favorita con botón flotante para pausar o regular el volumen con facilidad.
+              </p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/60 rounded-3xl p-6 shadow-sm hover:shadow-md transition">
+              <span class="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-slate-800 text-rose-700 dark:text-rose-400 flex items-center justify-center text-xl mb-3">💌</span>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1.5">Control de Asistencia (RSVP)</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Tus invitados confirman si van y con cuántos acompañantes. Los datos van directo a tu panel y a tu WhatsApp.
+              </p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/60 rounded-3xl p-6 shadow-sm hover:shadow-md transition">
+              <span class="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-xl mb-3">📍</span>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1.5">Waze & Google Maps</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Dirección exacta con botón interactivo para que tus invitados abran la mejor ruta en su GPS preferido.
+              </p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/60 rounded-3xl p-6 shadow-sm hover:shadow-md transition">
+              <span class="w-10 h-10 rounded-2xl bg-purple-100 dark:bg-slate-800 text-purple-700 dark:text-purple-400 flex items-center justify-center text-xl mb-3">⏳</span>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1.5">Cuenta Regresiva en Vivo</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Reloj dinámico en tiempo real que cuenta los días, horas y minutos exactos que faltan para la fiesta.
+              </p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/60 rounded-3xl p-6 shadow-sm hover:shadow-md transition">
+              <span class="w-10 h-10 rounded-2xl bg-sky-100 dark:bg-slate-800 text-sky-700 dark:text-sky-400 flex items-center justify-center text-xl mb-3">📸</span>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1.5">Álbum de Recuerdos</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Galería interactiva para compartir fotografías del festejado antes y durante la celebración.
+              </p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/60 rounded-3xl p-6 shadow-sm hover:shadow-md transition">
+              <span class="w-10 h-10 rounded-2xl bg-orange-100 dark:bg-slate-800 text-orange-700 dark:text-orange-400 flex items-center justify-center text-xl mb-3">📱</span>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1.5">Edición Sencilla</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Personaliza fotos, fecha y detalles desde tu celular o computadora con previsualización inmediata.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================================
+           5. INVITACIONES PUBLICADAS (EVENTOS REALES)
+      ========================================================================== -->
+      <section id="invitaciones" class="py-16 sm:py-20 border-t border-amber-900/[0.06] dark:border-slate-900 bg-white/40 dark:bg-slate-950/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center max-w-2xl mx-auto mb-12">
+            <span class="inline-block px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-2">
+              Comunidad Activa
+            </span>
+            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight">
+              Invitaciones Publicadas
+            </h3>
+            <p class="text-slate-600 dark:text-slate-400 text-xs sm:text-sm mt-2">
+              Explora eventos reales creados y publicados por anfitriones en Freeloader.
+            </p>
+          </div>
+
+          {publishedTenants && publishedTenants.length > 0 ? (
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {publishedTenants.map((event) => (
+                <div class="bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/60 rounded-3xl p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between group hover:-translate-y-1">
+                  <div>
+                    <div class="flex items-center justify-between mb-4">
+                      <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Publicada
+                      </span>
+                      <span class="text-[11px] text-slate-400 font-mono">/{event.slug}</span>
+                    </div>
+
+                    <h4 class="text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-amber-600 transition">
+                      {event.celebrant}
+                    </h4>
+
+                    {event.title && (
+                      <p class="text-xs text-amber-700 dark:text-slate-300 mb-2 font-medium">
+                        {event.title} {event.age ? `• ${event.age} años` : ""}
+                      </p>
+                    )}
+
+                    {event.date && (
+                      <p class="text-xs text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1.5">
+                        <span>📅</span>
+                        <span>{event.date} {event.time ? `• ${event.time}` : ""}</span>
+                      </p>
+                    )}
+
+                    {event.address && (
+                      <p class="text-xs text-slate-500 line-clamp-1 mb-3 flex items-center gap-1.5">
+                        <span>📍</span>
+                        <span>{event.address}</span>
+                      </p>
+                    )}
+                  </div>
+
+                  <div class="pt-4 border-t border-slate-100 dark:border-slate-800/50">
+                    <a
+                      href={`/${event.slug}`}
+                      target="_blank"
+                      class="text-xs font-bold text-amber-700 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 inline-flex items-center gap-1.5 transition"
+                    >
+                      <span>Ver invitación en vivo</span>
+                      <span>↗</span>
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div class="text-center py-8 text-xs text-slate-500">
+              Aún no hay invitaciones publicadas.
+            </div>
+          )}
+        </div>
+      </section>
+
+      <!-- =========================================================================
+           6. CÓMO FUNCIONA
+      ========================================================================== -->
+      <section id="pasos" class="py-16 sm:py-20 border-t border-amber-900/[0.06] dark:border-slate-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center max-w-2xl mx-auto mb-12">
+            <h2 class="text-xs font-semibold text-amber-600 dark:text-amber-400 tracking-wider uppercase mb-2">
+              Paso a Paso
+            </h2>
+            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight">
+              ¿Cómo tener tu invitación lista?
+            </h3>
+            <p class="text-slate-600 dark:text-slate-400 text-xs sm:text-sm mt-2">
+              Crea y publica tu invitación en 4 pasos sencillos.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
+            <div class="bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/50 rounded-2xl p-5 shadow-sm">
+              <span class="text-xs font-bold text-amber-600 dark:text-amber-400 font-mono mb-1.5 block">PASO 01</span>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Ingresa con Google</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Acceso en 1 clic con tu cuenta de Google. Tu perfil queda creado al instante.
+              </p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/50 rounded-2xl p-5 shadow-sm">
+              <span class="text-xs font-bold text-amber-600 dark:text-amber-400 font-mono mb-1.5 block">PASO 02</span>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Personaliza tu Evento</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Ingresa horarios, local, música y fotos con vista previa en el celular.
+              </p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/50 rounded-2xl p-5 shadow-sm">
+              <span class="text-xs font-bold text-amber-600 dark:text-amber-400 font-mono mb-1.5 block">PASO 03</span>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Activa por S/ 50</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Abona la tarifa única mediante Yape o Plin y notifica con un clic por WhatsApp.
+              </p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/50 rounded-2xl p-5 shadow-sm">
+              <span class="text-xs font-bold text-amber-600 dark:text-amber-400 font-mono mb-1.5 block">PASO 04</span>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1">¡Comparte el Enlace!</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Recibe tu link web personalizado y compártelo a todos tus invitados por WhatsApp.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================================
+           7. COSTO ÚNICO (RESALTADO & AMIGABLE)
+      ========================================================================== -->
+      <section id="costo" class="py-16 sm:py-24 border-t border-amber-900/[0.06] dark:border-slate-900 bg-white/50 dark:bg-slate-950/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center max-w-2xl mx-auto mb-10">
+            <span class="inline-block px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-2">
+              Tarifa Clara & Amigable
+            </span>
+            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight">
+              Un solo costo por evento
+            </h3>
+            <p class="text-slate-600 dark:text-slate-400 text-xs sm:text-sm mt-2">
+              Sin mensualidades, sin letras chicas ni suscripciones. Un único pago de activación.
+            </p>
+          </div>
+
+          <div class="max-w-md mx-auto">
+            <div class="bg-white dark:bg-slate-900/70 border-2 border-amber-500/50 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl relative">
+              <div class="text-center pb-6 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-baseline justify-center gap-1.5">
+                  <span class="text-2xl font-bold text-amber-600 dark:text-amber-400">S/</span>
+                  <span class="text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">50</span>
+                  <span class="text-xs text-slate-500 dark:text-slate-400 font-normal">/ pago único</span>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                  Abono directo con Yape o Plin al solicitar la activación de tu evento.
+                </p>
+              </div>
+
+              <div class="py-6 space-y-3 text-xs text-slate-700 dark:text-slate-300">
+                <div class="flex items-center gap-2.5">
+                  <span class="text-emerald-500 font-bold">✓</span>
+                  <span>Enlace web permanente para tu evento</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <span class="text-emerald-500 font-bold">✓</span>
+                  <span>Música de fondo con reproductor interactivo</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <span class="text-emerald-500 font-bold">✓</span>
+                  <span>Confirmaciones RSVP ilimitadas en tiempo real</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <span class="text-emerald-500 font-bold">✓</span>
+                  <span>Ubicación con botones directos de Google Maps & Waze</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <span class="text-emerald-500 font-bold">✓</span>
+                  <span>Álbum de fotos digital en alta resolución</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <span class="text-emerald-500 font-bold">✓</span>
+                  <span>Panel de control de tu evento para el anfitrión</span>
+                </div>
+              </div>
+
+              <a
+                href="/login"
+                class="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm shadow-md transition text-center block"
+              >
+                Crear mi Invitación
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================================
+           8. TESTIMONIOS AMIGABLES (OPINIONES REALES)
+      ========================================================================== -->
+      <section class="py-16 sm:py-20 border-t border-amber-900/[0.06] dark:border-slate-900">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center max-w-2xl mx-auto mb-10">
+            <span class="text-2xl mb-1 block">💬</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-950 dark:text-white">
+              Lo que dicen nuestros anfitriones
+            </h3>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto">
+            <div class="bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/60 rounded-3xl p-6 shadow-sm text-left">
+              <div class="text-amber-500 text-xs mb-2">★★★★★</div>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic mb-4">
+                "A todos nuestros invitados les encantó la música de fondo y la ruta en Waze. Pudimos confirmar la lista de invitados en pocos días sin tener que llamar a nadie."
+              </p>
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-400 font-bold text-xs flex items-center justify-center">
+                  M
+                </div>
+                <div>
+                  <p class="text-xs font-bold text-slate-900 dark:text-white">María & Ronal</p>
+                  <p class="text-[10px] text-slate-500">Boda en Huanchaco</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/60 rounded-3xl p-6 shadow-sm text-left">
+              <div class="text-amber-500 text-xs mb-2">★★★★★</div>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic mb-4">
+                "El contador regresivo generó mucha expectativa entre mis amigos y compartir el enlace por WhatsApp fue rapidísimo. Vale totalmente la pena por 50 soles."
+              </p>
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-rose-500/20 text-rose-700 dark:text-rose-400 font-bold text-xs flex items-center justify-center">
+                  E
+                </div>
+                <div>
+                  <p class="text-xs font-bold text-slate-900 dark:text-white">Edgar Lázaro</p>
+                  <p class="text-[10px] text-slate-500">Fiesta de Cumpleaños</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================================
+           9. PREGUNTAS FRECUENTES (FAQ) & AYUDA WHATSAPP AMIGABLE
+      ========================================================================== -->
+      <section id="faq" class="py-16 sm:py-20 border-t border-amber-900/[0.06] dark:border-slate-900 bg-white/40 dark:bg-slate-950/40">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center mb-10">
+            <h2 class="text-xs font-semibold text-amber-600 dark:text-amber-400 tracking-wider uppercase mb-2">
+              Dudas Comunes
+            </h2>
+            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight">
+              Preguntas Frecuentes
+            </h3>
+          </div>
+
+          <div class="space-y-3 mb-10">
+            <details class="group bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/50 rounded-2xl p-4 [&_svg]:open:-rotate-180 transition shadow-sm">
+              <summary class="flex justify-between items-center text-xs sm:text-sm font-semibold text-slate-900 dark:text-white cursor-pointer list-none">
+                <span>¿Mis invitados necesitan descargar alguna aplicación?</span>
+                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <p class="text-xs text-slate-600 dark:text-slate-400 mt-2.5 leading-relaxed">
+                No. La invitación es un enlace web que se abre al instante en cualquier navegador de celular o computadora desde WhatsApp.
+              </p>
+            </details>
+
+            <details class="group bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/50 rounded-2xl p-4 [&_svg]:open:-rotate-180 transition shadow-sm">
+              <summary class="flex justify-between items-center text-xs sm:text-sm font-semibold text-slate-900 dark:text-white cursor-pointer list-none">
+                <span>¿Cómo se realiza el abono de los S/ 50?</span>
+                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <p class="text-xs text-slate-600 dark:text-slate-400 mt-2.5 leading-relaxed">
+                Desde tu panel de usuario encontrarás los datos de Yape y Plin del administrador al solicitar la publicación. Se verifica el abono y se activa tu evento de inmediato.
+              </p>
+            </details>
+
+            <details class="group bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/50 rounded-2xl p-4 [&_svg]:open:-rotate-180 transition shadow-sm">
+              <summary class="flex justify-between items-center text-xs sm:text-sm font-semibold text-slate-900 dark:text-white cursor-pointer list-none">
+                <span>¿Puedo editar la información después de publicar?</span>
+                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <p class="text-xs text-slate-600 dark:text-slate-400 mt-2.5 leading-relaxed">
+                ¡Sí! Puedes actualizar horarios, fotos, mensajes o detalles del local en cualquier momento desde tu panel de usuario.
+              </p>
+            </details>
+
+            <details class="group bg-white dark:bg-slate-900/40 border border-amber-900/[0.06] dark:border-slate-800/50 rounded-2xl p-4 [&_svg]:open:-rotate-180 transition shadow-sm">
+              <summary class="flex justify-between items-center text-xs sm:text-sm font-semibold text-slate-900 dark:text-white cursor-pointer list-none">
+                <span>¿Dónde consulto las confirmaciones de asistencia?</span>
+                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <p class="text-xs text-slate-600 dark:text-slate-400 mt-2.5 leading-relaxed">
+                Todas las respuestas quedan guardadas en tu panel en tiempo real y también los invitados pueden enviarte la confirmación directa a tu WhatsApp personal.
+              </p>
+            </details>
+          </div>
+
+          <!-- Banner Amigable de Atención por WhatsApp -->
+          <div class="p-5 rounded-3xl bg-emerald-500/10 border border-emerald-500/25 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+            <div>
+              <p class="text-xs font-bold text-slate-900 dark:text-white flex items-center justify-center sm:justify-start gap-1.5">
+                <span>💬</span>
+                <span>¿Tienes alguna consulta especial antes de empezar?</span>
+              </p>
+              <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                Escríbenos directamente por WhatsApp y te orientamos con gusto.
+              </p>
+            </div>
+            <a
+              href="https://wa.me/51950005727?text=Hola,%20tengo%20una%20consulta%20sobre%20las%20invitaciones%20de%20Freeloader"
+              target="_blank"
+              class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow transition shrink-0 inline-flex items-center gap-1.5"
+            >
+              <span>Consultar por WhatsApp</span>
+              <span>↗</span>
+            </a>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <!-- =========================================================================
+         10. FOOTER
+    ========================================================================== -->
+    <footer class="border-t border-amber-900/[0.06] dark:border-slate-900 py-10 text-slate-500 text-xs">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-6 h-6 rounded-md bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-[10px]">
+            🎉
+          </div>
+          <span class="text-slate-800 dark:text-slate-300 font-bold text-xs">Freeloader by Artizaro</span>
+        </div>
+
+        <div class="flex items-center gap-6 text-xs text-slate-500 dark:text-slate-400">
+          <a href="#caracteristicas" class="hover:text-amber-600 dark:hover:text-slate-200 transition">Características</a>
+          <a href="#invitaciones" class="hover:text-amber-600 dark:hover:text-slate-200 transition">Eventos Reales</a>
+          <a href="#costo" class="hover:text-amber-600 dark:hover:text-slate-200 transition">Costo Único</a>
+          <a href="/login" class="hover:text-amber-600 dark:hover:text-slate-200 transition">Acceso</a>
+        </div>
+
+        <p class="text-[11px] text-slate-400">
+          © {new Date().getFullYear()} Freeloader • freeloader.artizaro.com
+        </p>
+      </div>
+    </footer>
+
+    <!-- Interactive Script: Confetti, Theme Switcher, Countdown, Audio Synth, Savings Calculator & RSVP Demo -->
+    <script is:inline>
+      // 1. Alternador de Tema Claro / Oscuro con guardado en localStorage
+      const toggleBtn = document.getElementById('theme-toggle');
+      toggleBtn?.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('freeloader-theme', isDark ? 'dark' : 'light');
+      });
+
+      // 2. Confeti Festivo con Canvas (Ligero y sin librerías externas)
+      const confettiCanvas = document.getElementById('confetti-canvas');
+      const ctx = confettiCanvas?.getContext('2d');
+      let particles = [];
+      let isAnimating = false;
+
+      function resizeConfetti() {
+        if (!confettiCanvas) return;
+        confettiCanvas.width = window.innerWidth;
+        confettiCanvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resizeConfetti);
+      resizeConfetti();
+
+      function launchConfetti() {
+        if (!confettiCanvas || !ctx) return;
+        const colors = ['#f59e0b', '#ec4899', '#3b82f6', '#10b981', '#8b5cf6', '#f43f5e', '#fbbf24'];
+        particles = [];
+        for (let i = 0; i < 90; i++) {
+          particles.push({
+            x: window.innerWidth * (0.3 + Math.random() * 0.4),
+            y: window.innerHeight * 0.4,
+            vx: (Math.random() - 0.5) * 14,
+            vy: (Math.random() - 0.9) * 16,
+            size: Math.random() * 7 + 4,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rotation: Math.random() * 360,
+            rotationSpeed: (Math.random() - 0.5) * 10,
+            opacity: 1,
+          });
+        }
+        if (!isAnimating) {
+          isAnimating = true;
+          animateConfetti();
+        }
+      }
+
+      function animateConfetti() {
+        if (!ctx || !confettiCanvas) return;
+        ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        let active = false;
+
+        particles.forEach((p) => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.35; // Gravedad
+          p.rotation += p.rotationSpeed;
+          p.opacity -= 0.009;
+
+          if (p.opacity > 0 && p.y < confettiCanvas.height) {
+            active = true;
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, p.opacity);
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rotation * Math.PI) / 180);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 1.5);
+            ctx.restore();
+          }
+        });
+
+        if (active) {
+          requestAnimationFrame(animateConfetti);
+        } else {
+          isAnimating = false;
+          ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        }
+      }
+
+      document.getElementById('btn-celebrate')?.addEventListener('click', launchConfetti);
+
+      // 3. Selector interactivo de tipos de evento en el mockup del Hero
+      const tabs = document.querySelectorAll('.event-preview-tab');
+      const cover = document.getElementById('mockup-cover');
+      const title = document.getElementById('mockup-title');
+      const subtitle = document.getElementById('mockup-subtitle');
+      const badge = document.getElementById('mockup-badge');
+      const date = document.getElementById('mockup-date');
+      const locationEl = document.getElementById('mockup-location');
+
+      const dataMap = {
+        cumple: {
+          title: '¡Mis 28 Años!',
+          sub: 'Edgar Lázaro',
+          badge: '🎂 CUMPLEAÑOS',
+          date: '25 OCT',
+          location: '📍 Villa Jardín, Lima',
+          gradient: 'from-amber-500 to-rose-600',
+        },
+        boda: {
+          title: 'Nuestra Boda',
+          sub: 'María & Ronal',
+          badge: '💍 BODA CIVIL & RELIGIOSA',
+          date: '02 MAY',
+          location: '📍 Fundo Las Palmeras, Huanchaco',
+          gradient: 'from-emerald-600 to-teal-800',
+        },
+        quince: {
+          title: 'Mis Dulces 15',
+          sub: 'Valeria Nicole',
+          badge: '👑 QUINCEAÑERO',
+          date: '14 NOV',
+          location: '📍 Salón de Eventos El Prado',
+          gradient: 'from-rose-500 to-purple-600',
+        },
+        baby: {
+          title: 'Bienvenido Thiago',
+          sub: 'Baby Shower & Té',
+          badge: '🍼 BABY SHOWER',
+          date: '10 DIC',
+          location: '📍 Terraza San Isidro',
+          gradient: 'from-sky-500 to-indigo-600',
+        },
+      };
+
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const type = tab.getAttribute('data-type');
+          const data = dataMap[type];
+          if (!data) return;
+
+          tabs.forEach((t) => {
+            t.className = 'event-preview-tab px-4 py-2 rounded-full text-xs font-bold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-amber-900/[0.08] dark:border-slate-800 hover:border-amber-500 transition cursor-pointer shadow-sm';
+          });
+          tab.className = 'event-preview-tab active-tab px-4 py-2 rounded-full text-xs font-bold bg-amber-500 text-slate-950 shadow-md transition cursor-pointer';
+
+          if (title) title.textContent = data.title;
+          if (subtitle) subtitle.textContent = data.sub;
+          if (badge) badge.textContent = data.badge;
+          if (date) date.textContent = data.date;
+          if (locationEl) locationEl.textContent = data.location;
+          if (cover) {
+            cover.className = `relative rounded-2xl overflow-hidden h-36 bg-gradient-to-br ${data.gradient} border border-white/20 flex flex-col justify-between p-3 text-white transition-all duration-500 shadow-md`;
+          }
+        });
+      });
+
+      // 4. Contador regresivo que avanza cada segundo (Efecto en vivo)
+      const secEl = document.getElementById('mockup-seconds');
+      let currentSec = 19;
+      setInterval(() => {
+        if (secEl) {
+          currentSec = currentSec <= 0 ? 59 : currentSec - 1;
+          secEl.textContent = String(currentSec).padStart(2, '0');
+        }
+      }, 1000);
+
+      // 5. Botón interactivo RSVP dentro del mockup con Toast amigable
+      const rsvpBtn = document.getElementById('mockup-rsvp-btn');
+      const rsvpToast = document.getElementById('mockup-rsvp-toast');
+      rsvpBtn?.addEventListener('click', () => {
+        if (!rsvpToast) return;
+        rsvpToast.classList.remove('hidden');
+        launchConfetti();
+        setTimeout(() => {
+          rsvpToast.classList.add('hidden');
+        }, 3200);
+      });
+
+
+      // 7. Mini Chime Web Audio (Sin descargar archivos externos)
+      const chimeBtn = document.getElementById('btn-play-chime');
+      const chimeIcon = document.getElementById('chime-icon');
+      const chimeText = document.getElementById('chime-text');
+      let audioCtx = null;
+
+      function playCelebrationChime() {
+        try {
+          if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+          }
+
+          const notes = [523.25, 659.25, 783.99, 1046.50]; // Do, Mi, Sol, Do agudo
+          notes.forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.12);
+
+            gain.gain.setValueAtTime(0.18, audioCtx.currentTime + idx * 0.12);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.12 + 0.5);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(audioCtx.currentTime + idx * 0.12);
+            osc.stop(audioCtx.currentTime + idx * 0.12 + 0.5);
+          });
+
+          if (chimeIcon && chimeText) {
+            chimeIcon.textContent = '🎶';
+            chimeText.textContent = '¡Sonando acorde alegre!';
+            setTimeout(() => {
+              chimeIcon.textContent = '🔔';
+              chimeText.textContent = 'Escuchar sonido festivo de muestra';
+            }, 1200);
+          }
+        } catch (e) {
+          console.log('Audio not supported or permitted', e);
+        }
+      }
+
+      chimeBtn?.addEventListener('click', playCelebrationChime);
+    </script>
+  </body>
+</html>

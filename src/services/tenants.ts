@@ -147,6 +147,30 @@ export async function getAllTenants(): Promise<EventData[]> {
 }
 
 /**
+ * Obtiene todos los eventos con estado 'published' (publicados).
+ */
+export async function getPublishedTenants(): Promise<EventData[]> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("event_tenants")
+        .select("*")
+        .eq("status", "published")
+        .order("created_at", { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        return data.map(mapDbToEventData);
+      }
+    } catch (err) {
+      console.warn("[getPublishedTenants] Error al consultar eventos publicados:", err);
+    }
+  }
+
+  // Respaldo local: filtrar aquellos con status === 'published'
+  return Object.values(localEvents).filter((e) => e.status === "published");
+}
+
+/**
  * Obtiene todos los eventos de un usuario específico.
  */
 export async function getTenantsByUser(userId: string): Promise<EventData[]> {
