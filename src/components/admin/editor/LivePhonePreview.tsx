@@ -6,20 +6,19 @@ interface LivePhonePreviewProps {
 }
 
 export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
-  const [previewDevice, setPreviewDevice] = useState<"iphone" | "full">("iphone");
   const [previewType, setPreviewType] = useState<"mockup" | "iframe">("mockup");
   const [iframeKey, setIframeKey] = useState(Date.now());
 
   return (
-    <div className="flex flex-col space-y-3 w-full">
-      {/* Controls Toolbar */}
-      <div className="bg-white/95 dark:bg-slate-900/95 border border-amber-900/[0.08] dark:border-slate-800 rounded-2xl p-2.5 flex items-center justify-between text-xs flex-wrap gap-2 shadow-xs dark:shadow-lg backdrop-blur transition-colors">
+    <div className="bg-white/95 dark:bg-slate-900/90 border border-amber-900/[0.08] dark:border-slate-800 rounded-3xl p-3.5 sm:p-4 shadow-sm dark:shadow-xl flex flex-col space-y-3.5 w-full transition-colors">
+      {/* Controls Toolbar Header */}
+      <div className="flex items-center justify-between text-xs pb-3 border-b border-amber-900/[0.06] dark:border-slate-800/80">
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          <span className="font-bold text-slate-800 dark:text-white text-[11px] sm:text-xs">
+          <span className="font-bold text-slate-800 dark:text-white text-xs">
             Previsualización en Vivo
           </span>
         </div>
@@ -54,58 +53,22 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
             🌐 Página Real
           </button>
         </div>
-
-        {/* Device Format */}
-        <div className="flex items-center gap-1 bg-stone-100 dark:bg-slate-950 p-1 rounded-xl border border-stone-200 dark:border-slate-800">
-          <button
-            type="button"
-            onClick={() => setPreviewDevice("iphone")}
-            className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition cursor-pointer ${
-              previewDevice === "iphone"
-                ? "bg-amber-500 text-slate-950 font-bold shadow-xs"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white"
-            }`}
-            title="Vista Móvil (390px)"
-          >
-            📱 Móvil
-          </button>
-          <button
-            type="button"
-            onClick={() => setPreviewDevice("full")}
-            className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition cursor-pointer ${
-              previewDevice === "full"
-                ? "bg-amber-500 text-slate-950 font-bold shadow-xs"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white"
-            }`}
-            title="Vista Fluida"
-          >
-            💻 Fluido
-          </button>
-        </div>
       </div>
 
-      {/* Frame Container */}
+      {/* Frame Container inside the Card */}
       <div className="flex justify-center items-start w-full">
-        <div
-          className={`w-full transition-all duration-300 ${
-            previewDevice === "iphone"
-              ? "max-w-[380px] border-[10px] border-slate-800 dark:border-slate-900 rounded-[44px] shadow-2xl overflow-hidden ring-1 ring-slate-700/40 bg-slate-950"
-              : "max-w-full rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden bg-slate-950"
-          }`}
-        >
+        <div className="w-full max-w-[360px] border-[10px] border-slate-800 dark:border-slate-950 rounded-[44px] shadow-2xl overflow-hidden ring-1 ring-slate-700/30 bg-slate-950">
           {/* Bezel / Dynamic Island */}
-          {previewDevice === "iphone" && (
-            <div className="bg-slate-950 pt-2.5 pb-2 px-6 flex items-center justify-between text-[11px] font-mono text-slate-400 select-none">
-              <span>9:41</span>
-              <div className="w-20 h-4 bg-slate-900 rounded-full border border-slate-800 flex items-center justify-center">
-                <span className="w-2 h-2 rounded-full bg-slate-800"></span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span>5G</span>
-                <span className="w-4 h-2 rounded-sm border border-slate-400 inline-block"></span>
-              </div>
+          <div className="bg-slate-950 pt-2.5 pb-2 px-6 flex items-center justify-between text-[11px] font-mono text-slate-400 select-none">
+            <span>9:41</span>
+            <div className="w-20 h-4 bg-slate-900 rounded-full border border-slate-800 flex items-center justify-center">
+              <span className="w-2 h-2 rounded-full bg-slate-800"></span>
             </div>
-          )}
+            <div className="flex items-center gap-1">
+              <span>5G</span>
+              <span className="w-4 h-2 rounded-sm border border-slate-400 inline-block"></span>
+            </div>
+          </div>
 
           {/* Body: Real Iframe OR Dynamic React Mockup */}
           {previewType === "iframe" ? (
