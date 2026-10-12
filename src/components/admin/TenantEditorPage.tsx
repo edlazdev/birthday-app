@@ -43,49 +43,17 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
   const [viewMode, setViewMode] = useState<"split" | "editor" | "preview">("split");
   const [openSections, setOpenSections] = useState<Record<EditorSectionId, boolean>>({
     general: true,
-    datetime: true,
-    rsvp: true,
-    modules: true,
-    theme: true,
-    media: true,
-    extras: true,
+    datetime: false,
+    rsvp: false,
+    modules: false,
+    theme: false,
+    media: false,
+    extras: false,
   });
 
   const toggleSection = (id: EditorSectionId) => {
-    setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const expandAllSections = () => {
-    setOpenSections({
-      general: true,
-      datetime: true,
-      rsvp: true,
-      modules: true,
-      theme: true,
-      media: true,
-      extras: true,
-    });
-  };
-
-  const collapseAllSections = () => {
-    setOpenSections({
-      general: false,
-      datetime: false,
-      rsvp: false,
-      modules: false,
-      theme: false,
-      media: false,
-      extras: false,
-    });
-  };
-
-  const scrollToSection = (id: EditorSectionId) => {
     setActiveSection(id);
-    setOpenSections((prev) => ({ ...prev, [id]: true }));
-    const el = document.getElementById(`section-${id}`);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   // Save states per section & dirty tracking
@@ -541,64 +509,6 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
               viewMode === "editor" ? "col-span-12 max-w-4xl mx-auto w-full" : "col-span-12 lg:col-span-7"
             }`}
           >
-            {/* STICKY SECTION QUICK NAVIGATOR BAR */}
-            <div className="sticky top-16 z-30 bg-[#FAF7F2]/95 dark:bg-slate-950/95 backdrop-blur-md pb-1 pt-1">
-              <div className="bg-white/95 dark:bg-slate-900/95 border border-amber-900/[0.08] dark:border-slate-800 rounded-2xl p-2 shadow-xs flex items-center justify-between gap-2 overflow-x-auto [scrollbar-width:none]">
-                <div className="flex items-center gap-1.5 min-w-max">
-                  {EDITOR_SECTIONS.map((sec) => {
-                    const isDirty = dirtySections[sec.id];
-                    const isSaved = !!savedSectionTime[sec.label] && !isDirty;
-                    const isOpen = openSections[sec.id];
-
-                    return (
-                      <button
-                        key={sec.id}
-                        type="button"
-                        onClick={() => scrollToSection(sec.id)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border ${
-                          isOpen
-                            ? "bg-amber-500/15 text-amber-900 dark:text-amber-300 border-amber-500/40 shadow-2xs"
-                            : "bg-stone-50/60 dark:bg-slate-800/40 border-stone-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-stone-100"
-                        }`}
-                        title={`Ir a ${sec.label}`}
-                      >
-                        <span className="text-xs">{sec.icon}</span>
-                        <span>{sec.step}. {sec.shortLabel}</span>
-                        {isDirty && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" title="Cambios pendientes" />
-                        )}
-                        {isSaved && (
-                          <span className="text-[10px] text-emerald-500 font-bold" title="Guardado">
-                            ✓
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="flex items-center gap-1 pl-2 border-l border-amber-900/[0.08] dark:border-slate-800 shrink-0">
-                  <button
-                    type="button"
-                    onClick={expandAllSections}
-                    className="px-2 py-1 rounded-lg text-[11px] font-medium text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                    title="Abrir todas las secciones"
-                  >
-                    Expandir
-                  </button>
-                  <span className="text-slate-300 dark:text-slate-700">|</span>
-                  <button
-                    type="button"
-                    onClick={collapseAllSections}
-                    className="px-2 py-1 rounded-lg text-[11px] font-medium text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                    title="Cerrar todas las secciones"
-                  >
-                    Colapsar
-                  </button>
-                </div>
-              </div>
-            </div>
-
             {/* ===============================================================
                 SECTION 1: GENERAL & FESTEJADO
             ================================================================ */}
