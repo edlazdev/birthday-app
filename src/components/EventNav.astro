@@ -4,31 +4,37 @@ import type { EventNavProps } from "@/types";
 type Props = EventNavProps;
 const { slug, showAlbum = true } = Astro.props;
 
-// Obtener la ruta actual
 const currentPath = Astro.url.pathname;
-const base = import.meta.env.BASE_URL || "";
-// Normalizar basePath: asegurar que termine con / y que slug empiece sin /
-const basePath = base.endsWith("/") ? base : `${base}/`;
-
-// Determinar qué link está activo basándose en si la ruta contiene '/album'
-const isAlbumActive = currentPath.includes('/album');
+const isAlbumActive = currentPath.includes("/album");
 const isInvitationActive = !isAlbumActive;
 ---
 
-<nav class="event-nav">
-  <a 
-    href={`${basePath}${slug}`} 
-    class={isInvitationActive ? "active" : ""}
-  >
-    INVITACIÓN
-  </a>
-  {showAlbum && (
-    <a 
-      href={`${basePath}${slug}/album`}
-      class={isAlbumActive ? "active" : ""}
-    >
-      ÁLBUM
-    </a>
-  )}
-</nav>
+{showAlbum && (
+  <nav class="sticky top-3 z-30 mx-auto w-fit mb-3 mt-1 px-4">
+    <div class="flex items-center gap-1 p-1 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-full shadow-lg shadow-black/10 border border-white/60 dark:border-slate-700/60 transition-all">
+      <a 
+        href={`/${slug}`} 
+        class={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold tracking-wider transition-all duration-200 active:scale-95 ${
+          isInvitationActive
+            ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/30"
+            : "text-gray-700 dark:text-slate-200 hover:bg-black/5"
+        }`}
+      >
+        <span>💌</span>
+        <span>INVITACIÓN</span>
+      </a>
+      <a 
+        href={`/${slug}/album`}
+        class={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold tracking-wider transition-all duration-200 active:scale-95 ${
+          isAlbumActive
+            ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/30"
+            : "text-gray-700 dark:text-slate-200 hover:bg-black/5"
+        }`}
+      >
+        <span>📷</span>
+        <span>ÁLBUM</span>
+      </a>
+    </div>
+  </nav>
+)}
 

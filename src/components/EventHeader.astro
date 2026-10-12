@@ -7,6 +7,7 @@ const {
   eventData: {
     beforeCelebrant,
     showAvatar,
+    avatarUrl,
     slug,
     celebrant,
     title,
@@ -19,12 +20,12 @@ const {
 } = Astro.props;
 
 const showSponsors =
-  type === "wedding" &&
+  (type === "wedding" || type === "quinceanero") &&
   sponsors &&
   (sponsors.groom?.length > 0 || sponsors.bride?.length > 0);
 
 const showWitnesses =
-  type === "wedding" && witnesses && witnesses.length > 0;
+  (type === "wedding" || type === "quinceanero") && witnesses && witnesses.length > 0;
 ---
 
 <section class="event-header">
@@ -36,8 +37,9 @@ const showWitnesses =
       <div class="event-header__avatar mt-4 animate-fade-up animate-delay-1">
         <Avatar
           slug={slug}
+          avatarUrl={avatarUrl}
           showAvatar={showAvatar}
-          alt={`${celebrant}, cumpleañero`}
+          alt={`${celebrant}, ${type === "wedding" ? "pareja" : type === "quinceanero" ? "quinceañera" : "festejado"}`}
         />
       </div>
     )
@@ -55,10 +57,14 @@ const showWitnesses =
         <p class="event-header__sponsors-kicker" aria-hidden="true">
           <span class="event-header__sponsors-ornament" />
         </p>
-        <p class="event-header__sponsors-intro">Nuestros padrinos</p>
+        <p class="event-header__sponsors-intro">
+          {type === "wedding" ? "Nuestros padrinos" : "Mis padrinos"}
+        </p>
         <div class="event-header__sponsors-grid">
           <div class="event-header__sponsors-col">
-            <h3 class="event-header__sponsors-heading">🤵 novio</h3>
+            <h3 class="event-header__sponsors-heading">
+              {type === "wedding" ? "🤵 novio" : "👑 padrinos"}
+            </h3>
             <ul class="event-header__sponsors-list">
               {sponsors!.groom.map((name) => (
                 <li>{name}</li>
@@ -67,7 +73,9 @@ const showWitnesses =
           </div>
           <div class="event-header__sponsors-divider" aria-hidden="true" />
           <div class="event-header__sponsors-col">
-            <h3 class="event-header__sponsors-heading">👰 novia</h3>
+            <h3 class="event-header__sponsors-heading">
+              {type === "wedding" ? "👰 novia" : "✨ acompañantes"}
+            </h3>
             <ul class="event-header__sponsors-list">
               {sponsors!.bride.map((name) => (
                 <li>{name}</li>

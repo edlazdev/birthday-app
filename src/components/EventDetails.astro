@@ -20,24 +20,32 @@ const albumHref = `${basePath}${eventData.slug}/album`;
     <div class="animate-fade-up animate-delay-2">
       <DateTimeCard date={eventData.date} time={eventData.time} />
     </div>
-    <RSVPSection whatsapp={eventData.whatsapp} celebrant={eventData.celebrant} whatsappName={eventData.whatsappName} msgTooltip={eventData.msgTooltip} type={eventData.type as "wedding" | "birthday"}/>
-  {eventData.type === "wedding" && (
-    <div class="animate-fade-up animate-delay-5 py-4">
-      <span class="text-sm font-normal tracking-wider py-2 m-0 text-gray-600">Amamos a los niños, pero hemos reservado sitios solo para adultos.</span>
-      <span class="text-sm font-normal tracking-wider py-2 m-0 text-gray-600">Niños dulces sueños.</span>
+    {eventData.showRsvp !== false && (
+      <RSVPSection whatsapp={eventData.whatsapp} celebrant={eventData.celebrant} whatsappName={eventData.whatsappName} msgTooltip={eventData.msgTooltip} type={eventData.type}/>
+    )}
+    {eventData.type === "wedding" && (
+      <div class="animate-fade-up animate-delay-5 py-4">
+        <span class="text-sm font-normal tracking-wider py-2 m-0 text-gray-600">Amamos a los niños, pero hemos reservado sitios solo para adultos.</span>
+        <span class="text-sm font-normal tracking-wider py-2 m-0 text-gray-600">Niños dulces sueños.</span>
+      </div>
+    )}
+    {eventData.showMap !== false && (
+      <>
+        <span class="animate-fade-up animate-delay-3 text-base md:text-xl font-normal tracking-wider py-2 m-0 text-gray-600">Te esperamos en:</span>
+        <p class="animate-fade-up animate-delay-4">📍 {eventData.address}</p>
+      </>
+    )}
+  </div>
+  {eventData.showMap !== false && (
+    <div class="animate-fade-up animate-delay-5">
+      <MapEmbed
+        lat={eventData.map.lat}
+        lng={eventData.map.lng}
+        address={eventData.address}
+        provider="openstreetmap"
+      />
     </div>
   )}
-    <span class="animate-fade-up animate-delay-3 text-base md:text-xl font-normal tracking-wider py-2 m-0 text-gray-600">Te esperamos en:</span>
-    <p class="animate-fade-up animate-delay-4">📍 {eventData.address}</p>
-  </div>
-  <div class="animate-fade-up animate-delay-5">
-    <MapEmbed
-      lat={eventData.map.lat}
-      lng={eventData.map.lng}
-      address={eventData.address}
-      provider="openstreetmap"
-    />
-  </div>
 
 
   {eventData.showAlbum !== false && eventData.msgRedirectAlbum && (
@@ -49,7 +57,7 @@ const albumHref = `${basePath}${eventData.slug}/album`;
     </p>
   )}
 
-  {eventData.giftRecommendations && eventData.giftRecommendations.length > 0 && (
+  {eventData.showGifts !== false && eventData.giftRecommendations && eventData.giftRecommendations.length > 0 && (
     <GiftRecommendations items={eventData.giftRecommendations} recommendationsTitle={eventData.recommendationsTitle} recommendationsDescription={eventData.recommendationsDescription} />
   )}
 </section>

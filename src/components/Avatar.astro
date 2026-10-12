@@ -3,13 +3,14 @@ import type { AvatarProps } from "@/types";
 import { getEventImagePath } from "@/utils/images";
 
 type Props = AvatarProps;
-const { slug, showAvatar = true, alt = "Foto del cumpleañero" } = Astro.props;
+const { slug, avatarUrl, showAvatar = true, alt = "Foto del festejado" } = Astro.props;
 
 if (!showAvatar) {
   return null;
 }
 
-const avatarSrc = getEventImagePath(slug, "avatar.jpg");
+const avatarSrc = avatarUrl || getEventImagePath(slug, "avatar.jpg");
+
 ---
 
 <figure class="avatar-wrapper avatar" data-avatar>

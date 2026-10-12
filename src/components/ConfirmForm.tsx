@@ -19,6 +19,7 @@ export default function ConfirmForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const isWedding = type === "wedding";
+  const isQuinceanero = type === "quinceanero";
 
   if (!isOpen) return null;
 
@@ -48,6 +49,8 @@ export default function ConfirmForm({
       : "Hola 👋,";
     const eventLine = isWedding
       ? `Confirmo mi asistencia a la boda 💒 de ${celebrant}.`
+      : isQuinceanero
+      ? `Confirmo mi asistencia a la fiesta de 15 años 👑 de ${celebrant}.`
       : `Confirmo mi asistencia al cumpleaños 🎂 de ${celebrant}.`;
     const quantityLines = isWedding
       ? [`  👨‍👩‍👧‍👦 Adultos: ${formData.adults}`]
@@ -73,6 +76,20 @@ export default function ConfirmForm({
     e.preventDefault();
 
     if (!validateForm()) return;
+
+    // Guardar en Supabase en segundo plano si está disponible
+    const pathParts = window.location.pathname.replace(/^\/+|\/+$/g, "").split("/");
+    const tenantSlug = pathParts[0] || "";
+    
+    import("@/services/tenants").then(({ submitRsvp }) => {
+      submitRsvp({
+        tenantSlug,
+        guestName: formData.name.trim(),
+        adults: formData.adults,
+        boys: formData.boys,
+        girls: formData.girls,
+      }).catch(() => {});
+    }).catch(() => {});
 
     const msg = buildMessage();
     window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(msg)}`, "_blank");
@@ -111,31 +128,34 @@ export default function ConfirmForm({
   };
 
   const counterBtnClass =
-    "w-12 h-12 rounded-xl border-2 border-[var(--primary)] bg-white text-[var(--primary)] font-bold text-xl disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--primary)] hover:text-white transition-all active:scale-95 flex items-center justify-center";
+    "w-12 h-12 sm:w-14 sm:h-14 rounded-xl border-2 border-[var(--primary)] bg-white text-[var(--primary)] font-bold text-xl sm:text-2xl disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--primary)] hover:text-white transition-all active:scale-95 flex items-center justify-center touch-manipulation";
   const counterDisplayClass =
-    "text-3xl font-bold text-gray-800 py-2 px-4 bg-gray-50 rounded-xl border-2 border-gray-200";
+    "text-2xl sm:text-3xl font-bold text-gray-800 py-2.5 px-4 bg-gray-50 rounded-xl border-2 border-gray-200 select-none";
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all animate-slide-up">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-md max-h-[92dvh] overflow-y-auto transform transition-all animate-slide-up pb-6 sm:pb-0">
         <form onSubmit={handleSubmit} className="p-6 md:p-8">
-          <div className="flex items-center justify-between mb-6">
+          {/* Mobile swipe/pill handle */}
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 sm:hidden" />
+
+          <div className="flex items-center justify-between mb-5">
             <h3
               id="modal-title"
-              className="text-2xl font-bold text-[var(--secondary)] text-center tracking-[0.05em]"
+              className="text-xl sm:text-2xl font-bold text-[var(--secondary)] tracking-[0.05em]"
             >
               Confirmar asistencia
             </h3>
             <button
               type="button"
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+              className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-full hover:bg-gray-100 touch-manipulation"
               aria-label="Cerrar modal"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,7 +168,7 @@ export default function ConfirmForm({
             {/* Nombre */}
             <div>
               <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
-                Nombre <span className="text-red-500">*</span>
+                Nombre completo <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -156,7 +176,7 @@ export default function ConfirmForm({
                 value={formData.name}
                 onChange={(e) => handleChange("name", e.target.value)}
                 placeholder="Tu nombre completo"
-                className={`w-full px-4 py-3 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                className={`w-full px-4 py-3.5 text-base border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                   errors.name
                     ? "border-red-300 focus:border-red-500 focus:ring-red-200"
                     : "border-gray-200 focus:border-[var(--primary)] focus:ring-[var(--primary)]/20"
@@ -268,13 +288,13 @@ export default function ConfirmForm({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all active:scale-95"
+              className="flex-1 py-3.5 px-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all active:scale-95 touch-manipulation min-h-[48px]"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-3 bg-[var(--primary)] text-white font-semibold rounded-xl hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-[var(--primary)]/30"
+              className="flex-1 py-3.5 px-4 bg-[var(--primary)] text-white font-semibold rounded-xl hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-[var(--primary)]/30 touch-manipulation min-h-[48px]"
             >
               Confirmar
             </button>

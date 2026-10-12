@@ -16,13 +16,11 @@ export default function RSVPSectionWrapper({ whatsapp, celebrant, whatsappName, 
   };
 
   // Manejar eventos táctiles para mobile
-  const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault();
+  const handleTouchStart = () => {
     setShowTooltip(true);
   };
 
   const handleTouchEnd = () => {
-    // Mantener el tooltip visible por 2 segundos en mobile antes de ocultarlo
     setTimeout(() => setShowTooltip(false), 2000);
   };
 

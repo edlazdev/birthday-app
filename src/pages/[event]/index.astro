@@ -5,24 +5,44 @@ import EventHeader from "@/components/EventHeader.astro";
 import EventDetails from "@/components/EventDetails.astro";
 import Footer from "@/components/Footer.astro";
 
-import { events } from "@/data/events";
 import { DEFAULT_EVENT } from "@/utils";
-import { getEventImagePath } from "@/utils/images";
-
-export function getStaticPaths() {
-  return Object.keys(events).map((eventKey) => ({
-    params: { event: eventKey },
-  }));
-}
+import { getTenantBySlug } from "@/services/tenants";
 
 const { event } = Astro.params;
-const eventKey = event && event in events ? event : DEFAULT_EVENT;
-const data = events[eventKey as keyof typeof events];
+const eventKey = event ? event : DEFAULT_EVENT;
+const data = await getTenantBySlug(eventKey);
 
 if (!data) {
-  throw new Error("Evento no encontrado");
+  return Astro.redirect(`/${DEFAULT_EVENT}/`);
 }
+
+// Si está en borrador, mostrar pantalla de cortesía
+const isDraft = data.status === "draft";
 ---
+
+{isDraft ? (
+  <html lang="es">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>{data.celebrant} - Próximamente</title>
+      <link rel="stylesheet" href="/styles/global.css" />
+    </head>
+    <body class="min-h-screen bg-slate-900 flex items-center justify-center text-white px-4">
+      <div class="max-w-md text-center p-8 bg-slate-800/80 backdrop-blur rounded-2xl border border-slate-700 shadow-xl">
+        <div class="text-5xl mb-4">✨</div>
+        <h1 class="text-2xl font-bold mb-2">Evento en Preparación</h1>
+        <p class="text-slate-300 text-sm mb-6">
+          La invitación para <span class="text-amber-400 font-semibold">{data.celebrant}</span> aún no ha sido publicada.
+        </p>
+        <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30">
+          Próximamente disponible
+        </span>
+      </div>
+    </body>
+  </html>
+) : (
+
 
 <EventLayout eventData={data}>
   <main class="event-container">
@@ -37,10 +57,10 @@ if (!data) {
     <Footer
       year={new Date().getFullYear()}
       socialLinks={{
-        facebook: data.socialLinks.facebook
+        facebook: data.socialLinks?.facebook
           ? "https://www.facebook.com/elr28"
           : undefined,
-        instagram: data.socialLinks.instagram
+        instagram: data.socialLinks?.instagram
           ? "https://www.instagram.com/_edgar.lazaro/"
           : undefined,
       }}
@@ -48,3 +68,5 @@ if (!data) {
     />
   </main>
 </EventLayout>
+)}
+

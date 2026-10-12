@@ -19,8 +19,8 @@ const { eventData } = Astro.props;
 const currentPath = Astro.url.pathname;
 const isAlbumPage = currentPath.includes("/album");
 
-// Cover siempre según slug (se usa cuando no hay video o showVideoBackground es false)
-const coverImagePath = getEventImagePath(eventData.slug, "cover.jpg");
+// Cover siempre según slug o custom coverUrl (se usa cuando no hay video o showVideoBackground es false)
+const coverImagePath = eventData.coverUrl || getEventImagePath(eventData.slug, "cover.jpg");
 
 // Video: solo si showVideoBackground !== false y hay config
 let videoConfig = getVideoConfig(eventData, isAlbumPage);
@@ -29,7 +29,7 @@ const youtubeUrl = videoConfig ? getYoutubeEmbedUrl(videoConfig) : "";
 
 // URLs y meta
 const fullUrl = getFullUrl(currentPath);
-const ogImageUrl = getOgImageUrl(eventData.slug);
+const ogImageUrl = getOgImageUrl(eventData.slug, eventData.coverUrl);
 const pageTitle = isAlbumPage
   ? `Álbum - ${eventData.celebrant}`
   : `${eventData.celebrant} - ${eventData.title} ${eventData.age} ${eventData.afterAge ?? ""}`;

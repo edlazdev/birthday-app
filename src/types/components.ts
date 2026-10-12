@@ -1,5 +1,7 @@
 import type { FontConfig } from "./utils";
 
+export type EventType = "wedding" | "birthday" | "quinceanero" | "other";
+
 // React Component Props
 export interface RSVPSectionWrapperProps {
   whatsapp: string;
@@ -7,7 +9,7 @@ export interface RSVPSectionWrapperProps {
   /** Nombre para el saludo en el mensaje (ej. "Hola [whatsappName], ..."). Si no se define, se usa "Hola,". */
   whatsappName?: string;
   msgTooltip?: string;
-  type: "wedding" | "birthday";
+  type: EventType;
 }
 
 export interface ConfirmFormProps {
@@ -16,7 +18,7 @@ export interface ConfirmFormProps {
   whatsappName?: string;
   isOpen: boolean;
   onClose: () => void;
-  type: "wedding" | "birthday";
+  type: EventType;
 }
 
 export interface ImageGalleryProps {
@@ -77,7 +79,7 @@ export interface RSVPSectionProps {
   celebrant: string;
   whatsappName?: string;
   msgTooltip?: string;
-  type: "wedding" | "birthday";
+  type: EventType;
 }
 
 export interface EventHeaderProps {
@@ -86,6 +88,7 @@ export interface EventHeaderProps {
 
 export interface AvatarProps {
   slug: string;
+  avatarUrl?: string;
   /** Si es false no se renderiza. Por defecto true. */
   showAvatar?: boolean;
   alt?: string;
@@ -109,8 +112,23 @@ export type ThemeVariables = {
   bg?: string;
 };
 
+export type EventFeatures = {
+  showAlbum?: boolean;
+  showAvatar?: boolean;
+  showVideoBackground?: boolean;
+  showMap?: boolean;
+  showRsvp?: boolean;
+  showGifts?: boolean;
+  showSponsors?: boolean;
+  showWitnesses?: boolean;
+  showSocialLinks?: boolean;
+};
+
 export type EventData = {
-  type: "wedding" | "birthday" | "other";
+  id?: string;
+  ownerId?: string;
+  type: EventType;
+  status?: "published" | "draft" | "pending_approval" | "archived";
   slug: string;
   recommendationsTitle?: string;
   recommendationsDescription?: string;
@@ -148,6 +166,17 @@ export type EventData = {
   showVideoBackground?: boolean;
   /** Si es true, se muestra la foto del cumpleañero (avatar) desde assets/events/[slug]/avatar.jpg. Si es false, no se muestra. Por defecto true. */
   showAvatar?: boolean;
+  showMap?: boolean;
+  showRsvp?: boolean;
+  showGifts?: boolean;
+  showSponsors?: boolean;
+  showWitnesses?: boolean;
+  showSocialLinks?: boolean;
+  features?: EventFeatures;
+  /** URLs de medios desde Supabase Storage o externas */
+  coverUrl?: string;
+  avatarUrl?: string;
+  albumUrls?: string[];
   backgroundVideo?: {
     // Video único para todas las páginas (compatibilidad hacia atrás)
     youtubeId?: string;
@@ -179,4 +208,4 @@ export type EventData = {
   };
   /** Bodas: testigos (lista única para ambos). Si está vacío o no se define, no se muestra el bloque. */
   witnesses?: string[];
-};
+};

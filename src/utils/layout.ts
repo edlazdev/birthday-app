@@ -66,6 +66,7 @@ export function getOgSiteName(eventData: EventData): string {
   if (custom) return custom;
   const c = eventData.celebrant.trim();
   if (eventData.type === "wedding") return `Boda · ${c}`;
+  if (eventData.type === "quinceanero") return `Mis 15 Años · ${c}`;
   if (eventData.type === "birthday") return `Cumpleaños · ${c}`;
   return `Invitación · ${c}`;
 }
@@ -86,17 +87,18 @@ export function getThemeInjectCSS(eventData: EventData): string {
   return `body.theme-${eventData.slug}{${vars}}`;
 }
 
-const SITE = "https://edlazdev.github.io";
-const BASE = "/birthday-app";
+const SITE = "https://freeloader.artizaro.com";
+const BASE = "";
 
 /** URL base del sitio (con base path). */
 export function getSiteBase(): string {
-  const b = BASE.endsWith("/") ? BASE : `${BASE}/`;
+  const b = BASE ? (BASE.endsWith("/") ? BASE : `${BASE}/`) : "/";
   return `${SITE}${b}`.replace(/\/+/g, "/").replace(":/", "://");
 }
 
 /** URL absoluta de la imagen OG para un slug. */
-export function getOgImageUrl(slug: string): string {
+export function getOgImageUrl(slug: string, customCoverUrl?: string): string {
+  if (customCoverUrl && customCoverUrl.trim()) return customCoverUrl;
   return `${getSiteBase()}assets/events/${slug}/cover.jpg`;
 }
 
@@ -104,9 +106,10 @@ export function getOgImageUrl(slug: string): string {
 export function getFullUrl(currentPath: string): string {
   let path = currentPath.replace(/^\/+/, "");
   const baseTrimmed = BASE.replace(/^\/+/, "");
-  if (path.startsWith(baseTrimmed + "/") || path === baseTrimmed) {
+  if (baseTrimmed && (path.startsWith(baseTrimmed + "/") || path === baseTrimmed)) {
     path = path.slice(baseTrimmed.length).replace(/^\/+/, "");
   }
   const siteBase = getSiteBase();
   return (siteBase + path).replace(/\/+/g, "/").replace(":/", "://");
 }
+
