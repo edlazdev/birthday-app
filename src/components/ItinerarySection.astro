@@ -1,0 +1,189 @@
+---
+import type { ItineraryItem } from "@/types";
+
+interface Props {
+  items?: ItineraryItem[];
+  title?: string;
+}
+
+const {
+  items = [],
+  title = "Itinerario de Actividades",
+} = Astro.props;
+
+// Icon fallback mapper
+function getIconDisplay(icon?: string): string {
+  if (!icon) return "✨";
+  const iconMap: Record<string, string> = {
+    crown: "👑",
+    food: "🍽️",
+    dinner: "🍽️",
+    castle: "🏰",
+    dance: "💃",
+    church: "⛪",
+    cake: "🎂",
+    toast: "🥂",
+    photo: "📸",
+    music: "🎵",
+  };
+  return iconMap[icon.toLowerCase()] || icon;
+}
+---
+
+{items && items.length > 0 && (
+  <section class="itinerary-wrapper my-8 px-2 sm:px-4 max-w-md mx-auto animate-fade-up">
+    {/* Contenedor con remate en arco superior característico del diseño */}
+    <div class="itinerary-card">
+      {/* Detalle ornamental superior */}
+      <div class="itinerary-arch-top">
+        <div class="arch-crown-icon" aria-hidden="true">
+          <svg class="w-8 h-8 mx-auto text-[var(--primary,#e79db4)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+        </div>
+        <h2 class="itinerary-title font-serif italic text-2xl sm:text-3xl font-normal text-[var(--primary,#e79db4)] tracking-wide mt-1">
+          {title}
+        </h2>
+        <div class="arch-divider"></div>
+      </div>
+
+      {/* Lista del cronograma con línea de tiempo elegante */}
+      <div class="itinerary-timeline">
+        {items.map((item, idx) => (
+          <div class="timeline-item" style={`animation-delay: ${(idx + 1) * 150}ms`}>
+            {/* Ícono en medallón */}
+            <div class="timeline-icon-box">
+              <span class="timeline-icon" role="img" aria-label={item.title}>
+                {getIconDisplay(item.icon)}
+              </span>
+            </div>
+
+            {/* Contenido: Título, Hora y Descripción */}
+            <div class="timeline-details">
+              <span class="timeline-label font-bold text-xs sm:text-sm tracking-wider uppercase text-slate-100">
+                {item.title}
+              </span>
+              <span class="timeline-time font-semibold text-xs sm:text-sm text-[var(--primary,#e79db4)]">
+                {item.time}
+              </span>
+              {item.description && (
+                <p class="timeline-desc text-[11px] sm:text-xs text-slate-300 mt-0.5">
+                  {item.description}
+                </p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Listón / moño inferior decorativo */}
+      <div class="itinerary-ribbon-bottom" aria-hidden="true">
+        <span class="text-xl">🎀</span>
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+  .itinerary-card {
+    background-color: #22242A;
+    border: 1.5px solid rgba(231, 157, 180, 0.35);
+    border-radius: 4rem 4rem 1.75rem 1.75rem;
+    padding: 2.25rem 1.25rem 1.5rem;
+    box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.6), 0 0 24px -4px rgba(231, 157, 180, 0.15);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .itinerary-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 120px;
+    background: radial-gradient(circle at top, rgba(231, 157, 180, 0.12), transparent 70%);
+    pointer-events: none;
+  }
+
+  .itinerary-arch-top {
+    text-align: center;
+    position: relative;
+    padding-bottom: 1.25rem;
+  }
+
+  .arch-divider {
+    width: 60px;
+    height: 1.5px;
+    background: linear-gradient(90deg, transparent, var(--primary, #e79db4), transparent);
+    margin: 0.75rem auto 0;
+  }
+
+  .itinerary-timeline {
+    position: relative;
+    padding: 0.5rem 0.5rem 0.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .itinerary-timeline::before {
+    content: "";
+    position: absolute;
+    top: 1rem;
+    bottom: 1rem;
+    left: 2.25rem;
+    width: 2px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(231, 157, 180, 0.4) 15%,
+      rgba(231, 157, 180, 0.4) 85%,
+      transparent
+    );
+  }
+
+  .timeline-item {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .timeline-icon-box {
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #1b1d22;
+    border: 1.5px solid var(--primary, #e79db4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 8px rgba(231, 157, 180, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+  }
+
+  .timeline-details {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    flex-grow: 1;
+  }
+
+  .timeline-label {
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+  }
+
+  .timeline-time {
+    letter-spacing: 0.05em;
+    margin-top: 0.15rem;
+  }
+
+  .itinerary-ribbon-bottom {
+    text-align: center;
+    padding-top: 1.25rem;
+  }
+</style>

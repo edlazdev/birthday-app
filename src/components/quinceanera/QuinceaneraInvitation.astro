@@ -1,0 +1,490 @@
+---
+import type { EventData } from "@/types";
+
+interface Props {
+  eventData: EventData;
+}
+
+const { eventData } = Astro.props;
+
+// Datos con fallback a Luana
+const celebrant = eventData.celebrant || "Luana";
+const tagline = eventData.tagline || "Hay momentos inolvidables que se atesoran en el corazón para siempre. Por esa razón, quiero que compartas conmigo este día tan especial.";
+const dateText = eventData.date || "Viernes 31 de Julio 2026";
+const timeText = eventData.time || "5:00 PM";
+const whatsapp = eventData.whatsapp || "51907074109";
+const whatsappName = eventData.whatsappName || celebrant;
+
+// Itinerario por defecto o personalizado
+const itineraryItems = eventData.itinerary && eventData.itinerary.length > 0
+  ? eventData.itinerary
+  : [
+      { time: "5:00 PM", title: "ENTRADA DE LA QUINCEAÑERA", icon: "👑" },
+      { time: "5:30 PM", title: "COMIDA", icon: "🍽️" },
+      { time: "6:30 PM", title: "PROTOCOLO & VALS", icon: "🏰" },
+      { time: "7:30 PM", title: "BAILE", icon: "💃" },
+    ];
+
+// Padrinos y padres
+const parents = eventData.sponsors?.groom?.length ? eventData.sponsors.groom.join(" & ") : "Saúl Martínez & Lucy Brambila";
+const godparents = eventData.sponsors?.bride?.length ? eventData.sponsors.bride.join(" & ") : "Filiberto Nava & Alicia Martínez";
+
+// Fotos
+const heroPhoto = "/assets/events/luana/hero.jpg";
+const teaPhoto = "/assets/events/luana/tea.jpg";
+const cupPhoto = "/assets/events/luana/cup.jpg";
+
+// Mensaje WhatsApp
+const whatsappMessage = encodeURIComponent(`¡Hola ${whatsappName}! Confirmo con mucha alegría mi asistencia a los XV Años de ${celebrant} 🎉`);
+const whatsappUrl = `https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}?text=${whatsappMessage}`;
+---
+
+<!-- Importación de Google Fonts para caligrafía de lujo y serif de gala -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel:wght@400;600;700&family=Great+Vibes&family=Montserrat:wght@300;400;500;600;700&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+  rel="stylesheet"
+/>
+
+<div class="quince-page-wrapper min-h-screen bg-[#22242A] text-slate-100 flex justify-center py-4 px-2 sm:px-4">
+  <!-- Contenedor Tarjeta Central Móvil (idéntica a la maqueta) -->
+  <main class="quince-mobile-card w-full max-w-[440px] bg-[#22242A] border border-[#e79db4]/35 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(231,157,180,0.18)] overflow-hidden flex flex-col relative text-center">
+
+    <!-- ==========================================
+         PANEL 1: HERO & PRESENTACIÓN
+    =========================================== -->
+    
+    <!-- 1. Hero Photo con Cortinas y Título -->
+    <header class="relative w-full overflow-hidden bg-black/40">
+      <div class="hero-image-container relative w-full aspect-[3/4] overflow-hidden">
+        <img
+          src={heroPhoto}
+          alt={`Mis XV Años - ${celebrant}`}
+          class="w-full h-full object-cover object-top"
+          loading="eager"
+        />
+        <!-- Overlay superior con degradado suave para texto -->
+        <div class="absolute inset-0 bg-gradient-to-b from-[#22242A]/80 via-transparent to-[#22242A] pointer-events-none"></div>
+
+        <!-- Título Caligráfico Superior -->
+        <div class="absolute top-6 left-0 right-0 px-4 text-center">
+          <h1 class="quince-script-title text-4xl sm:text-5xl text-[#ffffff] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-none font-normal">
+            {celebrant}
+          </h1>
+          <p class="quince-serif-caps text-xs sm:text-sm tracking-[0.3em] uppercase text-[#e79db4] font-semibold mt-1 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+            MIS XV AÑOS
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. Lazo / Moño de Satén Divisor -->
+    <div class="quince-ribbon-divider-full relative py-2 flex items-center justify-center">
+      <div class="ribbon-band h-[3px] bg-gradient-to-r from-transparent via-[#e79db4] to-transparent w-full absolute top-1/2 -translate-y-1/2"></div>
+      <!-- Moño central ornamental -->
+      <div class="relative z-10 px-3 bg-[#22242A]">
+        <svg class="w-12 h-10 text-[#e79db4] fill-current drop-shadow-[0_2px_6px_rgba(231,157,180,0.4)]" viewBox="0 0 100 80">
+          <path d="M50 40 C35 20, 15 15, 10 30 C5 45, 30 50, 48 42 Z" fill="#e79db4" opacity="0.9" />
+          <path d="M50 40 C65 20, 85 15, 90 30 C95 45, 70 50, 52 42 Z" fill="#e79db4" opacity="0.9" />
+          <path d="M48 42 C40 55, 30 70, 25 75 C28 72, 42 55, 49 44 Z" fill="#e79db4" opacity="0.75" />
+          <path d="M52 42 C60 55, 70 70, 75 75 C72 72, 58 55, 51 44 Z" fill="#e79db4" opacity="0.75" />
+          <circle cx="50" cy="40" r="6" fill="#fce7f3" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- 3. Pensamiento / Dedicatoria Emotiva -->
+    <section class="px-6 py-4">
+      <p class="quince-quote-text text-[11px] sm:text-xs leading-relaxed uppercase tracking-[0.14em] text-slate-200 font-serif">
+        "{tagline}"
+      </p>
+
+      <!-- Nombre en caligrafía script grande -->
+      <div class="my-4">
+        <span class="quince-script-title text-4xl sm:text-5xl text-[#e79db4] tracking-wide block">
+          {celebrant}
+        </span>
+      </div>
+
+      <!-- 4. Escudo Monograma XV Barroco con Flores -->
+      <div class="quince-crest-container my-4 flex justify-center">
+        <div class="crest-frame relative w-36 h-40 flex items-center justify-center p-2">
+          <!-- Marco decorativo barroco SVG -->
+          <svg class="absolute inset-0 w-full h-full text-[#e79db4] drop-shadow-[0_4px_12px_rgba(231,157,180,0.25)]" viewBox="0 0 140 160" fill="none">
+            <!-- Esquinas y remates ornamentales -->
+            <rect x="15" y="15" width="110" height="130" rx="30" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.5" />
+            <path d="M25 40 C25 20, 45 10, 70 10 C95 10, 115 20, 115 40 C115 60, 125 100, 115 125 C105 145, 85 152, 70 152 C55 152, 35 145, 25 125 C15 100, 25 60, 25 40 Z" stroke="currentColor" stroke-width="2" fill="rgba(34,36,42,0.85)" />
+            <!-- Hojas y ramitas florales en la base -->
+            <path d="M50 145 Q60 135 70 145 Q80 135 90 145" stroke="#fce7f3" stroke-width="1.5" stroke-linecap="round" />
+            <circle cx="48" cy="142" r="3" fill="#e79db4" />
+            <circle cx="70" cy="140" r="3.5" fill="#fce7f3" />
+            <circle cx="92" cy="142" r="3" fill="#e79db4" />
+          </svg>
+          <!-- Contenido del escudo -->
+          <div class="relative z-10 flex flex-col items-center">
+            <span class="text-xs text-[#e79db4]">👑</span>
+            <span class="quince-serif-caps text-3xl sm:text-4xl font-bold tracking-widest text-[#fce7f3]">
+              XV
+            </span>
+            <span class="text-[9px] uppercase tracking-[0.25em] text-[#e79db4] font-semibold mt-0.5">
+              Años
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Badge "QUINCEAÑERA" -->
+      <div class="mt-2 mb-4">
+        <span class="quince-serif-caps text-xs tracking-[0.3em] text-[#e79db4] uppercase font-bold border-y border-[#e79db4]/30 py-1.5 px-6 inline-block">
+          QUINCEAÑERA
+        </span>
+      </div>
+
+      <!-- 5. Reproductor "DALE PLAY" con lazos a los costados -->
+      <div class="quince-player-box my-4 p-3 bg-[#1d1f24] border border-[#e79db4]/25 rounded-2xl relative overflow-hidden max-w-[280px] mx-auto shadow-inner">
+        <!-- Rizo / Lazo lateral izquierdo -->
+        <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-xs text-[#e79db4]/60">〰️</span>
+        <!-- Rizo / Lazo lateral derecho -->
+        <span class="absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-[#e79db4]/60">〰️</span>
+
+        <span class="quince-serif-caps text-[10px] tracking-[0.25em] text-[#e79db4] font-bold block mb-2">
+          DALE PLAY
+        </span>
+        <div class="flex items-center justify-center gap-5 text-slate-300 text-sm">
+          <button type="button" class="hover:text-[#e79db4] transition cursor-pointer" aria-label="Anterior">⏮</button>
+          <button
+            type="button"
+            class="w-8 h-8 rounded-full bg-[#e79db4] text-[#22242A] flex items-center justify-center font-bold text-xs shadow-[0_2px_8px_rgba(231,157,180,0.5)] hover:scale-105 transition cursor-pointer"
+            aria-label="Reproducir música"
+          >
+            ▶
+          </button>
+          <button type="button" class="hover:text-[#e79db4] transition cursor-pointer" aria-label="Siguiente">⏭</button>
+        </div>
+        <!-- Barra de progreso con nodo -->
+        <div class="w-full bg-slate-800 h-1 rounded-full mt-2.5 relative flex items-center">
+          <div class="bg-[#e79db4] h-full w-2/5 rounded-full"></div>
+          <div class="w-2.5 h-2.5 rounded-full bg-[#fce7f3] border border-[#e79db4] shadow -ml-1"></div>
+        </div>
+      </div>
+
+      <!-- Moño Divisor Pequeño -->
+      <div class="my-3 text-[#e79db4] text-lg">🎀</div>
+
+      <!-- 6. Padres y Padrinos (Cortejo) -->
+      <div class="quince-court-card p-4 rounded-2xl bg-[#1d1f24]/80 border border-[#e79db4]/20 space-y-2 text-center text-xs">
+        <p class="quince-serif-caps text-[10px] sm:text-[11px] tracking-[0.2em] uppercase text-slate-300 font-semibold leading-relaxed">
+          ACOMPÁÑAME EN ESTE DÍA TAN ESPECIAL JUNTO A
+        </p>
+
+        <div class="py-1">
+          <span class="text-[9px] uppercase tracking-[0.18em] text-[#e79db4] block font-semibold">MIS PADRES:</span>
+          <p class="quince-serif-caps text-xs sm:text-sm font-bold text-white tracking-wider mt-0.5">
+            {parents}
+          </p>
+        </div>
+
+        <div class="py-1">
+          <span class="text-[9px] uppercase tracking-[0.18em] text-[#e79db4] block font-semibold">MIS PADRINOS:</span>
+          <p class="quince-serif-caps text-xs sm:text-sm font-bold text-white tracking-wider mt-0.5">
+            {godparents}
+          </p>
+        </div>
+
+        <p class="quince-serif-caps text-[10px] tracking-[0.25em] uppercase text-[#e79db4] font-bold pt-1">
+          A FESTEJAR MIS XV AÑOS
+        </p>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         PANEL 2: CALENDARIO & CEREMONIA (MISA)
+    =========================================== -->
+    <div class="px-5 py-3 space-y-5">
+      <!-- 7. Banner de Fecha ("JULIO / VIERNES 31 2026") -->
+      <div class="quince-date-badge py-3 px-4 rounded-2xl bg-[#1d1f24] border border-[#e79db4]/25">
+        <span class="text-[11px] uppercase tracking-[0.3em] text-[#e79db4] font-semibold block">JULIO</span>
+        <div class="flex items-center justify-center gap-3 my-1">
+          <span class="quince-serif-caps text-xs uppercase tracking-widest text-slate-300">VIERNES</span>
+          <span class="quince-script-title text-4xl text-white -mt-1 font-bold">31</span>
+          <span class="quince-serif-caps text-xs uppercase tracking-widest text-slate-300">2026</span>
+        </div>
+      </div>
+
+      <!-- 8. Tarjeta del Calendario "El gran día JULIO 2026" -->
+      <div class="quince-calendar-card p-4 rounded-2xl bg-[#1d1f24] border border-[#e79db4]/25 relative">
+        <span class="quince-script-title text-2xl sm:text-3xl text-[#e79db4] block">
+          El gran día
+        </span>
+        <span class="quince-serif-caps text-xs tracking-[0.25em] uppercase text-white font-semibold">
+          JULIO 2026
+        </span>
+
+        <!-- Grilla del mes -->
+        <div class="grid grid-cols-7 gap-1 text-[9px] font-semibold text-slate-400 mt-3 mb-1">
+          <span>LUN</span><span>MAR</span><span>MIÉ</span><span>JUE</span><span>VIE</span><span>SÁB</span><span>DOM</span>
+        </div>
+        <div class="grid grid-cols-7 gap-1 text-[11px] font-medium text-slate-300">
+          <!-- Desfase Julio 2026 empieza miércoles (2 vacíos) -->
+          <div></div><div></div>
+          {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+            <div class="h-6 flex items-center justify-center relative">
+              {d === 31 ? (
+                <div class="w-6 h-6 rounded-full bg-[#e79db4] text-[#22242A] font-black text-[11px] flex items-center justify-center shadow-md scale-110">
+                  {d}
+                  <span class="absolute -top-1 -right-1 text-[8px]">🤍</span>
+                </div>
+              ) : (
+                <span>{d}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- 9. Foto Intermedia de Sesión (Garden Tea) -->
+      <div class="quince-portrait-box rounded-2xl overflow-hidden border border-[#e79db4]/30 shadow-lg aspect-square">
+        <img
+          src={teaPhoto}
+          alt={`Sesión de fotos de ${celebrant}`}
+          class="w-full h-full object-cover"
+          loading="lazy"
+        />
+      </div>
+
+      <!-- 10. Ceremonia Religiosa (Misa) -->
+      <div class="quince-event-card p-5 rounded-2xl bg-[#1d1f24] border border-[#e79db4]/25 space-y-2">
+        <div class="w-8 h-8 mx-auto text-[#e79db4] mb-1">
+          <!-- Icono de Iglesia Arquitectónica -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-full h-full">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v4m-2-2h4M12 6L4 12v9h16v-9L12 6zM9 21v-5h6v5" />
+          </svg>
+        </div>
+        <h3 class="quince-script-title text-3xl text-[#e79db4] leading-none">
+          Misa
+        </h3>
+        <p class="quince-serif-caps text-xs tracking-wider text-slate-300 font-semibold">
+          31 JUL &nbsp;|&nbsp; 2:00 P.M.
+        </p>
+        <p class="quince-serif-caps text-sm font-bold text-white tracking-widest pt-1">
+          SAGRADO CORAZÓN
+        </p>
+        <p class="text-[11px] text-slate-400 leading-snug max-w-[260px] mx-auto">
+          2800 McGavock Pk Entrance #8, Nashville, TN 37214
+        </p>
+        <div class="pt-2">
+          <a
+            href="https://maps.google.com/?q=2800+McGavock+Pk+Entrance+8+Nashville+TN+37214"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="quince-btn-pill inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-[#e79db4] text-[#22242A] text-xs font-bold tracking-wider uppercase shadow-[0_4px_12px_rgba(231,157,180,0.35)] hover:scale-105 transition"
+          >
+            <span>📍</span>
+            <span>VER UBICACIÓN</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           PANEL 3: RECEPCIÓN, ITINERARIO & CUENTA REGRESIVA
+      =========================================== -->
+
+      <!-- 11. Recepción (Fiesta) -->
+      <div class="quince-event-card p-5 rounded-2xl bg-[#1d1f24] border border-[#e79db4]/25 space-y-2">
+        <div class="w-8 h-8 mx-auto text-[#e79db4] mb-1">
+          <!-- Icono de Copas de Brindis -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-full h-full">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 3l3 6v9M16 3l-3 6v9M7 21h10M6 3h5M13 3h5" />
+          </svg>
+        </div>
+        <h3 class="quince-script-title text-3xl text-[#e79db4] leading-none">
+          Recepción
+        </h3>
+        <p class="quince-serif-caps text-xs tracking-wider text-slate-300 font-semibold">
+          31 JUL &nbsp;|&nbsp; 4:30 P.M.
+        </p>
+        <p class="quince-serif-caps text-sm font-bold text-white tracking-widest pt-1">
+          PREMIER CENTER
+        </p>
+        <p class="text-[11px] text-slate-400 leading-snug max-w-[260px] mx-auto">
+          90 Volunteer Dr Suite 450, Hendersonville, TN 37075
+        </p>
+        <div class="pt-2">
+          <a
+            href="https://maps.google.com/?q=90+Volunteer+Dr+Suite+450+Hendersonville+TN+37075"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="quince-btn-pill inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-[#e79db4] text-[#22242A] text-xs font-bold tracking-wider uppercase shadow-[0_4px_12px_rgba(231,157,180,0.35)] hover:scale-105 transition"
+          >
+            <span>📍</span>
+            <span>VER UBICACIÓN</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 12. LA ICÓNICA TARJETA EN ARCO: ITINERARIO DE ACTIVIDADES -->
+      <div class="quince-arch-container pt-2">
+        <!-- El Contenedor con Arco Superior -->
+        <div class="quince-arch-card relative rounded-t-[5rem] rounded-b-2xl bg-[#e79db4] text-[#22242A] p-6 shadow-[0_12px_30px_rgba(231,157,180,0.3)] overflow-hidden">
+          
+          <!-- Encabezado en Arco -->
+          <div class="pt-2 pb-4 text-center">
+            <h2 class="quince-script-title text-3xl sm:text-4xl text-white font-normal drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+              Itinerario
+            </h2>
+            <p class="quince-script-title text-2xl sm:text-3xl text-white -mt-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+              de Actividades
+            </p>
+            <div class="w-12 h-0.5 bg-white/40 mx-auto mt-2"></div>
+          </div>
+
+          <!-- Lista de Hitos con Iconos -->
+          <div class="space-y-4 text-left max-w-[280px] mx-auto pt-1">
+            {itineraryItems.map((item) => (
+              <div class="flex items-center gap-3.5 border-b border-black/10 pb-2.5 last:border-0">
+                <span class="text-2xl shrink-0 p-1 bg-white/30 rounded-full w-9 h-9 flex items-center justify-center">
+                  {item.icon || "✨"}
+                </span>
+                <div class="flex-1 min-w-0">
+                  <span class="quince-serif-caps text-xs font-bold tracking-wider block text-white drop-shadow-sm leading-tight">
+                    {item.title}
+                  </span>
+                  <span class="text-xs font-bold text-[#22242A] block mt-0.5">
+                    {item.time}
+                  </span>
+                  {item.description && (
+                    <span class="text-[10px] text-white/80 block leading-tight mt-0.5">
+                      {item.description}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+        </div>
+
+        <!-- Moño decorativo al pie del arco -->
+        <div class="text-[#e79db4] text-xl -mt-2 relative z-10">🎀</div>
+      </div>
+
+      <!-- 13. Cuenta Regresiva: "Solo faltan" -->
+      <div class="quince-countdown-section py-4 px-3 rounded-2xl bg-[#1d1f24] border border-[#e79db4]/25 text-center">
+        <span class="quince-script-title text-3xl sm:text-4xl text-[#e79db4] block mb-1">
+          Solo faltan
+        </span>
+
+        <div
+          class="countdown-display flex items-center justify-center gap-2 sm:gap-3 text-white my-3"
+          id="quince-live-countdown"
+          data-target="2026-07-31T17:00:00"
+        >
+          <div class="timer-box flex flex-col items-center">
+            <span class="text-2xl sm:text-3xl font-extrabold" id="q-days">00</span>
+            <span class="text-[9px] uppercase tracking-wider text-slate-400 mt-0.5">Días</span>
+          </div>
+          <span class="text-xl font-bold text-[#e79db4] -mt-4">:</span>
+          <div class="timer-box flex flex-col items-center">
+            <span class="text-2xl sm:text-3xl font-extrabold" id="q-hours">00</span>
+            <span class="text-[9px] uppercase tracking-wider text-slate-400 mt-0.5">Horas</span>
+          </div>
+          <span class="text-xl font-bold text-[#e79db4] -mt-4">:</span>
+          <div class="timer-box flex flex-col items-center">
+            <span class="text-2xl sm:text-3xl font-extrabold" id="q-minutes">00</span>
+            <span class="text-[9px] uppercase tracking-wider text-slate-400 mt-0.5">Minutos</span>
+          </div>
+          <span class="text-xl font-bold text-[#e79db4] -mt-4">:</span>
+          <div class="timer-box flex flex-col items-center">
+            <span class="text-2xl sm:text-3xl font-extrabold" id="q-seconds">00</span>
+            <span class="text-[9px] uppercase tracking-wider text-slate-400 mt-0.5">Segundos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 14. Foto Final de Sesión (Holding Teacup) -->
+      <div class="quince-portrait-box rounded-2xl overflow-hidden border border-[#e79db4]/30 shadow-lg aspect-[3/4]">
+        <img
+          src={cupPhoto}
+          alt={`Recuerdo de ${celebrant}`}
+          class="w-full h-full object-cover"
+          loading="lazy"
+        />
+      </div>
+
+      <!-- 15. Botón de RSVP WhatsApp -->
+      <div class="py-4">
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="w-full py-3.5 px-6 rounded-full bg-[#e79db4] text-[#22242A] text-sm font-extrabold tracking-wider uppercase flex items-center justify-center gap-2 shadow-[0_6px_20px_rgba(231,157,180,0.4)] hover:scale-[1.02] active:scale-95 transition"
+        >
+          <span>✉️</span>
+          <span>CONFIRMAR ASISTENCIA</span>
+        </a>
+      </div>
+
+      <!-- Footer elegante -->
+      <footer class="py-4 border-t border-[#e79db4]/15 text-[11px] text-slate-400 text-center">
+        <p class="quince-serif-caps tracking-widest text-[#e79db4]">
+          {celebrant} · MIS XV AÑOS
+        </p>
+        <p class="mt-1 text-[10px] text-slate-500">
+          © {new Date().getFullYear()} · Todos los derechos reservados
+        </p>
+      </footer>
+
+    </div>
+  </main>
+</div>
+
+<!-- Script reactivo para el contador de tiempo -->
+<script is:inline>
+  (function initLiveCountdown() {
+    const el = document.getElementById("quince-live-countdown");
+    if (!el) return;
+    const targetTime = new Date(el.getAttribute("data-target") || "2026-07-31T17:00:00").getTime();
+
+    const dEl = document.getElementById("q-days");
+    const hEl = document.getElementById("q-hours");
+    const mEl = document.getElementById("q-minutes");
+    const sEl = document.getElementById("q-seconds");
+
+    function update() {
+      const diff = Math.max(0, targetTime - Date.now());
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      if (dEl) dEl.textContent = String(days).padStart(2, "0");
+      if (hEl) hEl.textContent = String(hours).padStart(2, "0");
+      if (mEl) mEl.textContent = String(minutes).padStart(2, "0");
+      if (sEl) sEl.textContent = String(seconds).padStart(2, "0");
+    }
+
+    update();
+    setInterval(update, 1000);
+  })();
+</script>
+
+<style>
+  /* Tipografías Especiales de Quinceañera */
+  .quince-script-title {
+    font-family: 'Great Vibes', 'Pinyon Script', 'Alex Brush', cursive;
+  }
+
+  .quince-serif-caps {
+    font-family: 'Cinzel', 'Playfair Display', serif;
+  }
+
+  .quince-quote-text {
+    font-family: 'Cormorant Garamond', 'Cinzel', 'Playfair Display', serif;
+  }
+
+  /* Tarjeta móvil central */
+  .quince-mobile-card {
+    background-color: #22242A;
+  }
+</style>

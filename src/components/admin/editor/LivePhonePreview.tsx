@@ -80,9 +80,15 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                 title="Invitación Real"
               />
             </div>
-          ) : (
+          ) : (() => {
+            const isDark = tenant.theme?.bg === "#22242A" || tenant.theme?.bg?.toLowerCase()?.startsWith("#2") || tenant.theme?.bg?.toLowerCase()?.startsWith("#0") || tenant.theme?.bg?.toLowerCase()?.startsWith("#1");
+            const cardClass = isDark
+              ? "bg-[#22242A] border border-[var(--primary)]/30 rounded-2xl p-3.5 shadow-md text-slate-100"
+              : "bg-white/90 border border-slate-200/70 rounded-2xl p-3.5 shadow-sm text-slate-800";
+
+            return (
             <div
-              className="overflow-y-auto max-h-[calc(100vh-13rem)] min-h-[500px] text-slate-900 transition-colors [scrollbar-width:thin]"
+              className={`overflow-y-auto max-h-[calc(100vh-13rem)] min-h-[500px] transition-colors [scrollbar-width:thin] ${isDark ? "text-slate-100" : "text-slate-900"}`}
               style={{
                 backgroundColor: tenant.theme?.bg || "#ffffff",
                 ["--primary" as any]: tenant.theme?.primary || "#ff9800",
@@ -93,7 +99,7 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
             >
               {/* Floating Navigation Pill */}
               <div className="sticky top-2 z-20 px-4 pt-2">
-                <div className="bg-white/85 backdrop-blur-md border border-slate-200/80 rounded-full px-4 py-1.5 shadow-sm flex items-center justify-center gap-4 text-xs font-semibold text-slate-700">
+                <div className={`${isDark ? "bg-slate-900/90 border-slate-700 text-slate-200" : "bg-white/85 border-slate-200/80 text-slate-700"} backdrop-blur-md border rounded-full px-4 py-1.5 shadow-sm flex items-center justify-center gap-4 text-xs font-semibold`}>
                   <span
                     className="transition cursor-pointer font-bold"
                     style={{ color: tenant.theme?.primary || "#ff9800" }}
@@ -101,7 +107,7 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                     Invitación
                   </span>
                   {tenant.showAlbum !== false && (
-                    <span className="hover:text-slate-950 transition cursor-pointer text-slate-500">
+                    <span className={`${isDark ? "text-slate-400 hover:text-white" : "text-slate-500 hover:text-slate-950"} transition cursor-pointer`}>
                       Álbum ({tenant.albumUrls?.length || 0})
                     </span>
                   )}
@@ -123,7 +129,7 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                   className="text-xs uppercase tracking-widest font-semibold mb-2"
                   style={{ color: tenant.theme?.secondary || "#2196f3" }}
                 >
-                  {tenant.beforeCelebrant || (tenant.type === "wedding" ? "Nuestra Boda" : "Celebremos con")}
+                  {tenant.beforeCelebrant || (tenant.type === "wedding" ? "Nuestra Boda" : tenant.type === "quinceanero" ? "Mis XV Años" : "Celebremos con")}
                 </p>
 
                 {/* Avatar Photo (if enabled) */}
@@ -165,7 +171,7 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                 >
                   <span>{tenant.title}</span>
                   {tenant.age && (
-                    <span className="text-base font-black px-1.5 py-0.5 rounded bg-black/5">
+                    <span className="text-base font-black px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10">
                       {tenant.age}
                     </span>
                   )}
@@ -181,15 +187,36 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                     "{tenant.tagline}"
                   </p>
                 )}
+
+                {/* Quinceañero Crest & Music Player preview */}
+                {tenant.type === "quinceanero" && (
+                  <div className="my-3 space-y-2">
+                    <div className="w-16 h-16 mx-auto rounded-full border border-[var(--primary)]/40 flex flex-col items-center justify-center bg-black/20 shadow-inner">
+                      <span className="text-xs">👑</span>
+                      <span className="text-sm font-extrabold tracking-wider" style={{ color: tenant.theme?.primary }}>XV</span>
+                    </div>
+
+                    <div className="p-2 rounded-xl bg-black/20 border border-[var(--primary)]/20 text-center max-w-[200px] mx-auto">
+                      <span className="text-[9px] font-bold tracking-wider uppercase block" style={{ color: tenant.theme?.primary }}>
+                        🎵 Dale Play
+                      </span>
+                      <div className="flex items-center justify-center gap-2 text-xs mt-1">
+                        <span>⏮</span>
+                        <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px]" style={{ backgroundColor: tenant.theme?.primary, color: "#22242A" }}>▶</span>
+                        <span>⏭</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Event Details Section */}
               <div className="px-4 py-3 space-y-3.5">
                 {/* Date & Time Card */}
-                <div className="bg-white/90 border border-slate-200/70 rounded-2xl p-3.5 shadow-sm text-center space-y-1">
+                <div className={`${cardClass} text-center space-y-1`}>
                   <div className="text-xl">📅</div>
-                  <div className="text-sm font-bold text-slate-800">{tenant.date}</div>
-                  <div className="text-xs font-semibold text-slate-500">⏰ {tenant.time}</div>
+                  <div className="text-sm font-bold">{tenant.date}</div>
+                  <div className="text-xs font-semibold opacity-75">⏰ {tenant.time}</div>
                 </div>
 
                 {/* RSVP Call-to-Action (if enabled) */}
@@ -197,37 +224,112 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                   <div className="text-center pt-1">
                     <button
                       type="button"
-                      className="w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider text-white shadow-md active:scale-95 transition"
+                      className="w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-950 shadow-md active:scale-95 transition"
                       style={{ backgroundColor: tenant.theme?.primary || "#ff9800" }}
                       onClick={() => alert(`Simulación de RSVP para WhatsApp: ${tenant.whatsapp}`)}
                     >
                       ✉️ Confirmar Asistencia
                     </button>
                     {tenant.msgTooltip && (
-                      <p className="text-[11px] text-slate-500 mt-1 italic">
+                      <p className="text-[11px] opacity-75 mt-1 italic">
                         "{tenant.msgTooltip}"
                       </p>
                     )}
                   </div>
                 )}
 
+                {/* Itinerary Preview (if enabled) */}
+                {tenant.showItinerary !== false && tenant.itinerary && tenant.itinerary.length > 0 && (
+                  <div
+                    className={
+                      tenant.type === "quinceanero"
+                        ? "rounded-t-[36px] rounded-b-2xl p-4 space-y-2.5 border border-[#e79db4]/35 shadow-lg text-center bg-[#282b33]"
+                        : `${cardClass} rounded-3xl space-y-2 border-t-4`
+                    }
+                    style={{
+                      borderTopColor: tenant.theme?.primary,
+                    }}
+                  >
+                    <div className="text-center pb-1.5 border-b border-white/10">
+                      <span
+                        className="text-xs font-serif italic font-bold tracking-wider block"
+                        style={{ color: tenant.theme?.primary }}
+                      >
+                        Itinerario de Actividades
+                      </span>
+                    </div>
+                    <div className="space-y-1.5 text-xs">
+                      {tenant.itinerary.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-2 py-1 border-b border-white/5 last:border-0 text-left"
+                        >
+                          <span className="w-6 h-6 rounded-full bg-[#e79db4]/20 text-[#e79db4] flex items-center justify-center text-xs shrink-0">
+                            {item.icon || "✨"}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <span className="font-semibold block truncate uppercase text-[10px]">
+                              {item.title}
+                            </span>
+                            {item.description && (
+                              <span className="text-[9px] opacity-70 block truncate">
+                                {item.description}
+                              </span>
+                            )}
+                          </div>
+                          <span
+                            className="text-[10px] font-bold shrink-0"
+                            style={{ color: tenant.theme?.primary }}
+                          >
+                            {item.time}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Quinceañero Countdown Preview */}
+                {tenant.type === "quinceanero" && (
+                  <div className="text-center p-3 rounded-2xl bg-black/25 border border-[#e79db4]/25 space-y-1">
+                    <span className="text-xs font-serif italic text-[#e79db4] block">
+                      Solo faltan
+                    </span>
+                    <div className="flex items-center justify-center gap-2 font-mono font-bold text-sm text-white">
+                      <span>00</span>
+                      <span>:</span>
+                      <span>00</span>
+                      <span>:</span>
+                      <span>00</span>
+                      <span>:</span>
+                      <span>00</span>
+                    </div>
+                    <div className="flex justify-between text-[8px] uppercase tracking-wider text-slate-400 px-4">
+                      <span>Días</span>
+                      <span>Horas</span>
+                      <span>Min</span>
+                      <span>Seg</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Location & Map Card (if enabled) */}
                 {tenant.showMap !== false && (
-                  <div className="bg-white/90 border border-slate-200/70 rounded-2xl p-3.5 shadow-sm space-y-2">
+                  <div className={`${cardClass} space-y-2`}>
                     <div className="flex items-center gap-2">
                       <span className="text-base">📍</span>
                       <div className="text-left">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                        <span className="text-[10px] font-bold uppercase tracking-wider opacity-60 block">
                           Lugar del Evento
                         </span>
-                        <span className="text-xs font-semibold text-slate-800 block">
+                        <span className="text-xs font-semibold block">
                           {tenant.address}
                         </span>
                       </div>
                     </div>
 
-                    <div className="h-24 w-full bg-slate-100 rounded-xl border border-slate-200 flex flex-col items-center justify-center text-slate-500 text-xs gap-1 relative overflow-hidden">
-                      <div className="absolute inset-0 bg-slate-200/50 flex items-center justify-center">
+                    <div className="h-24 w-full bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-slate-500 text-xs gap-1 relative overflow-hidden">
+                      <div className="absolute inset-0 bg-slate-200/50 dark:bg-slate-800/50 flex items-center justify-center">
                         <div className="text-center">
                           <span className="text-xl">🗺️</span>
                           <span className="block text-[10px] font-medium mt-0.5">
@@ -241,9 +343,9 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
 
                 {/* Album Banner (if enabled) */}
                 {tenant.showAlbum !== false && (
-                  <div className="p-3 rounded-2xl border border-slate-200 bg-white/70 text-center text-xs">
+                  <div className={`${cardClass} text-center text-xs py-2.5`}>
                     <span className="text-sm mr-1">📷</span>
-                    <span className="font-semibold text-slate-700">
+                    <span className="font-semibold">
                       {tenant.msgRedirectAlbum || "Ver Álbum de Fotos"}
                     </span>
                   </div>
@@ -253,11 +355,11 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                 {tenant.showGifts !== false &&
                   tenant.giftRecommendations &&
                   tenant.giftRecommendations.length > 0 && (
-                    <div className="bg-white/90 border border-slate-200/70 rounded-2xl p-3.5 shadow-sm text-left">
-                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5 mb-2">
+                    <div className={`${cardClass} text-left`}>
+                      <span className="text-xs font-bold flex items-center gap-1.5 mb-2">
                         <span>🎁</span> Sugerencias de Regalo
                       </span>
-                      <ul className="space-y-1 text-xs text-slate-600">
+                      <ul className="space-y-1 text-xs opacity-80">
                         {tenant.giftRecommendations.map((g, i) => (
                           <li key={i} className="flex items-start gap-1.5">
                             <span className="text-amber-500">•</span>
@@ -272,11 +374,11 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                 {tenant.showSponsors !== false &&
                   (tenant.type === "wedding" || tenant.type === "quinceanero") &&
                   ((tenant.sponsors?.groom?.length || 0) > 0 || (tenant.sponsors?.bride?.length || 0) > 0) && (
-                    <div className="bg-white/90 border border-slate-200/70 rounded-2xl p-3.5 shadow-sm text-left">
-                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5 mb-2">
+                    <div className={`${cardClass} text-left`}>
+                      <span className="text-xs font-bold flex items-center gap-1.5 mb-2">
                         <span>👑</span> Padrinos de Honor
                       </span>
-                      <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
+                      <div className="grid grid-cols-2 gap-2 text-xs opacity-80">
                         {tenant.sponsors?.groom && tenant.sponsors.groom.length > 0 && (
                           <div>
                             <span className="font-semibold text-[10px] text-slate-400 block uppercase">
@@ -310,7 +412,8 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                 )}
               </div>
             </div>
-          )}
+          );
+        })()}
         </div>
       </div>
     </div>

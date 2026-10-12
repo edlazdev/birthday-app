@@ -8,6 +8,18 @@ import { events as localEvents } from "@/data/events";
 export function mapDbToEventData(row: any): EventData {
   const features: EventFeatures = row.features || {};
   const media = row.media || {};
+  const local = localEvents[row.slug as keyof typeof localEvents];
+
+  const itinerary = (row.itinerary && Array.isArray(row.itinerary) && row.itinerary.length > 0)
+    ? row.itinerary
+    : ((features as any)?.itinerary && Array.isArray((features as any).itinerary) && (features as any).itinerary.length > 0)
+    ? (features as any).itinerary
+    : local?.itinerary || [];
+
+  let theme = row.theme || local?.theme || undefined;
+  if (row.slug === "luana" && (!row.theme || row.theme.bg === "#fff5f7") && local?.theme) {
+    theme = local.theme;
+  }
 
   return {
     id: row.id,
@@ -16,7 +28,7 @@ export function mapDbToEventData(row: any): EventData {
     type: row.type || "birthday",
     status: row.status || "published",
     celebrant: row.celebrant,
-    beforeCelebrant: row.before_celebrant || undefined,
+    beforeCelebrant: row.before_celebrant || local?.beforeCelebrant || undefined,
     title: row.title || "Cumple",
     age: row.age || "",
     afterAge: row.after_age || undefined,
@@ -39,16 +51,17 @@ export function mapDbToEventData(row: any): EventData {
     albumUrls: media.album_urls || [],
     backgroundVideo: media.background_video || undefined,
     fonts: row.fonts || {
-      title: { type: "google", family: "Poppins", weights: ["600"] },
+      title: { type: "google", family: "Playfair Display", weights: ["600"] },
       text: { type: "google", family: "Poppins", weights: ["400"] },
     },
-    theme: row.theme || undefined,
+    theme,
     socialLinks: row.social_links || { facebook: true, instagram: true },
     giftRecommendations: row.gift_recommendations || [],
     recommendationsTitle: row.recommendations_title || undefined,
     recommendationsDescription: row.recommendations_description || undefined,
-    sponsors: row.sponsors || undefined,
+    sponsors: row.sponsors || local?.sponsors || undefined,
     witnesses: row.witnesses || undefined,
+    itinerary,
     // Feature flags
     features,
     showAlbum: features.show_album !== false,
@@ -60,6 +73,7 @@ export function mapDbToEventData(row: any): EventData {
     showSponsors: features.show_sponsors !== false,
     showWitnesses: features.show_witnesses !== false,
     showSocialLinks: features.show_social_links !== false,
+    showItinerary: features.show_itinerary !== false,
   };
 }
 
@@ -77,6 +91,8 @@ export function mapEventDataToDb(data: EventData): Record<string, any> {
     show_sponsors: data.showSponsors !== false,
     show_witnesses: data.showWitnesses !== false,
     show_social_links: data.showSocialLinks !== false,
+    show_itinerary: data.showItinerary !== false,
+    itinerary: data.itinerary || [],
     ...(data.features || {}),
   };
 
@@ -118,6 +134,7 @@ export function mapEventDataToDb(data: EventData): Record<string, any> {
     recommendations_description: data.recommendationsDescription || null,
     sponsors: data.sponsors || { groom: [], bride: [] },
     witnesses: data.witnesses || [],
+    itinerary: data.itinerary || [],
     social_links: data.socialLinks || { facebook: true, instagram: true },
   };
 }

@@ -11,6 +11,7 @@ import {
   getThemeInjectCSS,
   getOgImageUrl,
   getFullUrl,
+  isDarkTheme,
 } from "@/utils/layout";
 import "../styles/global.css";
 import "../styles/theme.css";
@@ -41,6 +42,7 @@ const pageDescription = isAlbumPage
 const themeColor = getThemeColor(eventData);
 const themeCSS = getThemeInjectCSS(eventData);
 const ogSiteName = getOgSiteName(eventData);
+const isDark = isDarkTheme(eventData);
 ---
 
 <html lang="es">
@@ -95,7 +97,7 @@ const ogSiteName = getOgSiteName(eventData);
       </script>
     )}
   </head>
-  <body class={`theme-${eventData.slug}`}>
+  <body class={`theme-${eventData.slug} ${isDark ? "is-dark-theme" : ""}`}>
     {videoConfig ? (
       <>
         <div class="background-video-container">

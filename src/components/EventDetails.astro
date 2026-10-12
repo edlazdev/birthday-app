@@ -4,6 +4,9 @@ import MapEmbed from "@/components/MapEmbed.astro";
 import type { EventDetailsProps } from "@/types";
 import RSVPSection from "./RSVPSection.astro";
 import GiftRecommendations from "./GiftRecommendations.astro";
+import ItinerarySection from "./ItinerarySection.astro";
+import CalendarCard from "./CalendarCard.astro";
+import CountdownCard from "./CountdownCard.astro";
 
 type Props = EventDetailsProps;
 const { eventData } = Astro.props;
@@ -55,6 +58,22 @@ const albumHref = `${basePath}${eventData.slug}/album`;
         {eventData.msgRedirectAlbum}
       </a>
     </p>
+  )}
+
+  {eventData.type === "quinceanero" && (
+    <div class="my-3">
+      <CalendarCard dateStr={eventData.date} celebrant={eventData.celebrant} />
+    </div>
+  )}
+
+  {eventData.showItinerary !== false && eventData.itinerary && eventData.itinerary.length > 0 && (
+    <ItinerarySection items={eventData.itinerary} />
+  )}
+
+  {eventData.type === "quinceanero" && (
+    <div class="my-3">
+      <CountdownCard />
+    </div>
   )}
 
   {eventData.showGifts !== false && eventData.giftRecommendations && eventData.giftRecommendations.length > 0 && (

@@ -76,6 +76,25 @@ export function getThemeColor(eventData: EventData): string {
   return eventData.theme?.primary ?? "#ff9800";
 }
 
+export function isDarkTheme(eventData: EventData): boolean {
+  const bg = eventData.theme?.bg?.toLowerCase()?.trim() || "";
+  if (!bg) return false;
+  if (bg === "#22242a" || bg === "#0f172a" || bg === "#111827" || bg === "#18181b") {
+    return true;
+  }
+  if (bg.startsWith("#") && (bg.length === 7 || bg.length === 4)) {
+    const hex = bg.length === 4 
+      ? bg[1] + bg[1] + bg[2] + bg[2] + bg[3] + bg[3]
+      : bg.slice(1);
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+    return luminance < 128;
+  }
+  return false;
+}
+
 /** CSS inyectado para variables de tema en body.theme-${slug}. */
 export function getThemeInjectCSS(eventData: EventData): string {
   const theme = eventData.theme;

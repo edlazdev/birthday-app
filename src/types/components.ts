@@ -112,6 +112,13 @@ export type ThemeVariables = {
   bg?: string;
 };
 
+export interface ItineraryItem {
+  time: string;
+  title: string;
+  description?: string;
+  icon?: string;
+}
+
 export type EventFeatures = {
   showAlbum?: boolean;
   showAvatar?: boolean;
@@ -122,6 +129,7 @@ export type EventFeatures = {
   showSponsors?: boolean;
   showWitnesses?: boolean;
   showSocialLinks?: boolean;
+  showItinerary?: boolean;
 };
 
 export type EventData = {
@@ -172,7 +180,10 @@ export type EventData = {
   showSponsors?: boolean;
   showWitnesses?: boolean;
   showSocialLinks?: boolean;
+  showItinerary?: boolean;
   features?: EventFeatures;
+  /** Cronograma o itinerario de actividades del evento */
+  itinerary?: ItineraryItem[];
   /** URLs de medios desde Supabase Storage o externas */
   coverUrl?: string;
   avatarUrl?: string;

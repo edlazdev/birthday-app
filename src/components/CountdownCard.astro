@@ -1,0 +1,88 @@
+---
+interface Props {
+  targetDate?: string; // Ej: "2026-07-31T17:00:00"
+}
+
+const { targetDate = "2026-07-31T17:00:00" } = Astro.props;
+---
+
+<div class="countdown-wrapper my-6 max-w-sm mx-auto px-2 animate-fade-up">
+  <div class="countdown-card quinceanera-card p-5 text-center">
+    <div class="mb-2">
+      <span class="font-serif italic text-xl sm:text-2xl text-[var(--primary,#e79db4)] tracking-wide">
+        Solo faltan
+      </span>
+    </div>
+
+    <div
+      class="countdown-timer flex items-center justify-center gap-2 sm:gap-3 my-2"
+      id="quince-countdown"
+      data-target={targetDate}
+    >
+      <div class="timer-segment flex flex-col items-center">
+        <span class="timer-val text-2xl sm:text-3xl font-extrabold text-white" id="count-days">00</span>
+        <span class="timer-lbl text-[9px] uppercase tracking-wider text-slate-400 mt-0.5">Días</span>
+      </div>
+      <span class="text-xl sm:text-2xl font-bold text-[var(--primary,#e79db4)] -mt-4">:</span>
+      <div class="timer-segment flex flex-col items-center">
+        <span class="timer-val text-2xl sm:text-3xl font-extrabold text-white" id="count-hours">00</span>
+        <span class="timer-lbl text-[9px] uppercase tracking-wider text-slate-400 mt-0.5">Horas</span>
+      </div>
+      <span class="text-xl sm:text-2xl font-bold text-[var(--primary,#e79db4)] -mt-4">:</span>
+      <div class="timer-segment flex flex-col items-center">
+        <span class="timer-val text-2xl sm:text-3xl font-extrabold text-white" id="count-minutes">00</span>
+        <span class="timer-lbl text-[9px] uppercase tracking-wider text-slate-400 mt-0.5">Minutos</span>
+      </div>
+      <span class="text-xl sm:text-2xl font-bold text-[var(--primary,#e79db4)] -mt-4">:</span>
+      <div class="timer-segment flex flex-col items-center">
+        <span class="timer-val text-2xl sm:text-3xl font-extrabold text-white" id="count-seconds">00</span>
+        <span class="timer-lbl text-[9px] uppercase tracking-wider text-slate-400 mt-0.5">Segundos</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  (function initCountdown() {
+    const el = document.getElementById("quince-countdown");
+    if (!el) return;
+    const targetStr = el.getAttribute("data-target") || "2026-07-31T17:00:00";
+    const targetTime = new Date(targetStr).getTime();
+
+    const dEl = document.getElementById("count-days");
+    const hEl = document.getElementById("count-hours");
+    const mEl = document.getElementById("count-minutes");
+    const sEl = document.getElementById("count-seconds");
+
+    function update() {
+      const now = Date.now();
+      const diff = Math.max(0, targetTime - now);
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      if (dEl) dEl.textContent = String(days).padStart(2, "0");
+      if (hEl) hEl.textContent = String(hours).padStart(2, "0");
+      if (mEl) mEl.textContent = String(minutes).padStart(2, "0");
+      if (sEl) sEl.textContent = String(seconds).padStart(2, "0");
+    }
+
+    update();
+    setInterval(update, 1000);
+  })();
+</script>
+
+<style>
+  .countdown-card {
+    background-color: #22242A;
+    border: 1px solid rgba(231, 157, 180, 0.3);
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px -3px rgba(231, 157, 180, 0.1);
+  }
+
+  .timer-segment {
+    min-width: 3rem;
+  }
+</style>

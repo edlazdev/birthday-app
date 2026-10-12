@@ -6,6 +6,7 @@ export type EditorSectionId =
   | "rsvp"
   | "modules"
   | "theme"
+  | "itinerary"
   | "media"
   | "extras";
 
@@ -60,12 +61,20 @@ export const EDITOR_SECTIONS: EditorSectionConfig[] = [
     step: 5,
   },
   {
+    id: "itinerary",
+    label: "Itinerario de Actividades",
+    shortLabel: "Itinerario",
+    icon: "⏱️",
+    description: "Cronograma de la fiesta (Entrada, Cena, Vals, Baile)",
+    step: 6,
+  },
+  {
     id: "media",
     label: "Medios & Fotos",
     shortLabel: "Fotos",
     icon: "🖼️",
     description: "Portada, foto de perfil, video y álbum de fotos",
-    step: 6,
+    step: 7,
   },
   {
     id: "extras",
@@ -73,7 +82,7 @@ export const EDITOR_SECTIONS: EditorSectionConfig[] = [
     shortLabel: "Regalos",
     icon: "🎁",
     description: "Mesa de regalos, cuentas bancarias y cortejo de honor",
-    step: 7,
+    step: 8,
   },
 ];
 
@@ -106,6 +115,14 @@ export const THEME_PALETTE_PRESETS = [
     tertiary: "#9b783e",
     bg: "#fdfbf7",
     suitableFor: "Bodas y aniversarios clásicos",
+  },
+  {
+    name: "Quinceañero Dark Rose",
+    primary: "#e79db4",
+    secondary: "#fce7f3",
+    tertiary: "#d4af37",
+    bg: "#22242A",
+    suitableFor: "Quinceañeras elegantes (diseño noche y gala)",
   },
   {
     name: "Quinceañero Rosa & Oro",
@@ -142,6 +159,7 @@ export const MODULE_DEFINITIONS: {
   { key: "showAvatar", label: "Avatar / Foto de Perfil", description: "Foto del festejado en el banner principal", icon: "👤" },
   { key: "showMap", label: "Mapa & Ubicación GPS", description: "Mapa interactivo de OpenStreetMap con dirección", icon: "📍" },
   { key: "showRsvp", label: "Formulario de Asistencia (RSVP)", description: "Botón y modal para que invitados confirmen", icon: "✉️" },
+  { key: "showItinerary", label: "Itinerario de Actividades", description: "Cronograma del evento (Entrada, Cena, Vals, Baile)", icon: "⏱️" },
   { key: "showAlbum", label: "Álbum de Fotos del Recuerdo", description: "Enlace a la galería /album y pestañas", icon: "📷" },
   { key: "showGifts", label: "Mesa de Regalos & Cuentas", description: "Sugerencias de regalos o números de cuenta", icon: "🎁" },
   { key: "showVideoBackground", label: "Video YouTube de Fondo", description: "Fondo animado dinámico en vez de imagen estática", icon: "🎬" },

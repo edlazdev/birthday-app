@@ -1,0 +1,82 @@
+---
+interface Props {
+  dateStr: string; // Ej: "Viernes 31 de Julio" o "2026-07-31"
+  celebrant?: string;
+}
+
+const { dateStr = "Viernes 31 de Julio" } = Astro.props;
+
+// Intentar extraer el día numérico
+const dayMatch = dateStr.match(/\b([1-9]|[12][0-9]|3[01])\b/);
+const targetDay = dayMatch ? parseInt(dayMatch[1], 10) : 31;
+
+// Nombres de días y días para un mes de 31 días (como Julio 2026)
+// Julio 2026 empieza en Miércoles (1 = Mie, 2 = Jue, 3 = Vie, 4 = Sab, 5 = Dom, etc.)
+// 31 de julio 2026 cae Viernes.
+const daysOfWeek = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
+
+// Desfase para Julio 2026: 1 de Julio = Miércoles (índice 2 empezando Lunes=0)
+const offset = 2; // Dos días vacíos antes del 1
+const totalDays = 31;
+const calendarCells: (number | null)[] = [];
+
+for (let i = 0; i < offset; i++) {
+  calendarCells.push(null);
+}
+for (let d = 1; d <= totalDays; d++) {
+  calendarCells.push(d);
+}
+---
+
+<div class="calendar-wrapper my-6 max-w-sm mx-auto px-2 animate-fade-up">
+  <div class="calendar-card quinceanera-card p-5 text-center relative overflow-hidden">
+    <div class="calendar-header mb-3">
+      <span class="text-xs uppercase tracking-widest font-serif italic text-slate-300 block">
+        El gran día
+      </span>
+      <h3 class="text-xl sm:text-2xl font-serif tracking-wider text-[var(--primary,#e79db4)] font-bold mt-0.5">
+        JULIO 2026
+      </h3>
+      <div class="w-12 h-0.5 bg-[var(--primary,#e79db4)]/40 mx-auto mt-2"></div>
+    </div>
+
+    {/* Rejilla de días */}
+    <div class="grid grid-cols-7 gap-1 text-[10px] sm:text-xs font-semibold text-slate-400 mb-2">
+      {daysOfWeek.map((day) => (
+        <span class="py-1">{day}</span>
+      ))}
+    </div>
+
+    <div class="grid grid-cols-7 gap-1 text-xs sm:text-sm">
+      {calendarCells.map((day) => {
+        if (day === null) {
+          return <div class="h-8 sm:h-9"></div>;
+        }
+        const isTarget = day === targetDay;
+        return (
+          <div class="h-8 sm:h-9 flex items-center justify-center relative">
+            {isTarget ? (
+              <div class="w-8 h-8 rounded-full bg-[var(--primary,#e79db4)] text-[#22242A] font-extrabold flex items-center justify-center shadow-md ring-2 ring-[var(--primary,#e79db4)]/40 scale-110">
+                <span>{day}</span>
+                <span class="absolute -top-1 -right-1 text-[9px]">💖</span>
+              </div>
+            ) : (
+              <span class="text-slate-300 font-medium hover:text-white transition">
+                {day}
+              </span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </div>
+</div>
+
+<style>
+  .calendar-card {
+    background-color: #22242A;
+    border: 1px solid rgba(231, 157, 180, 0.3);
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px -3px rgba(231, 157, 180, 0.1);
+  }
+</style>

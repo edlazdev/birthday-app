@@ -25,11 +25,49 @@
   padding: 1rem;
   text-align: center;
   height: auto;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--bg, rgba(255, 255, 255, 0.9));
   display: flex;
   flex-direction: column;
   margin: auto;
   min-height: 100dvh;
+}
+
+/* Modo oscuro / Tema Quinceañero Dark */
+body.is-dark-theme {
+  background-color: var(--bg, #22242A);
+  color: #fce7f3;
+}
+
+body.is-dark-theme .event-container {
+  background: var(--bg, #22242A);
+  color: #fce7f3;
+}
+
+body.is-dark-theme .event-info {
+  color: var(--secondary, #fce7f3);
+}
+
+body.is-dark-theme .text-gray-600 {
+  color: #cbd5e1 !important;
+}
+
+body.is-dark-theme .album-link {
+  color: #f1f5f9;
+}
+
+/* Tarjetas y Contenedores */
+.quinceanera-card,
+.theme-card {
+  background-color: var(--card-bg, #22242A);
+  border: 1px solid rgba(231, 157, 180, 0.25);
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.quinceanera-card:hover,
+.theme-card:hover {
+  border-color: rgba(231, 157, 180, 0.45);
 }
 
 .event-title {
@@ -62,25 +100,36 @@ h6 {
 }
 
 .btn-primary {
-  background: var(--primary);
-  color: white;
+  background: var(--primary, #e79db4);
+  color: #22242A;
+  font-weight: 700;
   padding: 0.875rem 1.5rem;
   border-radius: 999px;
   font-size: 1rem;
   display: inline-block;
+  box-shadow: 0 4px 15px rgba(231, 157, 180, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(231, 157, 180, 0.5);
 }
 
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .modal-content {
-  background: white;
+  background: #22242A;
+  color: #ffffff;
+  border: 1px solid rgba(231, 157, 180, 0.3);
   padding: 1.5rem;
   border-radius: 1.5rem;
   width: 90%;

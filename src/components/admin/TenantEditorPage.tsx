@@ -47,6 +47,7 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
     rsvp: false,
     modules: false,
     theme: false,
+    itinerary: false,
     media: false,
     extras: false,
   });
@@ -1334,7 +1335,260 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
             </div>
 
             {/* ===============================================================
-                SECTION 6: MEDIOS & FOTOS
+                SECTION 6: ITINERARIO DE ACTIVIDADES
+            ================================================================ */}
+            <div
+              id="section-itinerary"
+              className="bg-white dark:bg-slate-900/90 border border-amber-900/[0.08] dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs dark:shadow-xl transition scroll-mt-24"
+            >
+              <div
+                className="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none hover:bg-stone-50/80 dark:hover:bg-slate-850/50 transition border-b border-amber-900/[0.06] dark:border-slate-800/80"
+                onClick={() => toggleSection("itinerary")}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-400 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-500/30">
+                    6
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <span>⏱️</span>
+                      <span>Itinerario de Actividades</span>
+                    </h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                      Cronograma del evento (Misa, Entrada, Cena, Vals, Baile)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {dirtySections["itinerary"] && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold animate-pulse">
+                      Cambios sin guardar
+                    </span>
+                  )}
+                  {savedSectionTime["itinerary"] && (
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 hidden sm:inline">
+                      Guardado {savedSectionTime["itinerary"]}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSaveSection("Itinerario de Actividades", "itinerary");
+                    }}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white transition cursor-pointer"
+                    title="Guardar esta sección"
+                  >
+                    💾
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleSection("itinerary")}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white transition cursor-pointer"
+                  >
+                    {openSections.itinerary ? "▲" : "▼"}
+                  </button>
+                </div>
+              </div>
+
+              {openSections.itinerary && (
+                <div className="p-4 sm:p-5 space-y-4">
+                  {/* Plantillas rápidas para Quinceañera */}
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 block mb-1.5">
+                      💡 Sugerencias Rápidas para Quinceañero / Evento:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        { time: "2:00 PM", title: "Misa / Ceremonia", icon: "⛪" },
+                        { time: "5:00 PM", title: "Entrada de la Quinceañera", icon: "👑" },
+                        { time: "5:30 PM", title: "Comida / Cena", icon: "🍽️" },
+                        { time: "6:30 PM", title: "Protocolo & Vals", icon: "🏰" },
+                        { time: "7:30 PM", title: "Baile & Fiesta", icon: "💃" },
+                        { time: "9:00 PM", title: "Brindis & Torta", icon: "🎂" },
+                      ].map((sug, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => {
+                            updateTenant(
+                              (t) => ({
+                                ...t,
+                                itinerary: [
+                                  ...(t.itinerary || []),
+                                  { time: sug.time, title: sug.title, icon: sug.icon },
+                                ],
+                              }),
+                              "itinerary"
+                            );
+                          }}
+                          className="px-2 py-1 text-[11px] rounded-lg bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-amber-500 transition cursor-pointer flex items-center gap-1"
+                        >
+                          <span>{sug.icon}</span>
+                          <span>+ {sug.title}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Lista de Actividades */}
+                  <div className="space-y-3">
+                    {(!tenant.itinerary || tenant.itinerary.length === 0) && (
+                      <div className="text-center py-6 border border-dashed border-stone-200 dark:border-slate-800 rounded-xl text-slate-400 text-xs">
+                        No hay actividades agregadas en el itinerario aún. Haz clic en las sugerencias arriba o en "+ Agregar Actividad".
+                      </div>
+                    )}
+
+                    {(tenant.itinerary || []).map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3 bg-stone-50 dark:bg-slate-950/70 border border-stone-200 dark:border-slate-800 rounded-xl space-y-2"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-bold text-slate-400">
+                            Actividad #{idx + 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  itinerary: (t.itinerary || []).filter((_, i) => i !== idx),
+                                }),
+                                "itinerary"
+                              );
+                            }}
+                            className="text-xs text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 transition cursor-pointer flex items-center gap-1"
+                          >
+                            <span>🗑️</span>
+                            <span>Eliminar</span>
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                          <div className="sm:col-span-1">
+                            <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">
+                              Hora (ej. 5:00 PM)
+                            </label>
+                            <input
+                              type="text"
+                              value={item.time}
+                              onChange={(e) => {
+                                const newIt = [...(tenant.itinerary || [])];
+                                newIt[idx] = { ...newIt[idx], time: e.target.value };
+                                updateTenant((t) => ({ ...t, itinerary: newIt }), "itinerary");
+                              }}
+                              placeholder="5:00 PM"
+                              className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">
+                              Título de la Actividad
+                            </label>
+                            <input
+                              type="text"
+                              value={item.title}
+                              onChange={(e) => {
+                                const newIt = [...(tenant.itinerary || [])];
+                                newIt[idx] = { ...newIt[idx], title: e.target.value };
+                                updateTenant((t) => ({ ...t, itinerary: newIt }), "itinerary");
+                              }}
+                              placeholder="Entrada de la Quinceañera"
+                              className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-1">
+                            <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">
+                              Ícono / Emoji
+                            </label>
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="text"
+                                value={item.icon || "✨"}
+                                onChange={(e) => {
+                                  const newIt = [...(tenant.itinerary || [])];
+                                  newIt[idx] = { ...newIt[idx], icon: e.target.value };
+                                  updateTenant((t) => ({ ...t, itinerary: newIt }), "itinerary");
+                                }}
+                                className="w-14 px-2 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-center text-slate-900 dark:text-white"
+                              />
+                              <div className="flex gap-0.5">
+                                {["👑", "🍽️", "🏰", "💃"].map((ico) => (
+                                  <button
+                                    key={ico}
+                                    type="button"
+                                    onClick={() => {
+                                      const newIt = [...(tenant.itinerary || [])];
+                                      newIt[idx] = { ...newIt[idx], icon: ico };
+                                      updateTenant((t) => ({ ...t, itinerary: newIt }), "itinerary");
+                                    }}
+                                    className="p-1 hover:bg-stone-200 dark:hover:bg-slate-800 rounded text-xs cursor-pointer"
+                                  >
+                                    {ico}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <input
+                            type="text"
+                            value={item.description || ""}
+                            onChange={(e) => {
+                              const newIt = [...(tenant.itinerary || [])];
+                              newIt[idx] = { ...newIt[idx], description: e.target.value };
+                              updateTenant((t) => ({ ...t, itinerary: newIt }), "itinerary");
+                            }}
+                            placeholder="Descripción opcional (ej: Brindis de honor y palabras de los padrinos)"
+                            className="w-full px-2.5 py-1 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-[11px] text-slate-700 dark:text-slate-300"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateTenant(
+                          (t) => ({
+                            ...t,
+                            itinerary: [
+                              ...(t.itinerary || []),
+                              { time: "6:00 PM", title: "Nueva Actividad", icon: "✨" },
+                            ],
+                          }),
+                          "itinerary"
+                        );
+                      }}
+                      className="px-3 py-1.5 rounded-xl border border-dashed border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 font-semibold text-xs transition cursor-pointer flex items-center gap-1.5"
+                    >
+                      <span>➕</span>
+                      <span>Agregar Actividad</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleSaveSection("Itinerario de Actividades", "itinerary")}
+                      className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition cursor-pointer shadow-xs"
+                    >
+                      💾 Guardar Itinerario
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ===============================================================
+                SECTION 7: MEDIOS & FOTOS
             ================================================================ */}
             <div
               id="section-media"
@@ -1346,7 +1600,7 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-400 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-500/30">
-                    6
+                    7
                   </div>
                   <div className="min-w-0">
                     <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -1583,7 +1837,7 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
             </div>
 
             {/* ===============================================================
-                SECTION 7: REGALOS & PADRINOS
+                SECTION 8: REGALOS & PADRINOS
             ================================================================ */}
             <div
               id="section-extras"
@@ -1595,7 +1849,7 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-400 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-500/30">
-                    7
+                    8
                   </div>
                   <div className="min-w-0">
                     <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">

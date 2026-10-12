@@ -51,6 +51,47 @@ const showWitnesses =
     <div class="age">{age}</div>
     <span>{afterAge}</span>
   </div>
+
+  {
+    type === "quinceanero" && (
+      <div class="quince-crest-section my-5 animate-fade-up animate-delay-4">
+        {/* Monograma Ornamental XV con Tiara */}
+        <div class="quince-crest mx-auto flex flex-col items-center justify-center p-4">
+          <div class="quince-crest-frame">
+            <span class="text-2xl block mb-1">👑</span>
+            <span class="quince-crest-letters font-serif text-3xl font-extrabold text-[var(--primary,#e79db4)] tracking-wider">
+              XV
+            </span>
+            <span class="text-[10px] tracking-widest text-slate-300 uppercase block font-semibold mt-0.5">
+              Años
+            </span>
+          </div>
+        </div>
+
+        {/* Reproductor de Música Decorativo "DALE PLAY" */}
+        <div class="music-player-card my-4 p-3.5 max-w-xs mx-auto rounded-2xl bg-[#22242A] border border-[var(--primary,#e79db4)]/30 shadow-lg text-center">
+          <span class="text-[10px] font-bold tracking-widest uppercase text-[var(--primary,#e79db4)] block mb-2">
+            🎵 Dale Play
+          </span>
+          <div class="flex items-center justify-center gap-4 text-slate-300 text-lg">
+            <button type="button" class="hover:text-[var(--primary,#e79db4)] transition cursor-pointer" aria-label="Anterior">⏮</button>
+            <button type="button" class="w-10 h-10 rounded-full bg-[var(--primary,#e79db4)] text-[#22242A] flex items-center justify-center shadow-md font-bold text-base hover:scale-105 transition cursor-pointer" aria-label="Reproducir">▶</button>
+            <button type="button" class="hover:text-[var(--primary,#e79db4)] transition cursor-pointer" aria-label="Siguiente">⏭</button>
+          </div>
+          <div class="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
+            <div class="bg-[var(--primary,#e79db4)] h-full w-2/3 rounded-full"></div>
+          </div>
+        </div>
+
+        {/* Separador de Lazo / Moño */}
+        <div class="quince-ribbon-divider flex items-center justify-center gap-3 my-4 opacity-80" aria-hidden="true">
+          <div class="h-px bg-gradient-to-r from-transparent via-[var(--primary,#e79db4)] to-transparent w-20"></div>
+          <span class="text-xl">🎀</span>
+          <div class="h-px bg-gradient-to-r from-transparent via-[var(--primary,#e79db4)] to-transparent w-20"></div>
+        </div>
+      </div>
+    )
+  }
   {
     showSponsors && (
       <div class="event-header__sponsors animate-fade-up animate-delay-4">
@@ -188,6 +229,36 @@ const showWitnesses =
     padding: 0;
     letter-spacing: 1px;
     font-weight: bold;
+  }
+
+  .after-title-quinceanero span {
+    font-size: 1.25rem;
+    padding: 0.5rem 0;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+  }
+
+  .quince-crest-frame {
+    width: 8rem;
+    height: 8rem;
+    border-radius: 50%;
+    border: 1.5px solid rgba(231, 157, 180, 0.4);
+    box-shadow: 0 0 20px rgba(231, 157, 180, 0.15), inset 0 0 15px rgba(231, 157, 180, 0.08);
+    background: radial-gradient(circle, #2a2c34 0%, #22242A 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .quince-crest-frame::before {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1px dashed rgba(231, 157, 180, 0.25);
+    pointer-events: none;
   }
 
   .event-header__sponsors {

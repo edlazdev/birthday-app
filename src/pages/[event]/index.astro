@@ -3,6 +3,7 @@ import EventLayout from "@/layouts/EventLayout.astro";
 import EventNav from "@/components/EventNav.astro";
 import EventHeader from "@/components/EventHeader.astro";
 import EventDetails from "@/components/EventDetails.astro";
+import QuinceaneraInvitation from "@/components/quinceanera/QuinceaneraInvitation.astro";
 import Footer from "@/components/Footer.astro";
 
 import { DEFAULT_EVENT } from "@/utils";
@@ -41,32 +42,36 @@ const isDraft = data.status === "draft";
       </div>
     </body>
   </html>
+) : data.type === "quinceanero" ? (
+  <EventLayout eventData={data}>
+    <main class="quince-root-container">
+      <EventNav slug={data.slug} showAlbum={data.showAlbum} />
+      <QuinceaneraInvitation eventData={data} />
+    </main>
+  </EventLayout>
 ) : (
+  <EventLayout eventData={data}>
+    <main class="event-container">
+      <EventNav slug={data.slug} showAlbum={data.showAlbum} />
 
+      <EventHeader eventData={data} />
 
-<EventLayout eventData={data}>
-  <main class="event-container">
-    <EventNav slug={data.slug} showAlbum={data.showAlbum} />
+      <EventDetails eventData={data} />
 
-    <EventHeader eventData={data} />
-
-    
-    <EventDetails eventData={data} />
-    
-    
-    <Footer
-      year={new Date().getFullYear()}
-      socialLinks={{
-        facebook: data.socialLinks?.facebook
-          ? "https://www.facebook.com/elr28"
-          : undefined,
-        instagram: data.socialLinks?.instagram
-          ? "https://www.instagram.com/_edgar.lazaro/"
-          : undefined,
-      }}
-      celebrant={data.celebrant}
-    />
-  </main>
-</EventLayout>
+      <Footer
+        year={new Date().getFullYear()}
+        socialLinks={{
+          facebook: data.socialLinks?.facebook
+            ? "https://www.facebook.com/elr28"
+            : undefined,
+          instagram: data.socialLinks?.instagram
+            ? "https://www.instagram.com/_edgar.lazaro/"
+            : undefined,
+        }}
+        celebrant={data.celebrant}
+      />
+    </main>
+  </EventLayout>
 )}
+
 

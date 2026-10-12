@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS public.event_tenants (
     recommendations_description TEXT,
     sponsors JSONB DEFAULT '{"groom": [], "bride": []}'::jsonb,
     witnesses JSONB DEFAULT '[]'::jsonb,
+    itinerary JSONB DEFAULT '[]'::jsonb,
     social_links JSONB DEFAULT '{"facebook": true, "instagram": true}'::jsonb,
 
     created_at TIMESTAMPTZ DEFAULT NOW(),
