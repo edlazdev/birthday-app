@@ -41,6 +41,52 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
   // Active section & view states
   const [activeSection, setActiveSection] = useState<EditorSectionId>("general");
   const [viewMode, setViewMode] = useState<"split" | "editor" | "preview">("split");
+  const [openSections, setOpenSections] = useState<Record<EditorSectionId, boolean>>({
+    general: true,
+    datetime: true,
+    rsvp: true,
+    modules: true,
+    theme: true,
+    media: true,
+    extras: true,
+  });
+
+  const toggleSection = (id: EditorSectionId) => {
+    setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const expandAllSections = () => {
+    setOpenSections({
+      general: true,
+      datetime: true,
+      rsvp: true,
+      modules: true,
+      theme: true,
+      media: true,
+      extras: true,
+    });
+  };
+
+  const collapseAllSections = () => {
+    setOpenSections({
+      general: false,
+      datetime: false,
+      rsvp: false,
+      modules: false,
+      theme: false,
+      media: false,
+      extras: false,
+    });
+  };
+
+  const scrollToSection = (id: EditorSectionId) => {
+    setActiveSection(id);
+    setOpenSections((prev) => ({ ...prev, [id]: true }));
+    const el = document.getElementById(`section-${id}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   // Save states per section & dirty tracking
   const [savingSection, setSavingSection] = useState<string | null>(null);
@@ -140,11 +186,12 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
   }, [initialSlug, isNew, user]);
 
   // Update helper with dirty tracking
-  const updateTenant = (updater: (prev: EventData) => EventData) => {
+  const updateTenant = (updater: (prev: EventData) => EventData, sectionId?: EditorSectionId) => {
     setTenant((prev) => {
       if (!prev) return prev;
       const next = updater(prev);
-      setDirtySections((d) => ({ ...d, [activeSection]: true }));
+      const targetSec = sectionId || activeSection;
+      setDirtySections((d) => ({ ...d, [targetSec]: true }));
       return next;
     });
   };
@@ -486,103 +533,174 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
       ========================================================================== */}
       <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* =====================================================================
-            LEFT COLUMN: UNIFIED SINGLE CARD WITH INTEGRATED TABS
+            LEFT COLUMN: SECTION-BASED EDITING CARDS (NOT TABS)
         ====================================================================== */}
         {(viewMode === "split" || viewMode === "editor") && (
           <section
-            className={`flex flex-col ${
+            className={`flex flex-col space-y-4 ${
               viewMode === "editor" ? "col-span-12 max-w-4xl mx-auto w-full" : "col-span-12 lg:col-span-7"
             }`}
           >
-            {/* UNIFIED CARD */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
-              {/* 1. INTEGRATED TABS HEADER (Clean, no extra box, no clipped text) */}
-              <div className="border-b border-slate-800 bg-slate-950/60 p-2 flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
-                {EDITOR_SECTIONS.map((sec) => {
-                  const isActive = activeSection === sec.id;
-                  const isDirty = dirtySections[sec.id];
-                  const isSaved = !!savedSectionTime[sec.label] && !isDirty;
+            {/* STICKY SECTION QUICK NAVIGATOR BAR */}
+            <div className="sticky top-16 z-30 bg-[#FAF7F2]/95 dark:bg-slate-950/95 backdrop-blur-md pb-1 pt-1">
+              <div className="bg-white/95 dark:bg-slate-900/95 border border-amber-900/[0.08] dark:border-slate-800 rounded-2xl p-2 shadow-xs flex items-center justify-between gap-2 overflow-x-auto [scrollbar-width:none]">
+                <div className="flex items-center gap-1.5 min-w-max">
+                  {EDITOR_SECTIONS.map((sec) => {
+                    const isDirty = dirtySections[sec.id];
+                    const isSaved = !!savedSectionTime[sec.label] && !isDirty;
+                    const isOpen = openSections[sec.id];
 
-                  return (
-                    <button
-                      key={sec.id}
-                      type="button"
-                      onClick={() => setActiveSection(sec.id)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition whitespace-nowrap cursor-pointer border ${
-                        isActive
-                          ? "bg-amber-500/15 text-amber-300 border-amber-500/40 font-semibold shadow-sm"
-                          : "bg-transparent border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
-                      }`}
-                    >
-                      <span className="text-sm">{sec.icon}</span>
-                      <span>{sec.shortLabel}</span>
-                      {isDirty && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" title="Cambios pendientes" />
-                      )}
-                      {isSaved && (
-                        <span className="text-[10px] text-emerald-400 font-bold" title="Guardado">
-                          ✓
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* 2. FORM CONTENT BODY */}
-              <div className="p-5 sm:p-6 space-y-5">
-                {/* Clean Sub-Header */}
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800/70">
-                  <div>
-                    <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                      <span>{currentConfig.icon}</span>
-                      <span>{currentConfig.label}</span>
-                    </h2>
-                    <p className="text-xs text-slate-400 mt-0.5">{currentConfig.description}</p>
-                  </div>
-                  {dirtySections[activeSection] && (
-                    <span className="text-[11px] text-amber-300 font-medium">
-                      ● Cambios sin guardar
-                    </span>
-                  )}
+                    return (
+                      <button
+                        key={sec.id}
+                        type="button"
+                        onClick={() => scrollToSection(sec.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border ${
+                          isOpen
+                            ? "bg-amber-500/15 text-amber-900 dark:text-amber-300 border-amber-500/40 shadow-2xs"
+                            : "bg-stone-50/60 dark:bg-slate-800/40 border-stone-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-stone-100"
+                        }`}
+                        title={`Ir a ${sec.label}`}
+                      >
+                        <span className="text-xs">{sec.icon}</span>
+                        <span>{sec.step}. {sec.shortLabel}</span>
+                        {isDirty && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" title="Cambios pendientes" />
+                        )}
+                        {isSaved && (
+                          <span className="text-[10px] text-emerald-500 font-bold" title="Guardado">
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {/* SECTION 1: GENERAL & FESTEJADO */}
-                {activeSection === "general" && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-200">
+                <div className="flex items-center gap-1 pl-2 border-l border-amber-900/[0.08] dark:border-slate-800 shrink-0">
+                  <button
+                    type="button"
+                    onClick={expandAllSections}
+                    className="px-2 py-1 rounded-lg text-[11px] font-medium text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                    title="Abrir todas las secciones"
+                  >
+                    Expandir
+                  </button>
+                  <span className="text-slate-300 dark:text-slate-700">|</span>
+                  <button
+                    type="button"
+                    onClick={collapseAllSections}
+                    className="px-2 py-1 rounded-lg text-[11px] font-medium text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                    title="Cerrar todas las secciones"
+                  >
+                    Colapsar
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* ===============================================================
+                SECTION 1: GENERAL & FESTEJADO
+            ================================================================ */}
+            <div
+              id="section-general"
+              className="bg-white dark:bg-slate-900/90 border border-amber-900/[0.08] dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs dark:shadow-xl transition scroll-mt-24"
+            >
+              <div
+                className="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none hover:bg-stone-50/80 dark:hover:bg-slate-850/50 transition border-b border-amber-900/[0.06] dark:border-slate-800/80"
+                onClick={() => toggleSection("general")}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-400 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-500/30">
+                    1
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <span>📋</span>
+                      <span>General & Festejado</span>
+                    </h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                      Identidad del evento, nombres, títulos y estado de publicación
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  {dirtySections["general"] && (
+                    <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                      <span className="hidden sm:inline">Sin guardar</span>
+                    </span>
+                  )}
+                  {savedSectionTime["General & Festejado"] && !dirtySections["general"] && (
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium hidden sm:inline">
+                      ✓ Guardado
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSection("General & Festejado", "general")}
+                    disabled={savingSection !== null}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition active:scale-95 disabled:opacity-50 cursor-pointer shadow-xs"
+                    title="Guardar sección General"
+                  >
+                    {savingSection === "General & Festejado" ? "Guardando..." : "💾 Guardar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleSection("general")}
+                    className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition cursor-pointer text-xs"
+                    title={openSections["general"] ? "Colapsar sección" : "Expandir sección"}
+                  >
+                    {openSections["general"] ? "▲" : "▼"}
+                  </button>
+                </div>
+              </div>
+
+              {openSections["general"] && (
+                <div className="p-5 sm:p-6 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
-                        Slug en URL <span className="text-rose-400">*</span>
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                        Slug en URL <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={tenant.slug}
                         onChange={(e) =>
-                          updateTenant((t) => ({
-                            ...t,
-                            slug: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""),
-                          }))
+                          updateTenant(
+                            (t) => ({
+                              ...t,
+                              slug: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""),
+                            }),
+                            "general"
+                          )
                         }
                         required
-                        placeholder="ej: emmanuel, quince-maria"
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white font-mono transition"
+                        placeholder="ej: luana, quince-maria"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white font-mono transition outline-none"
                       />
-                      <span className="text-[11px] text-slate-500 mt-0.5 block">freeloader.artizaro.com/{tenant.slug}</span>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">
+                        freeloader.artizaro.com/{tenant.slug}
+                      </span>
                     </div>
 
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Tipo de Evento
                       </label>
                       <select
                         value={tenant.type}
                         onChange={(e) =>
-                          updateTenant((t) => ({
-                            ...t,
-                            type: e.target.value as EventType,
-                          }))
+                          updateTenant(
+                            (t) => ({
+                              ...t,
+                              type: e.target.value as EventType,
+                            }),
+                            "general"
+                          )
                         }
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       >
                         {EVENT_TYPE_OPTIONS.map((opt) => (
                           <option key={opt.value} value={opt.value}>
@@ -593,14 +711,14 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                     </div>
 
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Estado de Publicación
                       </label>
                       {isSuperAdmin ? (
                         <select
                           value={tenant.status || "published"}
-                          onChange={(e) => updateTenant((t) => ({ ...t, status: e.target.value as any }))}
-                          className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                          onChange={(e) => updateTenant((t) => ({ ...t, status: e.target.value as any }), "general")}
+                          className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                         >
                           {STATUS_OPTIONS.map((st) => (
                             <option key={st.value} value={st.value}>
@@ -609,26 +727,26 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                           ))}
                         </select>
                       ) : tenant.status === "published" ? (
-                        <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-xs font-bold text-emerald-300">
-                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                          <span>✓ Publicado & Activo (Verificada por el Admin)</span>
+                        <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <span>✓ Publicado & Activo (Verificado)</span>
                         </div>
                       ) : (
-                        <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
+                        <div className="p-3.5 rounded-xl bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 space-y-2.5">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-amber-400">
+                            <span className="text-xs font-bold text-amber-700 dark:text-amber-400">
                               {tenant.status === "pending_approval"
                                 ? "🔵 En Verificación de Abono"
                                 : "🟡 Modo Borrador (Privado)"}
                             </span>
-                            <span className="text-[10px] font-mono text-emerald-400 font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                            <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
                               Tarifa: S/ 50.00
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-400 leading-relaxed">
+                          <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
                             {tenant.status === "pending_approval"
-                              ? "Tu solicitud y comprobante fueron enviados al administrador. En breve validará tu abono de S/ 50 para publicar tu invitación."
-                              : "Tu invitación está en borrador. Para que esté disponible al público en freeloader.artizaro.com, solicita la activación con tu abono de S/ 50 vía Yape o Plin."}
+                              ? "Tu solicitud fue enviada al administrador. En breve validará tu abono de S/ 50 para publicar tu invitación."
+                              : "Tu invitación está en borrador. Para que esté disponible al público en freeloader.artizaro.com, solicita la activación con tu abono único de S/ 50."}
                           </p>
                           <button
                             type="button"
@@ -647,130 +765,200 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                     </div>
 
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
-                        Nombre del Festejado(s) <span className="text-rose-400">*</span>
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                        Nombre del Festejado(s) <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={tenant.celebrant}
-                        onChange={(e) => updateTenant((t) => ({ ...t, celebrant: e.target.value }))}
+                        onChange={(e) => updateTenant((t) => ({ ...t, celebrant: e.target.value }), "general")}
                         required
-                        placeholder="Ej: Emmanuel, Ronal & María"
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        placeholder="Ej: Luana, Ronal & María"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Texto antes del nombre
                       </label>
                       <input
                         type="text"
                         value={tenant.beforeCelebrant || ""}
-                        onChange={(e) => updateTenant((t) => ({ ...t, beforeCelebrant: e.target.value }))}
-                        placeholder="Ej: Soy, Celebremos con, Nuestra boda"
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        onChange={(e) => updateTenant((t) => ({ ...t, beforeCelebrant: e.target.value }), "general")}
+                        placeholder="Ej: Celebremos con, Nuestra boda"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Título o Acción
                       </label>
                       <input
                         type="text"
                         value={tenant.title}
-                        onChange={(e) => updateTenant((t) => ({ ...t, title: e.target.value }))}
-                        placeholder="Ej: Cumplo, Mis, Nuestra"
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        onChange={(e) => updateTenant((t) => ({ ...t, title: e.target.value }), "general")}
+                        placeholder="Ej: Cumple, Mis, Nuestra"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Edad (opcional para bodas)
                       </label>
                       <input
                         type="text"
                         value={tenant.age}
-                        onChange={(e) => updateTenant((t) => ({ ...t, age: e.target.value }))}
+                        onChange={(e) => updateTenant((t) => ({ ...t, age: e.target.value }), "general")}
                         placeholder="Ej: 1, 15, 30"
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Sufijo después de la edad
                       </label>
                       <input
                         type="text"
                         value={tenant.afterAge || ""}
-                        onChange={(e) => updateTenant((t) => ({ ...t, afterAge: e.target.value }))}
+                        onChange={(e) => updateTenant((t) => ({ ...t, afterAge: e.target.value }), "general")}
                         placeholder="Ej: añito, añitos, años"
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Frase / Tagline de Bienvenida
                       </label>
                       <input
                         type="text"
                         value={tenant.tagline || ""}
-                        onChange={(e) => updateTenant((t) => ({ ...t, tagline: e.target.value }))}
-                        placeholder="¡Acompáñame a celebrar este gran día!"
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        onChange={(e) => updateTenant((t) => ({ ...t, tagline: e.target.value }), "general")}
+                        placeholder="¡Acompáñanos a celebrar este momento especial!"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
                   </div>
-                )}
 
-                {/* SECTION 2: DATETIME & LOCATION */}
-                {activeSection === "datetime" && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-200">
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleSaveSection("General & Festejado", "general")}
+                      className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition cursor-pointer shadow-xs"
+                    >
+                      💾 Guardar General
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ===============================================================
+                SECTION 2: FECHA & UBICACIÓN
+            ================================================================ */}
+            <div
+              id="section-datetime"
+              className="bg-white dark:bg-slate-900/90 border border-amber-900/[0.08] dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs dark:shadow-xl transition scroll-mt-24"
+            >
+              <div
+                className="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none hover:bg-stone-50/80 dark:hover:bg-slate-850/50 transition border-b border-amber-900/[0.06] dark:border-slate-800/80"
+                onClick={() => toggleSection("datetime")}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-400 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-500/30">
+                    2
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <span>📍</span>
+                      <span>Fecha & Ubicación</span>
+                    </h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                      Día, hora, dirección física y mapa GPS interactivo
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  {dirtySections["datetime"] && (
+                    <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                      <span className="hidden sm:inline">Sin guardar</span>
+                    </span>
+                  )}
+                  {savedSectionTime["Fecha & Ubicación"] && !dirtySections["datetime"] && (
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium hidden sm:inline">
+                      ✓ Guardado
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSection("Fecha & Ubicación", "datetime")}
+                    disabled={savingSection !== null}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition active:scale-95 disabled:opacity-50 cursor-pointer shadow-xs"
+                    title="Guardar sección Ubicación"
+                  >
+                    {savingSection === "Fecha & Ubicación" ? "Guardando..." : "💾 Guardar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleSection("datetime")}
+                    className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition cursor-pointer text-xs"
+                    title={openSections["datetime"] ? "Colapsar sección" : "Expandir sección"}
+                  >
+                    {openSections["datetime"] ? "▲" : "▼"}
+                  </button>
+                </div>
+              </div>
+
+              {openSections["datetime"] && (
+                <div className="p-5 sm:p-6 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Fecha Mostrada
                       </label>
                       <input
                         type="text"
                         value={tenant.date}
-                        onChange={(e) => updateTenant((t) => ({ ...t, date: e.target.value }))}
+                        onChange={(e) => updateTenant((t) => ({ ...t, date: e.target.value }), "datetime")}
                         placeholder="Ej: Sábado 20 de Octubre"
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Hora Mostrada
                       </label>
                       <input
                         type="text"
                         value={tenant.time}
-                        onChange={(e) => updateTenant((t) => ({ ...t, time: e.target.value }))}
-                        placeholder="Ej: 4:30 PM"
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        onChange={(e) => updateTenant((t) => ({ ...t, time: e.target.value }), "datetime")}
+                        placeholder="Ej: 7:00 PM"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Dirección Completa
                       </label>
                       <input
                         type="text"
                         value={tenant.address}
-                        onChange={(e) => updateTenant((t) => ({ ...t, address: e.target.value }))}
+                        onChange={(e) => updateTenant((t) => ({ ...t, address: e.target.value }), "datetime")}
                         placeholder="Ej: Salón Las Palmeras, Av. Principal 450"
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Latitud GPS (Mapa)
                       </label>
                       <input
@@ -778,17 +966,20 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                         step="any"
                         value={tenant.map.lat}
                         onChange={(e) =>
-                          updateTenant((t) => ({
-                            ...t,
-                            map: { ...t.map, lat: parseFloat(e.target.value) || 0 },
-                          }))
+                          updateTenant(
+                            (t) => ({
+                              ...t,
+                              map: { ...t.map, lat: parseFloat(e.target.value) || 0 },
+                            }),
+                            "datetime"
+                          )
                         }
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Longitud GPS (Mapa)
                       </label>
                       <input
@@ -796,177 +987,409 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                         step="any"
                         value={tenant.map.lng}
                         onChange={(e) =>
-                          updateTenant((t) => ({
-                            ...t,
-                            map: { ...t.map, lng: parseFloat(e.target.value) || 0 },
-                          }))
+                          updateTenant(
+                            (t) => ({
+                              ...t,
+                              map: { ...t.map, lng: parseFloat(e.target.value) || 0 },
+                            }),
+                            "datetime"
+                          )
                         }
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
                   </div>
-                )}
 
-                {/* SECTION 3: RSVP & WHATSAPP */}
-                {activeSection === "rsvp" && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-200">
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleSaveSection("Fecha & Ubicación", "datetime")}
+                      className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition cursor-pointer shadow-xs"
+                    >
+                      💾 Guardar Ubicación
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ===============================================================
+                SECTION 3: RSVP & WHATSAPP
+            ================================================================ */}
+            <div
+              id="section-rsvp"
+              className="bg-white dark:bg-slate-900/90 border border-amber-900/[0.08] dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs dark:shadow-xl transition scroll-mt-24"
+            >
+              <div
+                className="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none hover:bg-stone-50/80 dark:hover:bg-slate-850/50 transition border-b border-amber-900/[0.06] dark:border-slate-800/80"
+                onClick={() => toggleSection("rsvp")}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-400 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-500/30">
+                    3
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <span>💬</span>
+                      <span>RSVP & WhatsApp</span>
+                    </h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                      Confirmación de invitados y contacto directo por WhatsApp
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  {dirtySections["rsvp"] && (
+                    <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                      <span className="hidden sm:inline">Sin guardar</span>
+                    </span>
+                  )}
+                  {savedSectionTime["RSVP & WhatsApp"] && !dirtySections["rsvp"] && (
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium hidden sm:inline">
+                      ✓ Guardado
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSection("RSVP & WhatsApp", "rsvp")}
+                    disabled={savingSection !== null}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition active:scale-95 disabled:opacity-50 cursor-pointer shadow-xs"
+                    title="Guardar sección RSVP"
+                  >
+                    {savingSection === "RSVP & WhatsApp" ? "Guardando..." : "💾 Guardar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleSection("rsvp")}
+                    className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition cursor-pointer text-xs"
+                    title={openSections["rsvp"] ? "Colapsar sección" : "Expandir sección"}
+                  >
+                    {openSections["rsvp"] ? "▲" : "▼"}
+                  </button>
+                </div>
+              </div>
+
+              {openSections["rsvp"] && (
+                <div className="p-5 sm:p-6 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         WhatsApp de Confirmación (con código de país)
                       </label>
                       <input
                         type="text"
                         value={tenant.whatsapp}
                         onChange={(e) =>
-                          updateTenant((t) => ({
-                            ...t,
-                            whatsapp: e.target.value.replace(/[^0-9]/g, ""),
-                          }))
+                          updateTenant(
+                            (t) => ({
+                              ...t,
+                              whatsapp: e.target.value.replace(/[^0-9]/g, ""),
+                            }),
+                            "rsvp"
+                          )
                         }
                         placeholder="Ej: 51987654321"
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Nombre o Rol del Contacto WhatsApp
                       </label>
                       <input
                         type="text"
                         value={tenant.whatsappName || ""}
-                        onChange={(e) => updateTenant((t) => ({ ...t, whatsappName: e.target.value }))}
-                        placeholder="Ej: Mamá de Emmanuel, Novios"
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        onChange={(e) => updateTenant((t) => ({ ...t, whatsappName: e.target.value }), "rsvp")}
+                        placeholder="Ej: Mamá de Luana, Novios"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Tooltip o Mensaje del botón RSVP
                       </label>
                       <input
                         type="text"
                         value={tenant.msgTooltip || ""}
-                        onChange={(e) => updateTenant((t) => ({ ...t, msgTooltip: e.target.value }))}
+                        onChange={(e) => updateTenant((t) => ({ ...t, msgTooltip: e.target.value }), "rsvp")}
                         placeholder="Ej: Asegura tu comida 😜"
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Texto enlace al Álbum en página
                       </label>
                       <input
                         type="text"
                         value={tenant.msgRedirectAlbum || ""}
-                        onChange={(e) => updateTenant((t) => ({ ...t, msgRedirectAlbum: e.target.value }))}
+                        onChange={(e) => updateTenant((t) => ({ ...t, msgRedirectAlbum: e.target.value }), "rsvp")}
                         placeholder="Ej: Mira cuánto hemos crecido"
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl text-sm text-white transition"
+                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
                   </div>
-                )}
 
-                {/* SECTION 4: MODULES VISIBILITY */}
-                {activeSection === "modules" && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in duration-200">
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleSaveSection("RSVP & WhatsApp", "rsvp")}
+                      className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition cursor-pointer shadow-xs"
+                    >
+                      💾 Guardar RSVP
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ===============================================================
+                SECTION 4: MÓDULOS VISIBLES
+            ================================================================ */}
+            <div
+              id="section-modules"
+              className="bg-white dark:bg-slate-900/90 border border-amber-900/[0.08] dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs dark:shadow-xl transition scroll-mt-24"
+            >
+              <div
+                className="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none hover:bg-stone-50/80 dark:hover:bg-slate-850/50 transition border-b border-amber-900/[0.06] dark:border-slate-800/80"
+                onClick={() => toggleSection("modules")}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-400 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-500/30">
+                    4
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <span>🎛️</span>
+                      <span>Módulos Visibles</span>
+                    </h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                      Control de visibilidad de secciones para el invitado
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  {dirtySections["modules"] && (
+                    <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                      <span className="hidden sm:inline">Sin guardar</span>
+                    </span>
+                  )}
+                  {savedSectionTime["Módulos Visibles"] && !dirtySections["modules"] && (
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium hidden sm:inline">
+                      ✓ Guardado
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSection("Módulos Visibles", "modules")}
+                    disabled={savingSection !== null}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition active:scale-95 disabled:opacity-50 cursor-pointer shadow-xs"
+                    title="Guardar sección Módulos"
+                  >
+                    {savingSection === "Módulos Visibles" ? "Guardando..." : "💾 Guardar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleSection("modules")}
+                    className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition cursor-pointer text-xs"
+                    title={openSections["modules"] ? "Colapsar sección" : "Expandir sección"}
+                  >
+                    {openSections["modules"] ? "▲" : "▼"}
+                  </button>
+                </div>
+              </div>
+
+              {openSections["modules"] && (
+                <div className="p-5 sm:p-6 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {MODULE_DEFINITIONS.map((mod) => {
                       const isChecked = (tenant as any)[mod.key] !== false;
                       return (
                         <div
                           key={mod.key}
-                          className="flex items-center justify-between p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl hover:border-slate-700 transition"
+                          className="flex items-center justify-between p-3.5 bg-stone-50/70 dark:bg-slate-950/60 border border-stone-200/80 dark:border-slate-800/80 rounded-xl hover:border-amber-500/30 dark:hover:border-slate-700 transition"
                         >
                           <div className="pr-2">
-                            <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                               <span>{mod.icon}</span>
                               <span>{mod.label}</span>
                             </span>
-                            <span className="text-[11px] text-slate-400 block mt-0.5">{mod.description}</span>
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                              {mod.description}
+                            </span>
                           </div>
                           <label className="relative inline-flex items-center cursor-pointer shrink-0">
                             <input
                               type="checkbox"
                               checked={isChecked}
                               onChange={(e) =>
-                                updateTenant((t) => ({
-                                  ...t,
-                                  [mod.key]: e.target.checked,
-                                }))
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    [mod.key]: e.target.checked,
+                                  }),
+                                  "modules"
+                                )
                               }
                               className="sr-only peer"
                             />
-                            <div className="w-10 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                            <div className="w-10 h-5 bg-stone-300 dark:bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
                           </label>
                         </div>
                       );
                     })}
                   </div>
-                )}
 
-                {/* SECTION 5: THEME & COLORS */}
-                {activeSection === "theme" && (
-                  <div className="space-y-4 animate-in fade-in duration-200">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                      {[
-                        { key: "primary", label: "Primario (Botones)", def: "#ff9800" },
-                        { key: "secondary", label: "Secundario (Bordes)", def: "#2196f3" },
-                        { key: "tertiary", label: "Terciario (Tagline)", def: "#e91e63" },
-                        { key: "bg", label: "Fondo", def: "#ffffff" },
-                      ].map((col) => {
-                        const currentVal = (tenant.theme as any)?.[col.key] || col.def;
-                        return (
-                          <div key={col.key} className="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
-                            <label className="text-xs font-medium text-slate-300 block mb-2">{col.label}</label>
-                            <div className="flex items-center gap-2.5">
-                              <input
-                                type="color"
-                                value={currentVal}
-                                onChange={(e) =>
-                                  updateTenant((t) => ({
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleSaveSection("Módulos Visibles", "modules")}
+                      className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition cursor-pointer shadow-xs"
+                    >
+                      💾 Guardar Módulos
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ===============================================================
+                SECTION 5: TEMA & COLORES
+            ================================================================ */}
+            <div
+              id="section-theme"
+              className="bg-white dark:bg-slate-900/90 border border-amber-900/[0.08] dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs dark:shadow-xl transition scroll-mt-24"
+            >
+              <div
+                className="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none hover:bg-stone-50/80 dark:hover:bg-slate-850/50 transition border-b border-amber-900/[0.06] dark:border-slate-800/80"
+                onClick={() => toggleSection("theme")}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-400 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-500/30">
+                    5
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <span>🎨</span>
+                      <span>Tema & Colores</span>
+                    </h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                      Paleta de colores, contrastes y estilos visuales
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  {dirtySections["theme"] && (
+                    <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                      <span className="hidden sm:inline">Sin guardar</span>
+                    </span>
+                  )}
+                  {savedSectionTime["Tema & Colores"] && !dirtySections["theme"] && (
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium hidden sm:inline">
+                      ✓ Guardado
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSection("Tema & Colores", "theme")}
+                    disabled={savingSection !== null}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition active:scale-95 disabled:opacity-50 cursor-pointer shadow-xs"
+                    title="Guardar sección Colores"
+                  >
+                    {savingSection === "Tema & Colores" ? "Guardando..." : "💾 Guardar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleSection("theme")}
+                    className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition cursor-pointer text-xs"
+                    title={openSections["theme"] ? "Colapsar sección" : "Expandir sección"}
+                  >
+                    {openSections["theme"] ? "▲" : "▼"}
+                  </button>
+                </div>
+              </div>
+
+              {openSections["theme"] && (
+                <div className="p-5 sm:p-6 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { key: "primary", label: "Primario (Botones)", def: "#ff9800" },
+                      { key: "secondary", label: "Secundario (Bordes)", def: "#2196f3" },
+                      { key: "tertiary", label: "Terciario (Tagline)", def: "#e91e63" },
+                      { key: "bg", label: "Fondo", def: "#ffffff" },
+                    ].map((col) => {
+                      const currentVal = (tenant.theme as any)?.[col.key] || col.def;
+                      return (
+                        <div
+                          key={col.key}
+                          className="p-3 bg-stone-50/70 dark:bg-slate-950/60 border border-stone-200/80 dark:border-slate-800/80 rounded-xl"
+                        >
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">
+                            {col.label}
+                          </label>
+                          <div className="flex items-center gap-2.5">
+                            <input
+                              type="color"
+                              value={currentVal}
+                              onChange={(e) =>
+                                updateTenant(
+                                  (t) => ({
                                     ...t,
                                     theme: {
                                       ...t.theme,
                                       [col.key]: e.target.value,
                                     },
-                                  }))
-                                }
-                                className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
-                              />
-                              <input
-                                type="text"
-                                value={currentVal}
-                                onChange={(e) =>
-                                  updateTenant((t) => ({
+                                  }),
+                                  "theme"
+                                )
+                              }
+                              className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
+                            />
+                            <input
+                              type="text"
+                              value={currentVal}
+                              onChange={(e) =>
+                                updateTenant(
+                                  (t) => ({
                                     ...t,
                                     theme: {
                                       ...t.theme,
                                       [col.key]: e.target.value,
                                     },
-                                  }))
-                                }
-                                className="w-20 px-2 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs font-mono text-white text-center"
-                              />
-                            </div>
+                                  }),
+                                  "theme"
+                                )
+                              }
+                              className="w-20 px-2 py-1 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs font-mono text-slate-900 dark:text-white text-center"
+                            />
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+                      );
+                    })}
+                  </div>
 
-                    {/* Presets */}
-                    <div className="p-3.5 bg-slate-950/40 border border-slate-800/80 rounded-xl">
-                      <span className="text-xs font-semibold text-slate-300 block mb-2">
-                        Paletas Predefinidas:
-                      </span>
-                      <div className="flex flex-wrap gap-2">
-                        {THEME_PALETTE_PRESETS.map((pal, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() =>
-                              updateTenant((t) => ({
+                  {/* Presets */}
+                  <div className="p-3.5 bg-stone-50/70 dark:bg-slate-950/40 border border-stone-200/80 dark:border-slate-800/80 rounded-xl">
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">
+                      Paletas Predefinidas:
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {THEME_PALETTE_PRESETS.map((pal, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() =>
+                            updateTenant(
+                              (t) => ({
                                 ...t,
                                 theme: {
                                   primary: pal.primary,
@@ -974,350 +1397,456 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                                   tertiary: pal.tertiary,
                                   bg: pal.bg,
                                 },
-                              }))
-                            }
-                            className="px-2.5 py-1 rounded-lg bg-slate-850 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 flex items-center gap-1.5 transition cursor-pointer"
-                          >
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: pal.primary }} />
-                            <span>{pal.name}</span>
-                          </button>
-                        ))}
-                      </div>
+                              }),
+                              "theme"
+                            )
+                          }
+                          className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-850 hover:bg-stone-100 dark:hover:bg-slate-800 border border-stone-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+                        >
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: pal.primary }} />
+                          <span>{pal.name}</span>
+                        </button>
+                      ))}
                     </div>
                   </div>
-                )}
 
-                {/* SECTION 6: MEDIA & PHOTOS */}
-                {activeSection === "media" && (
-                  <div className="space-y-4 animate-in fade-in duration-200">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Cover Photo */}
-                      <div className="p-4 bg-slate-950/60 border border-slate-800/80 rounded-xl space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs font-medium text-slate-300">Foto de Portada</label>
-                          {uploading === "cover" && <span className="text-xs text-amber-400 animate-pulse">Subiendo...</span>}
-                        </div>
-                        <input
-                          type="text"
-                          value={tenant.coverUrl || ""}
-                          onChange={(e) => updateTenant((t) => ({ ...t, coverUrl: e.target.value }))}
-                          placeholder="URL directa o sube archivo"
-                          className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white"
-                        />
-                        <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 rounded-lg transition border border-slate-700">
-                          <span>📤</span> Subir Portada
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleFileUpload(e, "cover")}
-                            className="hidden"
-                          />
-                        </label>
-                        {tenant.coverUrl && (
-                          <div className="h-24 rounded-lg overflow-hidden border border-slate-800 relative group mt-2">
-                            <img src={tenant.coverUrl} alt="Portada" className="w-full h-full object-cover" />
-                            <button
-                              type="button"
-                              onClick={() => updateTenant((t) => ({ ...t, coverUrl: "" }))}
-                              className="absolute top-1 right-1 p-1 bg-rose-600 text-white rounded text-[10px] opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                            >
-                              Quitar
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleSaveSection("Tema & Colores", "theme")}
+                      className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition cursor-pointer shadow-xs"
+                    >
+                      💾 Guardar Colores
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
-                      {/* Avatar Photo */}
-                      <div className="p-4 bg-slate-950/60 border border-slate-800/80 rounded-xl space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs font-medium text-slate-300">Foto de Perfil (Avatar)</label>
-                          {uploading === "avatar" && <span className="text-xs text-amber-400 animate-pulse">Subiendo...</span>}
-                        </div>
-                        <input
-                          type="text"
-                          value={tenant.avatarUrl || ""}
-                          onChange={(e) => updateTenant((t) => ({ ...t, avatarUrl: e.target.value }))}
-                          placeholder="URL directa o sube archivo"
-                          className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white"
-                        />
-                        <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 rounded-lg transition border border-slate-700">
-                          <span>📤</span> Subir Avatar
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleFileUpload(e, "avatar")}
-                            className="hidden"
-                          />
-                        </label>
-                        {tenant.avatarUrl && (
-                          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-500 mx-auto relative group mt-2">
-                            <img src={tenant.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                            <button
-                              type="button"
-                              onClick={() => updateTenant((t) => ({ ...t, avatarUrl: "" }))}
-                              className="absolute inset-0 bg-black/60 text-white text-[10px] opacity-0 group-hover:opacity-100 flex items-center justify-center transition cursor-pointer"
-                            >
-                              Quitar
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+            {/* ===============================================================
+                SECTION 6: MEDIOS & FOTOS
+            ================================================================ */}
+            <div
+              id="section-media"
+              className="bg-white dark:bg-slate-900/90 border border-amber-900/[0.08] dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs dark:shadow-xl transition scroll-mt-24"
+            >
+              <div
+                className="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none hover:bg-stone-50/80 dark:hover:bg-slate-850/50 transition border-b border-amber-900/[0.06] dark:border-slate-800/80"
+                onClick={() => toggleSection("media")}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-400 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-500/30">
+                    6
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <span>🖼️</span>
+                      <span>Medios & Fotos</span>
+                    </h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                      Portada, foto de perfil, video de fondo y álbum de recuerdos
+                    </p>
+                  </div>
+                </div>
 
-                    {/* YouTube Background */}
-                    <div className="p-4 bg-slate-950/60 border border-slate-800/80 rounded-xl space-y-3">
-                      <span className="text-xs font-bold text-slate-300 block">Video de Fondo YouTube</span>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-[11px] text-slate-400 block mb-1">ID Video YouTube</label>
-                          <input
-                            type="text"
-                            value={
-                              tenant.backgroundVideo?.invitation?.youtubeId ||
-                              tenant.backgroundVideo?.youtubeId ||
-                              ""
-                            }
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              updateTenant((t) => ({
-                                ...t,
-                                backgroundVideo: {
-                                  ...t.backgroundVideo,
-                                  invitation: {
-                                    youtubeId: val,
-                                    muted: true,
-                                    loop: true,
-                                    start: t.backgroundVideo?.invitation?.start || 0,
-                                  },
-                                },
-                              }));
-                            }}
-                            placeholder="Ej: 7QAe_RFewEQ"
-                            className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[11px] text-slate-400 block mb-1">Segundo de Inicio</label>
-                          <input
-                            type="number"
-                            value={tenant.backgroundVideo?.invitation?.start || 0}
-                            onChange={(e) => {
-                              const val = parseInt(e.target.value) || 0;
-                              updateTenant((t) => ({
-                                ...t,
-                                backgroundVideo: {
-                                  ...t.backgroundVideo,
-                                  invitation: {
-                                    youtubeId: t.backgroundVideo?.invitation?.youtubeId || "",
-                                    muted: true,
-                                    loop: true,
-                                    start: val,
-                                  },
-                                },
-                              }));
-                            }}
-                            className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                <div className="flex items-center gap-2.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  {dirtySections["media"] && (
+                    <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                      <span className="hidden sm:inline">Sin guardar</span>
+                    </span>
+                  )}
+                  {savedSectionTime["Medios & Fotos"] && !dirtySections["media"] && (
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium hidden sm:inline">
+                      ✓ Guardado
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSection("Medios & Fotos", "media")}
+                    disabled={savingSection !== null}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition active:scale-95 disabled:opacity-50 cursor-pointer shadow-xs"
+                    title="Guardar sección Fotos"
+                  >
+                    {savingSection === "Medios & Fotos" ? "Guardando..." : "💾 Guardar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleSection("media")}
+                    className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition cursor-pointer text-xs"
+                    title={openSections["media"] ? "Colapsar sección" : "Expandir sección"}
+                  >
+                    {openSections["media"] ? "▲" : "▼"}
+                  </button>
+                </div>
+              </div>
 
-                    {/* Album Gallery */}
-                    <div className="p-4 bg-slate-950/60 border border-slate-800/80 rounded-xl space-y-3">
+              {openSections["media"] && (
+                <div className="p-5 sm:p-6 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Cover Photo */}
+                    <div className="p-4 bg-stone-50/70 dark:bg-slate-950/60 border border-stone-200/80 dark:border-slate-800/80 rounded-xl space-y-2.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-white">
-                          Álbum ({tenant.albumUrls?.length || 0} fotos)
-                        </span>
-                        {uploading === "album" && <span className="text-xs text-amber-400 animate-pulse">Subiendo...</span>}
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Foto de Portada</label>
+                        {uploading === "cover" && <span className="text-xs text-amber-500 animate-pulse">Subiendo...</span>}
                       </div>
-                      <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-xs font-bold text-slate-950 rounded-lg transition">
-                        <span>+</span> Subir Fotos
+                      <input
+                        type="text"
+                        value={tenant.coverUrl || ""}
+                        onChange={(e) => updateTenant((t) => ({ ...t, coverUrl: e.target.value }), "media")}
+                        placeholder="URL directa o sube archivo"
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                      />
+                      <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-stone-200 hover:bg-stone-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs text-slate-800 dark:text-slate-200 rounded-lg transition border border-stone-300 dark:border-slate-700">
+                        <span>📤</span> Subir Portada
                         <input
                           type="file"
-                          multiple
                           accept="image/*"
-                          onChange={(e) => handleFileUpload(e, "album")}
+                          onChange={(e) => handleFileUpload(e, "cover")}
                           className="hidden"
                         />
                       </label>
+                      {tenant.coverUrl && (
+                        <div className="h-24 rounded-lg overflow-hidden border border-stone-200 dark:border-slate-800 relative group mt-2">
+                          <img src={tenant.coverUrl} alt="Portada" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => updateTenant((t) => ({ ...t, coverUrl: "" }), "media")}
+                            className="absolute top-1 right-1 p-1 bg-rose-600 text-white rounded text-[10px] opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                          >
+                            Quitar
+                          </button>
+                        </div>
+                      )}
+                    </div>
 
-                      {tenant.albumUrls && tenant.albumUrls.length > 0 && (
-                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mt-2">
-                          {tenant.albumUrls.map((url, idx) => (
-                            <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-slate-800 group">
-                              <img src={url} alt={`Foto ${idx}`} className="w-full h-full object-cover" />
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const updated = tenant.albumUrls?.filter((_, i) => i !== idx);
-                                  updateTenant((t) => ({
-                                    ...t,
-                                    albumUrls: updated,
-                                    albumCount: updated?.length || 0,
-                                  }));
-                                }}
-                                className="absolute top-1 right-1 bg-red-600/90 text-white text-[10px] w-4 h-4 rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center cursor-pointer"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          ))}
+                    {/* Avatar Photo */}
+                    <div className="p-4 bg-stone-50/70 dark:bg-slate-950/60 border border-stone-200/80 dark:border-slate-800/80 rounded-xl space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Foto de Perfil (Avatar)</label>
+                        {uploading === "avatar" && <span className="text-xs text-amber-500 animate-pulse">Subiendo...</span>}
+                      </div>
+                      <input
+                        type="text"
+                        value={tenant.avatarUrl || ""}
+                        onChange={(e) => updateTenant((t) => ({ ...t, avatarUrl: e.target.value }), "media")}
+                        placeholder="URL directa o sube archivo"
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                      />
+                      <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-stone-200 hover:bg-stone-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs text-slate-800 dark:text-slate-200 rounded-lg transition border border-stone-300 dark:border-slate-700">
+                        <span>📤</span> Subir Avatar
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileUpload(e, "avatar")}
+                          className="hidden"
+                        />
+                      </label>
+                      {tenant.avatarUrl && (
+                        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-500 mx-auto relative group mt-2">
+                          <img src={tenant.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => updateTenant((t) => ({ ...t, avatarUrl: "" }), "media")}
+                            className="absolute inset-0 bg-black/60 text-white text-[10px] opacity-0 group-hover:opacity-100 flex items-center justify-center transition cursor-pointer"
+                          >
+                            Quitar
+                          </button>
                         </div>
                       )}
                     </div>
                   </div>
-                )}
 
-                {/* SECTION 7: EXTRAS (REGALOS & PADRINOS) */}
-                {activeSection === "extras" && (
-                  <div className="space-y-4 animate-in fade-in duration-200">
-                    <div>
-                      <label className="text-xs font-medium text-slate-300 block mb-1">
-                        Sugerencias de Regalo (un item por línea)
-                      </label>
-                      <textarea
-                        rows={3}
-                        value={(tenant.giftRecommendations || []).join("\n")}
-                        onChange={(e) =>
-                          updateTenant((t) => ({
+                  {/* YouTube Background */}
+                  <div className="p-4 bg-stone-50/70 dark:bg-slate-950/60 border border-stone-200/80 dark:border-slate-800/80 rounded-xl space-y-3">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">Video de Fondo YouTube</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">ID Video YouTube</label>
+                        <input
+                          type="text"
+                          value={
+                            tenant.backgroundVideo?.invitation?.youtubeId ||
+                            tenant.backgroundVideo?.youtubeId ||
+                            ""
+                          }
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            updateTenant((t) => ({
+                              ...t,
+                              backgroundVideo: {
+                                ...t.backgroundVideo,
+                                invitation: {
+                                  youtubeId: val,
+                                  muted: true,
+                                  loop: true,
+                                  start: t.backgroundVideo?.invitation?.start || 0,
+                                },
+                              },
+                            }), "media");
+                          }}
+                          placeholder="Ej: 7QAe_RFewEQ"
+                          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">Segundo de Inicio</label>
+                        <input
+                          type="number"
+                          value={tenant.backgroundVideo?.invitation?.start || 0}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value) || 0;
+                            updateTenant((t) => ({
+                              ...t,
+                              backgroundVideo: {
+                                ...t.backgroundVideo,
+                                invitation: {
+                                  youtubeId: t.backgroundVideo?.invitation?.youtubeId || "",
+                                  muted: true,
+                                  loop: true,
+                                  start: val,
+                                },
+                              },
+                            }), "media");
+                          }}
+                          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Album Gallery */}
+                  <div className="p-4 bg-stone-50/70 dark:bg-slate-950/60 border border-stone-200/80 dark:border-slate-800/80 rounded-xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">
+                        Álbum ({tenant.albumUrls?.length || 0} fotos)
+                      </span>
+                      {uploading === "album" && <span className="text-xs text-amber-500 animate-pulse">Subiendo...</span>}
+                    </div>
+                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-xs font-bold text-slate-950 rounded-lg transition">
+                      <span>+</span> Subir Fotos al Álbum
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, "album")}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {tenant.albumUrls && tenant.albumUrls.length > 0 && (
+                      <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mt-2">
+                        {tenant.albumUrls.map((url, idx) => (
+                          <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-stone-200 dark:border-slate-800 group">
+                            <img src={url} alt={`Foto ${idx}`} className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = tenant.albumUrls?.filter((_, i) => i !== idx);
+                                updateTenant((t) => ({
+                                  ...t,
+                                  albumUrls: updated,
+                                  albumCount: updated?.length || 0,
+                                }), "media");
+                              }}
+                              className="absolute top-1 right-1 bg-red-600/90 text-white text-[10px] w-4 h-4 rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center cursor-pointer"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleSaveSection("Medios & Fotos", "media")}
+                      className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition cursor-pointer shadow-xs"
+                    >
+                      💾 Guardar Fotos
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ===============================================================
+                SECTION 7: REGALOS & PADRINOS
+            ================================================================ */}
+            <div
+              id="section-extras"
+              className="bg-white dark:bg-slate-900/90 border border-amber-900/[0.08] dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs dark:shadow-xl transition scroll-mt-24"
+            >
+              <div
+                className="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none hover:bg-stone-50/80 dark:hover:bg-slate-850/50 transition border-b border-amber-900/[0.06] dark:border-slate-800/80"
+                onClick={() => toggleSection("extras")}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-400 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-500/30">
+                    7
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <span>🎁</span>
+                      <span>Regalos & Padrinos</span>
+                    </h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                      Mesa de regalos, cuentas bancarias y cortejo de honor
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  {dirtySections["extras"] && (
+                    <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                      <span className="hidden sm:inline">Sin guardar</span>
+                    </span>
+                  )}
+                  {savedSectionTime["Regalos & Padrinos"] && !dirtySections["extras"] && (
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium hidden sm:inline">
+                      ✓ Guardado
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSection("Regalos & Padrinos", "extras")}
+                    disabled={savingSection !== null}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition active:scale-95 disabled:opacity-50 cursor-pointer shadow-xs"
+                    title="Guardar sección Regalos"
+                  >
+                    {savingSection === "Regalos & Padrinos" ? "Guardando..." : "💾 Guardar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleSection("extras")}
+                    className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition cursor-pointer text-xs"
+                    title={openSections["extras"] ? "Colapsar sección" : "Expandir sección"}
+                  >
+                    {openSections["extras"] ? "▲" : "▼"}
+                  </button>
+                </div>
+              </div>
+
+              {openSections["extras"] && (
+                <div className="p-5 sm:p-6 space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                      Sugerencias de Regalo (un ítem por línea)
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={(tenant.giftRecommendations || []).join("\n")}
+                      onChange={(e) =>
+                        updateTenant(
+                          (t) => ({
                             ...t,
                             giftRecommendations: e.target.value.split("\n").filter((s) => s.trim() !== ""),
-                          }))
-                        }
-                        placeholder="Mesa de regalos&#10;Transferencia BCP: ...&#10;Lluvia de sobres"
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white"
-                      />
-                    </div>
+                          }),
+                          "extras"
+                        )
+                      }
+                      placeholder="Mesa de regalos&#10;Transferencia BCP: ...&#10;Lluvia de sobres"
+                      className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 rounded-xl text-xs text-slate-900 dark:text-white"
+                    />
+                  </div>
 
-                    {(tenant.type === "wedding" || tenant.type === "quinceanero") && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                        <div>
-                          <label className="text-xs font-medium text-slate-300 block mb-1">
-                            {tenant.type === "wedding" ? "Padrinos del Novio" : "Padrinos Principales"}
-                          </label>
-                          <textarea
-                            rows={3}
-                            value={(tenant.sponsors?.groom || []).join("\n")}
-                            onChange={(e) =>
-                              updateTenant((t) => ({
+                  {(tenant.type === "wedding" || tenant.type === "quinceanero") && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                          {tenant.type === "wedding" ? "Padrinos del Novio" : "Padrinos Principales"}
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={(tenant.sponsors?.groom || []).join("\n")}
+                          onChange={(e) =>
+                            updateTenant(
+                              (t) => ({
                                 ...t,
                                 sponsors: {
                                   groom: e.target.value.split("\n").filter((s) => s.trim() !== ""),
                                   bride: t.sponsors?.bride || [],
                                 },
-                              }))
-                            }
-                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white"
-                          />
-                        </div>
+                              }),
+                              "extras"
+                            )
+                          }
+                          className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 rounded-xl text-xs text-slate-900 dark:text-white"
+                        />
+                      </div>
 
-                        <div>
-                          <label className="text-xs font-medium text-slate-300 block mb-1">
-                            {tenant.type === "wedding" ? "Padrinos de la Novia" : "Padrinos Secundarios"}
-                          </label>
-                          <textarea
-                            rows={3}
-                            value={(tenant.sponsors?.bride || []).join("\n")}
-                            onChange={(e) =>
-                              updateTenant((t) => ({
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                          {tenant.type === "wedding" ? "Padrinos de la Novia" : "Padrinos Secundarios"}
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={(tenant.sponsors?.bride || []).join("\n")}
+                          onChange={(e) =>
+                            updateTenant(
+                              (t) => ({
                                 ...t,
                                 sponsors: {
                                   groom: t.sponsors?.groom || [],
                                   bride: e.target.value.split("\n").filter((s) => s.trim() !== ""),
                                 },
-                              }))
-                            }
-                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white"
-                          />
-                        </div>
+                              }),
+                              "extras"
+                            )
+                          }
+                          className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 rounded-xl text-xs text-slate-900 dark:text-white"
+                        />
+                      </div>
 
-                        <div className="sm:col-span-2">
-                          <label className="text-xs font-medium text-slate-300 block mb-1">
-                            {tenant.type === "wedding" ? "Testigos de Honor" : "Chambelanes / Damas"}
-                          </label>
-                          <textarea
-                            rows={3}
-                            value={(tenant.witnesses || []).join("\n")}
-                            onChange={(e) =>
-                              updateTenant((t) => ({
+                      <div className="sm:col-span-2">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                          {tenant.type === "wedding" ? "Testigos de Honor" : "Chambelanes / Damas"}
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={(tenant.witnesses || []).join("\n")}
+                          onChange={(e) =>
+                            updateTenant(
+                              (t) => ({
                                 ...t,
                                 witnesses: e.target.value.split("\n").filter((s) => s.trim() !== ""),
-                              }))
-                            }
-                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white"
-                          />
-                        </div>
+                              }),
+                              "extras"
+                            )
+                          }
+                          className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 rounded-xl text-xs text-slate-900 dark:text-white"
+                        />
                       </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* 3. INTEGRATED FOOTER (Clean, balanced buttons) */}
-              <div className="px-5 py-3.5 border-t border-slate-800 bg-slate-950/40 flex items-center justify-between">
-                <div>
-                  {prevSection ? (
-                    <button
-                      type="button"
-                      onClick={() => setActiveSection(prevSection.id)}
-                      className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <span>←</span>
-                      <span>{prevSection.shortLabel}</span>
-                    </button>
-                  ) : (
-                    <div className="text-xs text-slate-500">
-                      {savedSectionTime[currentConfig.label] && !dirtySections[activeSection] && (
-                        <span className="text-emerald-400">
-                          ✓ Guardado {savedSectionTime[currentConfig.label]}
-                        </span>
-                      )}
                     </div>
                   )}
-                </div>
 
-                <div className="flex items-center gap-2">
-                  {nextSection && (
+                  <div className="pt-2 flex justify-end">
                     <button
                       type="button"
-                      onClick={() => setActiveSection(nextSection.id)}
-                      className="px-3 py-1.5 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800 transition flex items-center gap-1.5 cursor-pointer"
+                      onClick={() => handleSaveSection("Regalos & Padrinos", "extras")}
+                      className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition cursor-pointer shadow-xs"
                     >
-                      <span>{nextSection.shortLabel}</span>
-                      <span>→</span>
+                      💾 Guardar Regalos
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => handleSaveSection(currentConfig.label, currentConfig.id)}
-                    disabled={savingSection !== null}
-                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow-md shadow-amber-500/20 active:scale-95 transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
-                  >
-                    {savingSection === currentConfig.label ? (
-                      <>
-                        <span className="w-3 h-3 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
-                        <span>Guardando...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>💾</span>
-                        <span>Guardar {currentConfig.shortLabel}</span>
-                      </>
-                    )}
-                  </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </section>
         )}
 
         {/* =====================================================================
-            RIGHT COLUMN: REAL-TIME INTERACTIVE LIVE PREVIEW
+            RIGHT COLUMN: STICKY REAL-TIME INTERACTIVE LIVE PREVIEW
         ====================================================================== */}
         {(viewMode === "split" || viewMode === "preview") && (
           <aside
             className={`flex flex-col ${
-              viewMode === "preview" ? "col-span-12 max-w-xl mx-auto w-full" : "col-span-12 lg:col-span-5"
+              viewMode === "preview"
+                ? "col-span-12 max-w-xl mx-auto w-full"
+                : "col-span-12 lg:col-span-5 lg:sticky lg:top-16 lg:self-start z-20"
             }`}
           >
             <LivePhonePreview tenant={tenant} />
