@@ -1,9 +1,30 @@
 ---
+import { parseEventDateTime, getCountdownValues } from "@/utils/dateParser";
+
 interface Props {
   targetDate?: string; // Ej: "2026-07-31T17:00:00"
+  dateStr?: string;
+  timeStr?: string;
 }
 
-const { targetDate = "2026-07-31T17:00:00" } = Astro.props;
+const { targetDate, dateStr, timeStr } = Astro.props;
+
+let targetIso = targetDate;
+let initialTargetMs = 0;
+
+if (dateStr || timeStr) {
+  const parsed = parseEventDateTime(dateStr, timeStr);
+  targetIso = parsed.targetIso;
+  initialTargetMs = parsed.date.getTime();
+} else if (targetDate) {
+  initialTargetMs = new Date(targetDate).getTime();
+} else {
+  const parsed = parseEventDateTime("Viernes 31 de Julio", "5:00 PM");
+  targetIso = parsed.targetIso;
+  initialTargetMs = parsed.date.getTime();
+}
+
+const initial = getCountdownValues(initialTargetMs);
 ---
 
 <div class="countdown-wrapper my-6 max-w-sm mx-auto px-2 animate-fade-up">
@@ -17,25 +38,25 @@ const { targetDate = "2026-07-31T17:00:00" } = Astro.props;
     <div
       class="countdown-timer flex items-center justify-center gap-2 sm:gap-3 my-2"
       id="quince-countdown"
-      data-target={targetDate}
+      data-target={targetIso}
     >
       <div class="timer-segment flex flex-col items-center">
-        <span class="timer-val text-2xl sm:text-3xl font-extrabold text-white" id="count-days">00</span>
+        <span class="timer-val text-2xl sm:text-3xl font-extrabold text-white" id="count-days">{initial.days}</span>
         <span class="timer-lbl text-[9px] uppercase tracking-wider text-slate-400 mt-0.5">Días</span>
       </div>
       <span class="text-xl sm:text-2xl font-bold text-[var(--primary,#e79db4)] -mt-4">:</span>
       <div class="timer-segment flex flex-col items-center">
-        <span class="timer-val text-2xl sm:text-3xl font-extrabold text-white" id="count-hours">00</span>
+        <span class="timer-val text-2xl sm:text-3xl font-extrabold text-white" id="count-hours">{initial.hours}</span>
         <span class="timer-lbl text-[9px] uppercase tracking-wider text-slate-400 mt-0.5">Horas</span>
       </div>
       <span class="text-xl sm:text-2xl font-bold text-[var(--primary,#e79db4)] -mt-4">:</span>
       <div class="timer-segment flex flex-col items-center">
-        <span class="timer-val text-2xl sm:text-3xl font-extrabold text-white" id="count-minutes">00</span>
+        <span class="timer-val text-2xl sm:text-3xl font-extrabold text-white" id="count-minutes">{initial.minutes}</span>
         <span class="timer-lbl text-[9px] uppercase tracking-wider text-slate-400 mt-0.5">Minutos</span>
       </div>
       <span class="text-xl sm:text-2xl font-bold text-[var(--primary,#e79db4)] -mt-4">:</span>
       <div class="timer-segment flex flex-col items-center">
-        <span class="timer-val text-2xl sm:text-3xl font-extrabold text-white" id="count-seconds">00</span>
+        <span class="timer-val text-2xl sm:text-3xl font-extrabold text-white" id="count-seconds">{initial.seconds}</span>
         <span class="timer-lbl text-[9px] uppercase tracking-wider text-slate-400 mt-0.5">Segundos</span>
       </div>
     </div>
@@ -46,8 +67,10 @@ const { targetDate = "2026-07-31T17:00:00" } = Astro.props;
   (function initCountdown() {
     const el = document.getElementById("quince-countdown");
     if (!el) return;
-    const targetStr = el.getAttribute("data-target") || "2026-07-31T17:00:00";
+    const targetStr = el.getAttribute("data-target");
+    if (!targetStr) return;
     const targetTime = new Date(targetStr).getTime();
+    if (isNaN(targetTime)) return;
 
     const dEl = document.getElementById("count-days");
     const hEl = document.getElementById("count-hours");

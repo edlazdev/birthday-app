@@ -101,6 +101,7 @@ export interface EventDetailsProps {
 export interface EventNavProps {
   slug: string;
   showAlbum?: boolean;
+  showInvitation?: boolean;
 }
 
 // Data Types
@@ -120,6 +121,7 @@ export interface ItineraryItem {
 }
 
 export type EventFeatures = {
+  showInvitation?: boolean;
   showAlbum?: boolean;
   showAvatar?: boolean;
   showVideoBackground?: boolean;
@@ -166,6 +168,8 @@ export type EventData = {
     facebook: boolean;
     instagram: boolean;
   };
+  /** Si es true (por defecto), la vista principal de invitación está activa. */
+  showInvitation?: boolean;
   /** Si es true (por defecto), se muestra el enlace al álbum y la página /album está accesible. Si es false, se ocultan enlaces y se redirige desde /album. */
   showAlbum?: boolean;
   /** Colores del tema por evento. Se inyectan como variables CSS (--primary, --secondary, --tertiary, --bg) en el body. Si no se define, se usan los de :root en theme.css. */

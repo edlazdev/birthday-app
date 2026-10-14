@@ -1,29 +1,23 @@
 ---
+import { parseEventDateTime } from "@/utils/dateParser";
+
 interface Props {
   dateStr: string; // Ej: "Viernes 31 de Julio" o "2026-07-31"
   celebrant?: string;
+  timeStr?: string;
 }
 
-const { dateStr = "Viernes 31 de Julio" } = Astro.props;
+const { dateStr = "Viernes 31 de Julio", timeStr = "5:00 PM" } = Astro.props;
 
-// Intentar extraer el día numérico
-const dayMatch = dateStr.match(/\b([1-9]|[12][0-9]|3[01])\b/);
-const targetDay = dayMatch ? parseInt(dayMatch[1], 10) : 31;
-
-// Nombres de días y días para un mes de 31 días (como Julio 2026)
-// Julio 2026 empieza en Miércoles (1 = Mie, 2 = Jue, 3 = Vie, 4 = Sab, 5 = Dom, etc.)
-// 31 de julio 2026 cae Viernes.
+const parsed = parseEventDateTime(dateStr, timeStr);
 const daysOfWeek = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
 
-// Desfase para Julio 2026: 1 de Julio = Miércoles (índice 2 empezando Lunes=0)
-const offset = 2; // Dos días vacíos antes del 1
-const totalDays = 31;
 const calendarCells: (number | null)[] = [];
 
-for (let i = 0; i < offset; i++) {
+for (let i = 0; i < parsed.startOffsetMonday; i++) {
   calendarCells.push(null);
 }
-for (let d = 1; d <= totalDays; d++) {
+for (let d = 1; d <= parsed.daysInMonth; d++) {
   calendarCells.push(d);
 }
 ---
@@ -35,7 +29,7 @@ for (let d = 1; d <= totalDays; d++) {
         El gran día
       </span>
       <h3 class="text-xl sm:text-2xl font-serif tracking-wider text-[var(--primary,#e79db4)] font-bold mt-0.5">
-        JULIO 2026
+        {parsed.monthName} {parsed.year}
       </h3>
       <div class="w-12 h-0.5 bg-[var(--primary,#e79db4)]/40 mx-auto mt-2"></div>
     </div>
@@ -52,7 +46,7 @@ for (let d = 1; d <= totalDays; d++) {
         if (day === null) {
           return <div class="h-8 sm:h-9"></div>;
         }
-        const isTarget = day === targetDay;
+        const isTarget = day === parsed.day;
         return (
           <div class="h-8 sm:h-9 flex items-center justify-center relative">
             {isTarget ? (

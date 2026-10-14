@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { EventData } from "@/types";
+import { parseEventDateTime, getCountdownValues } from "@/utils/dateParser";
 
 interface LivePhonePreviewProps {
   tenant: EventData;
@@ -8,6 +9,17 @@ interface LivePhonePreviewProps {
 export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
   const [previewType, setPreviewType] = useState<"mockup" | "iframe">("mockup");
   const [iframeKey, setIframeKey] = useState(Date.now());
+  const [countdownNow, setCountdownNow] = useState(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdownNow(Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const parsedDate = parseEventDateTime(tenant.date, tenant.time);
+  const countdown = getCountdownValues(parsedDate.date.getTime(), countdownNow);
 
   return (
     <div className="bg-white/95 dark:bg-slate-900/90 border border-amber-900/[0.08] dark:border-slate-800 rounded-3xl p-3.5 sm:p-4 shadow-sm dark:shadow-xl flex flex-col space-y-3.5 w-full transition-colors">
@@ -97,22 +109,22 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                 ["--bg" as any]: tenant.theme?.bg || "#ffffff",
               }}
             >
-              {/* Floating Navigation Pill */}
-              <div className="sticky top-2 z-20 px-4 pt-2">
-                <div className={`${isDark ? "bg-slate-900/90 border-slate-700 text-slate-200" : "bg-white/85 border-slate-200/80 text-slate-700"} backdrop-blur-md border rounded-full px-4 py-1.5 shadow-sm flex items-center justify-center gap-4 text-xs font-semibold`}>
-                  <span
-                    className="transition cursor-pointer font-bold"
-                    style={{ color: tenant.theme?.primary || "#ff9800" }}
-                  >
-                    Invitación
-                  </span>
-                  {tenant.showAlbum !== false && (
+              {/* Floating Navigation Pill (solo si ambas vistas están activadas) */}
+              {tenant.showAlbum !== false && tenant.showInvitation !== false && (
+                <div className="sticky top-2 z-20 px-4 pt-2">
+                  <div className={`${isDark ? "bg-slate-900/90 border-slate-700 text-slate-200" : "bg-white/85 border-slate-200/80 text-slate-700"} backdrop-blur-md border rounded-full px-4 py-1.5 shadow-sm flex items-center justify-center gap-4 text-xs font-semibold`}>
+                    <span
+                      className="transition cursor-pointer font-bold"
+                      style={{ color: tenant.theme?.primary || "#ff9800" }}
+                    >
+                      Invitación
+                    </span>
                     <span className={`${isDark ? "text-slate-400 hover:text-white" : "text-slate-500 hover:text-slate-950"} transition cursor-pointer`}>
                       Álbum ({tenant.albumUrls?.length || 0})
                     </span>
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Hero Header Banner */}
               <div className="relative pt-6 pb-6 px-4 text-center">
@@ -192,7 +204,13 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                 {tenant.type === "quinceanero" && (
                   <div className="my-3 space-y-2">
                     <div className="w-16 h-16 mx-auto rounded-full border border-[var(--primary)]/40 flex flex-col items-center justify-center bg-black/20 shadow-inner">
-                      <span className="text-xs">👑</span>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4" style={{ color: tenant.theme?.primary }}>
+                        <path d="M3 19h18" />
+                        <path d="M3 15l3-7 3 4 3-7 3 4 3-7 3 7v4H3v-4z" />
+                        <circle cx="12" cy="3" r="1" />
+                        <circle cx="6" cy="6" r="1" />
+                        <circle cx="18" cy="6" r="1" />
+                      </svg>
                       <span className="text-sm font-extrabold tracking-wider" style={{ color: tenant.theme?.primary }}>XV</span>
                     </div>
 
@@ -206,6 +224,17 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                         <span>⏭</span>
                       </div>
                     </div>
+
+                    {/* Moño divisor */}
+                    <div className="flex justify-center" style={{ color: tenant.theme?.primary }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                        <path d="M12 12c-3-3-6-5-8-2s-1 6 2 6c3 0 5-2 6-4z" />
+                        <path d="M12 12c3-3 6-5 8-2s1 6-2 6c-3 0-5-2-6-4z" />
+                        <path d="M11 14.5c-1 3-3 6-5 7 1-2 4-4 5-7z" />
+                        <path d="M13 14.5c1 3 3 6 5 7-1-2-4-4-5-7z" />
+                        <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+                      </svg>
+                    </div>
                   </div>
                 )}
               </div>
@@ -213,11 +242,83 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
               {/* Event Details Section */}
               <div className="px-4 py-3 space-y-3.5">
                 {/* Date & Time Card */}
-                <div className={`${cardClass} text-center space-y-1`}>
-                  <div className="text-xl">📅</div>
-                  <div className="text-sm font-bold">{tenant.date}</div>
-                  <div className="text-xs font-semibold opacity-75">⏰ {tenant.time}</div>
-                </div>
+                {tenant.type === "quinceanero" ? (
+                  <div className="space-y-3">
+                    {/* Quinceañero Date Badge */}
+                    <div
+                      className="py-2.5 px-3 rounded-2xl border text-center"
+                      style={{
+                        backgroundColor: isDark ? "#1d1f24" : "rgba(255, 255, 255, 0.9)",
+                        borderColor: `${tenant.theme?.primary || "#e79db4"}35`,
+                      }}
+                    >
+                      <span
+                        className="text-[10px] uppercase tracking-widest font-bold block"
+                        style={{ color: tenant.theme?.primary || "#e79db4" }}
+                      >
+                        {parsedDate.monthName}
+                      </span>
+                      <div className="flex items-center justify-center gap-2 my-0.5">
+                        <span className="text-[11px] font-serif uppercase tracking-wider opacity-75">
+                          {parsedDate.dayOfWeekName}
+                        </span>
+                        <span className="text-2xl font-bold font-serif" style={{ color: tenant.theme?.primary || "#e79db4" }}>
+                          {parsedDate.day}
+                        </span>
+                        <span className="text-[11px] font-serif uppercase tracking-wider opacity-75">
+                          {parsedDate.year}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Mini Calendario Dinámico */}
+                    <div
+                      className="p-3 rounded-2xl border text-center"
+                      style={{
+                        backgroundColor: isDark ? "#1d1f24" : "rgba(255, 255, 255, 0.9)",
+                        borderColor: `${tenant.theme?.primary || "#e79db4"}35`,
+                      }}
+                    >
+                      <span className="text-xs font-serif italic block" style={{ color: tenant.theme?.primary || "#e79db4" }}>
+                        El gran día
+                      </span>
+                      <span className="text-[10px] uppercase tracking-widest font-bold opacity-90 block mb-2">
+                        {parsedDate.monthName} {parsedDate.year}
+                      </span>
+                      <div className="grid grid-cols-7 gap-1 text-[8px] font-semibold opacity-60 mb-1">
+                        <span>LUN</span><span>MAR</span><span>MIÉ</span><span>JUE</span><span>VIE</span><span>SÁB</span><span>DOM</span>
+                      </div>
+                      <div className="grid grid-cols-7 gap-1 text-[9px] font-medium">
+                        {Array.from({ length: parsedDate.startOffsetMonday }).map((_, i) => (
+                          <div key={`offset-${i}`} className="h-5"></div>
+                        ))}
+                        {Array.from({ length: parsedDate.daysInMonth }, (_, i) => i + 1).map((d) => (
+                          <div key={`d-${d}`} className="h-5 flex items-center justify-center relative">
+                            {d === parsedDate.day ? (
+                              <div
+                                className="w-5 h-5 rounded-full font-bold text-[9px] flex items-center justify-center shadow-xs"
+                                style={{
+                                  backgroundColor: tenant.theme?.primary || "#e79db4",
+                                  color: isDark ? "#22242A" : "#ffffff",
+                                }}
+                              >
+                                {d}
+                              </div>
+                            ) : (
+                              <span className="opacity-75">{d}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={`${cardClass} text-center space-y-1`}>
+                    <div className="text-xl">📅</div>
+                    <div className="text-sm font-bold">{tenant.date}</div>
+                    <div className="text-xs font-semibold opacity-75">⏰ {tenant.time}</div>
+                  </div>
+                )}
 
                 {/* RSVP Call-to-Action (if enabled) */}
                 {tenant.showRsvp !== false && (
@@ -289,27 +390,53 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                   </div>
                 )}
 
-                {/* Quinceañero Countdown Preview */}
+                {/* Quinceañero Countdown Preview (Live Ticking) */}
                 {tenant.type === "quinceanero" && (
-                  <div className="text-center p-3 rounded-2xl bg-black/25 border border-[#e79db4]/25 space-y-1">
-                    <span className="text-xs font-serif italic text-[#e79db4] block">
+                  <div
+                    className="text-center p-3.5 rounded-2xl border space-y-1.5 shadow-sm"
+                    style={{
+                      backgroundColor: isDark ? "#1d1f24" : "rgba(255, 255, 255, 0.9)",
+                      borderColor: `${tenant.theme?.primary || "#e79db4"}35`,
+                    }}
+                  >
+                    <span
+                      className="text-xs font-serif italic block"
+                      style={{ color: tenant.theme?.primary || "#e79db4" }}
+                    >
                       Solo faltan
                     </span>
-                    <div className="flex items-center justify-center gap-2 font-mono font-bold text-sm text-white">
-                      <span>00</span>
-                      <span>:</span>
-                      <span>00</span>
-                      <span>:</span>
-                      <span>00</span>
-                      <span>:</span>
-                      <span>00</span>
+                    <div className="flex items-center justify-center gap-2 font-mono font-bold text-base text-white">
+                      <div className="flex flex-col items-center">
+                        <span className="text-lg leading-none" style={{ color: isDark ? "#ffffff" : "#1e293b" }}>{countdown.days}</span>
+                        <span className="text-[8px] uppercase tracking-wider text-slate-400 mt-0.5">Días</span>
+                      </div>
+                      <span className="text-sm font-bold -mt-2" style={{ color: tenant.theme?.primary || "#e79db4" }}>:</span>
+                      <div className="flex flex-col items-center">
+                        <span className="text-lg leading-none" style={{ color: isDark ? "#ffffff" : "#1e293b" }}>{countdown.hours}</span>
+                        <span className="text-[8px] uppercase tracking-wider text-slate-400 mt-0.5">Horas</span>
+                      </div>
+                      <span className="text-sm font-bold -mt-2" style={{ color: tenant.theme?.primary || "#e79db4" }}>:</span>
+                      <div className="flex flex-col items-center">
+                        <span className="text-lg leading-none" style={{ color: isDark ? "#ffffff" : "#1e293b" }}>{countdown.minutes}</span>
+                        <span className="text-[8px] uppercase tracking-wider text-slate-400 mt-0.5">Min</span>
+                      </div>
+                      <span className="text-sm font-bold -mt-2" style={{ color: tenant.theme?.primary || "#e79db4" }}>:</span>
+                      <div className="flex flex-col items-center">
+                        <span className="text-lg leading-none" style={{ color: isDark ? "#ffffff" : "#1e293b" }}>{countdown.seconds}</span>
+                        <span className="text-[8px] uppercase tracking-wider text-slate-400 mt-0.5">Seg</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-[8px] uppercase tracking-wider text-slate-400 px-4">
-                      <span>Días</span>
-                      <span>Horas</span>
-                      <span>Min</span>
-                      <span>Seg</span>
-                    </div>
+                    {parsedDate.hasPassed && (
+                      <div
+                        className="text-[10px] font-bold py-0.5 px-2 rounded-full inline-block mt-1"
+                        style={{
+                          backgroundColor: `${tenant.theme?.primary || "#e79db4"}20`,
+                          color: tenant.theme?.primary || "#e79db4",
+                        }}
+                      >
+                        🎉 ¡Llegó el gran día!
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -317,7 +444,9 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                 {tenant.showMap !== false && (
                   <div className={`${cardClass} space-y-2`}>
                     <div className="flex items-center gap-2">
-                      <span className="text-base">📍</span>
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 shrink-0" style={{ color: tenant.theme?.primary }}>
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                      </svg>
                       <div className="text-left">
                         <span className="text-[10px] font-bold uppercase tracking-wider opacity-60 block">
                           Lugar del Evento

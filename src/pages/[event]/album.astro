@@ -28,7 +28,7 @@ const albumImages = data.albumUrls && data.albumUrls.length > 0
 
 <EventLayout eventData={data}>
   <main class="event-container">
-    <EventNav slug={data.slug} showAlbum={data.showAlbum} />
+    <EventNav slug={data.slug} showAlbum={data.showAlbum} showInvitation={data.showInvitation} />
     
     <ImageGallery client:load images={albumImages} altPrefix="Mes" />
   </main>

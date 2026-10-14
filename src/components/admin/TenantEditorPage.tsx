@@ -1118,44 +1118,139 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
               </div>
 
               {openSections["modules"] && (
-                <div className="p-5 sm:p-6 space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {MODULE_DEFINITIONS.map((mod) => {
-                      const isChecked = (tenant as any)[mod.key] !== false;
-                      return (
-                        <div
-                          key={mod.key}
-                          className="flex items-center justify-between p-3.5 bg-stone-50/70 dark:bg-slate-950/60 border border-stone-200/80 dark:border-slate-800/80 rounded-xl hover:border-amber-500/30 dark:hover:border-slate-700 transition"
-                        >
-                          <div className="pr-2">
-                            <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                              <span>{mod.icon}</span>
-                              <span>{mod.label}</span>
-                            </span>
-                            <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
-                              {mod.description}
-                            </span>
-                          </div>
-                          <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={(e) =>
-                                updateTenant(
-                                  (t) => ({
-                                    ...t,
-                                    [mod.key]: e.target.checked,
-                                  }),
-                                  "modules"
-                                )
-                              }
-                              className="sr-only peer"
-                            />
-                            <div className="w-10 h-5 bg-stone-300 dark:bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
-                          </label>
+                <div className="p-5 sm:p-6 space-y-6">
+                  {/* Bloque Destacado: Activación de Vistas */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/[0.08] dark:bg-amber-500/[0.06] border border-amber-500/30 space-y-3.5">
+                    <div>
+                      <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                        <span>📱</span>
+                        <span>Activación de Vistas del Evento</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                        Configura las pantallas activas para este evento. Si solo tienes activa la <strong>Invitación</strong>, las opciones de navegación superior (pestañas Invitación/Álbum) <strong>no se mostrarán</strong>.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      {/* Vista Invitación */}
+                      <div className="flex items-center justify-between p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-stone-200 dark:border-slate-800 shadow-xs">
+                        <div className="pr-2">
+                          <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <span>💌</span>
+                            <span>Vista Invitación</span>
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                            Página principal del evento (/{tenant.slug})
+                          </span>
                         </div>
-                      );
-                    })}
+                        <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                          <input
+                            type="checkbox"
+                            checked={tenant.showInvitation !== false}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({ ...t, showInvitation: e.target.checked }),
+                                "modules"
+                              )
+                            }
+                            className="sr-only peer"
+                          />
+                          <div className="w-10 h-5 bg-stone-300 dark:bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                        </label>
+                      </div>
+
+                      {/* Vista Álbum */}
+                      <div className="flex items-center justify-between p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-stone-200 dark:border-slate-800 shadow-xs">
+                        <div className="pr-2">
+                          <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <span>📷</span>
+                            <span>Vista Álbum de Fotos</span>
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                            Galería de recuerdos (/{tenant.slug}/album)
+                          </span>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                          <input
+                            type="checkbox"
+                            checked={tenant.showAlbum !== false}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({ ...t, showAlbum: e.target.checked }),
+                                "modules"
+                              )
+                            }
+                            className="sr-only peer"
+                          />
+                          <div className="w-10 h-5 bg-stone-300 dark:bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Mensaje de estado dinámico */}
+                    <div className="text-[11px] px-3.5 py-2.5 rounded-xl bg-white/70 dark:bg-slate-950/60 border border-stone-200/60 dark:border-slate-800/80 text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                      <span className="text-base">💡</span>
+                      <span className="text-[11px] leading-tight">
+                        {tenant.showAlbum === false ? (
+                          <span>
+                            Solo la vista de <strong>Invitación</strong> está activa: la barra flotante de navegación entre páginas se mantendrá <strong>oculta</strong>.
+                          </span>
+                        ) : tenant.showInvitation === false ? (
+                          <span>
+                            Solo la vista de <strong>Álbum</strong> está activa: las opciones de navegación se mantendrán <strong>ocultas</strong>.
+                          </span>
+                        ) : (
+                          <span>
+                            Ambas vistas están activas: se mostrará la barra de navegación superior (<strong>Invitación | Álbum</strong>).
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Subtítulo para módulos de contenido */}
+                  <div>
+                    <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider block mb-2">
+                      🎛️ Componentes y Módulos de Contenido
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {MODULE_DEFINITIONS.map((mod) => {
+                        const isChecked = (tenant as any)[mod.key] !== false;
+                        return (
+                          <div
+                            key={mod.key}
+                            className="flex items-center justify-between p-3.5 bg-stone-50/70 dark:bg-slate-950/60 border border-stone-200/80 dark:border-slate-800/80 rounded-xl hover:border-amber-500/30 dark:hover:border-slate-700 transition"
+                          >
+                            <div className="pr-2">
+                              <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                                <span>{mod.icon}</span>
+                                <span>{mod.label}</span>
+                              </span>
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                                {mod.description}
+                              </span>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) =>
+                                  updateTenant(
+                                    (t) => ({
+                                      ...t,
+                                      [mod.key]: e.target.checked,
+                                    }),
+                                    "modules"
+                                  )
+                                }
+                                className="sr-only peer"
+                              />
+                              <div className="w-10 h-5 bg-stone-300 dark:bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   <div className="pt-2 flex justify-end">

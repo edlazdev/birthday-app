@@ -2,14 +2,18 @@
 import type { EventNavProps } from "@/types";
 
 type Props = EventNavProps;
-const { slug, showAlbum = true } = Astro.props;
+const { slug, showAlbum = true, showInvitation = true } = Astro.props;
 
 const currentPath = Astro.url.pathname;
 const isAlbumActive = currentPath.includes("/album");
 const isInvitationActive = !isAlbumActive;
+
+// Solo se muestran opciones de navegación si existen múltiples vistas activas (Invitación y Álbum)
+// Si solo tiene la invitación (o solo el álbum), NO se deben mostrar las opciones de navegación.
+const hasMultipleViews = Boolean(showAlbum && showInvitation);
 ---
 
-{showAlbum && (
+{hasMultipleViews && (
   <nav class="sticky top-3 z-30 mx-auto w-fit mb-3 mt-1 px-4">
     <div class="flex items-center gap-1 p-1 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-full shadow-lg shadow-black/10 border border-white/60 dark:border-slate-700/60 transition-all">
       <a 

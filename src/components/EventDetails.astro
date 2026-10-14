@@ -62,7 +62,7 @@ const albumHref = `${basePath}${eventData.slug}/album`;
 
   {eventData.type === "quinceanero" && (
     <div class="my-3">
-      <CalendarCard dateStr={eventData.date} celebrant={eventData.celebrant} />
+      <CalendarCard dateStr={eventData.date} timeStr={eventData.time} celebrant={eventData.celebrant} />
     </div>
   )}
 
@@ -72,7 +72,7 @@ const albumHref = `${basePath}${eventData.slug}/album`;
 
   {eventData.type === "quinceanero" && (
     <div class="my-3">
-      <CountdownCard />
+      <CountdownCard dateStr={eventData.date} timeStr={eventData.time} />
     </div>
   )}
 

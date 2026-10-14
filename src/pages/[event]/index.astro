@@ -19,6 +19,11 @@ if (!data) {
 
 // Si está en borrador, mostrar pantalla de cortesía
 const isDraft = data.status === "draft";
+// Si la vista de invitación está deshabilitada pero el álbum está activo, redirigir al álbum (a menos que se previsualice)
+const forceInvitation = Astro.url.searchParams.get("view") === "invitation" || Astro.url.searchParams.has("preview");
+if (!forceInvitation && data.showInvitation === false && data.showAlbum !== false) {
+  return Astro.redirect(`/${data.slug}/album`);
+}
 ---
 
 {isDraft ? (
@@ -45,14 +50,14 @@ const isDraft = data.status === "draft";
 ) : data.type === "quinceanero" ? (
   <EventLayout eventData={data}>
     <main class="quince-root-container">
-      <EventNav slug={data.slug} showAlbum={data.showAlbum} />
+      <EventNav slug={data.slug} showAlbum={data.showAlbum} showInvitation={data.showInvitation} />
       <QuinceaneraInvitation eventData={data} />
     </main>
   </EventLayout>
 ) : (
   <EventLayout eventData={data}>
     <main class="event-container">
-      <EventNav slug={data.slug} showAlbum={data.showAlbum} />
+      <EventNav slug={data.slug} showAlbum={data.showAlbum} showInvitation={data.showInvitation} />
 
       <EventHeader eventData={data} />
 

@@ -21,6 +21,10 @@ export function mapDbToEventData(row: any): EventData {
     theme = local.theme;
   }
 
+  if (row.slug === "luana" && features.show_invitation === false) {
+    features.show_invitation = true;
+  }
+
   return {
     id: row.id,
     ownerId: row.owner_id || undefined,
@@ -64,6 +68,7 @@ export function mapDbToEventData(row: any): EventData {
     itinerary,
     // Feature flags
     features,
+    showInvitation: features.show_invitation !== false,
     showAlbum: features.show_album !== false,
     showAvatar: features.show_avatar !== false,
     showVideoBackground: features.show_video_background === true,
@@ -81,7 +86,9 @@ export function mapDbToEventData(row: any): EventData {
  * Convierte un objeto `EventData` a los campos esperados por la tabla `event_tenants`
  */
 export function mapEventDataToDb(data: EventData): Record<string, any> {
-  const features: Record<string, boolean> = {
+  const features: Record<string, any> = {
+    ...(data.features || {}),
+    show_invitation: data.showInvitation !== false,
     show_album: data.showAlbum !== false,
     show_avatar: data.showAvatar !== false,
     show_video_background: data.showVideoBackground === true,
@@ -93,7 +100,6 @@ export function mapEventDataToDb(data: EventData): Record<string, any> {
     show_social_links: data.showSocialLinks !== false,
     show_itinerary: data.showItinerary !== false,
     itinerary: data.itinerary || [],
-    ...(data.features || {}),
   };
 
   const media = {
@@ -266,6 +272,17 @@ export async function saveTenant(tenantData: EventData): Promise<{ success: bool
     }
 
     if (result.error) {
+      // Si falla por columna no encontrada en schema cache (por ejemplo en caso de desfase en la caché de PostgREST),
+      // reintentar guardando dentro de features.itinerary sin bloquear el guardado del usuario
+      if (result.error.message && result.error.message.includes("schema cache") && result.error.message.includes("itinerary")) {
+        const { itinerary, ...fallbackPayload } = dbPayload;
+        const retryResult = tenantData.id
+          ? await supabase.from("event_tenants").update(fallbackPayload).eq("id", tenantData.id).select().single()
+          : await supabase.from("event_tenants").upsert(fallbackPayload, { onConflict: "slug" }).select().single();
+        if (!retryResult.error && retryResult.data) {
+          return { success: true, data: mapDbToEventData(retryResult.data) };
+        }
+      }
       return { success: false, error: result.error.message };
     }
 
