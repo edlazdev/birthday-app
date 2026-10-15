@@ -184,6 +184,13 @@ export interface RsvpConfig {
   notesPlaceholder?: string;
 }
 
+export interface MusicConfig {
+  youtubeUrl?: string;
+  startSecond?: number;
+  songTitle?: string;
+  autoplay?: boolean;
+}
+
 export type EventFeatures = {
   showInvitation?: boolean;
   showAlbum?: boolean;
@@ -216,6 +223,8 @@ export type EventFeatures = {
   giftConfig?: GiftConfig;
   rsvp_config?: RsvpConfig;
   rsvpConfig?: RsvpConfig;
+  music_config?: MusicConfig;
+  musicConfig?: MusicConfig;
 };
 
 export type EventData = {
@@ -329,4 +338,6 @@ export type EventData = {
   giftConfig?: GiftConfig;
   /** Configuración visual del modal y formulario de Confirmar Asistencia (RSVP) */
   rsvpConfig?: RsvpConfig;
+  /** Configuración de música para el reproductor musical de la invitación */
+  musicConfig?: MusicConfig;
 };

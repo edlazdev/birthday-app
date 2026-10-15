@@ -391,6 +391,10 @@ const sansFontFamily = isCustomSans
     <!-- 5. Componente Reutilizable: Reproductor Musical "DALE PLAY" -->
     <EventMusicPlayer
       title="DALE PLAY"
+      youtubeUrl={eventData.musicConfig?.youtubeUrl}
+      startSecond={eventData.musicConfig?.startSecond}
+      songTitle={eventData.musicConfig?.songTitle}
+      autoplay={eventData.musicConfig?.autoplay ?? true}
       primaryColor={primaryRose}
       accentColor={accentPink}
       bgColor={playerBg}

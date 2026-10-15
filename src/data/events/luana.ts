@@ -159,5 +159,11 @@ export const luana: EventData = {
     message: "TU PRESENCIA HARÁ DE ESA NOCHE ALGO ESPECIAL, ÚNICA E INOLVIDABLE",
     signature: "¡Te esperamos!",
   },
+  musicConfig: {
+    youtubeUrl: "https://www.youtube.com/watch?v=LjhCEhWiKXk",
+    startSecond: 30,
+    songTitle: "Bruno Mars - Just The Way You Are",
+    autoplay: true,
+  },
   showVideoBackground: false,
 };
