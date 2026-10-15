@@ -1681,6 +1681,111 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                         className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
+
+                    {/* Tarjeta de Gestión: Modal y Formulario de Confirmar Asistencia */}
+                    <div className="p-4 sm:p-5 rounded-xl bg-stone-50/80 dark:bg-slate-950/60 border border-stone-200/80 dark:border-slate-800 space-y-3.5">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-xl">👥</span>
+                        <div>
+                          <span className="text-xs font-bold text-slate-900 dark:text-white block">
+                            Formulario Modal de Confirmar Asistencia (Multi-invitados)
+                          </span>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                            Permite a los invitados confirmar hasta 5 personas con nombre, sexo y enviar el detalle por WhatsApp.
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Texto del Botón Principal
+                          </label>
+                          <input
+                            type="text"
+                            value={tenant.rsvpConfig?.buttonText ?? "CONFIRMAR ASISTENCIA"}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  rsvpConfig: { ...(t.rsvpConfig || {}), buttonText: e.target.value },
+                                }),
+                                "rsvp"
+                              )
+                            }
+                            placeholder="CONFIRMAR ASISTENCIA"
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Título en el Modal
+                          </label>
+                          <input
+                            type="text"
+                            value={tenant.rsvpConfig?.title ?? "Confirmar Asistencia"}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  rsvpConfig: { ...(t.rsvpConfig || {}), title: e.target.value },
+                                }),
+                                "rsvp"
+                              )
+                            }
+                            placeholder="Confirmar Asistencia"
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Subtítulo / Instrucción en el Modal
+                          </label>
+                          <input
+                            type="text"
+                            value={tenant.rsvpConfig?.subtitle ?? ""}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  rsvpConfig: { ...(t.rsvpConfig || {}), subtitle: e.target.value },
+                                }),
+                                "rsvp"
+                              )
+                            }
+                            placeholder="Por favor confírmanos quiénes asistirán al evento"
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Límite Máximo de Invitados por Envío
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={tenant.rsvpConfig?.maxGuests ?? 5}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  rsvpConfig: {
+                                    ...(t.rsvpConfig || {}),
+                                    maxGuests: parseInt(e.target.value, 10) || 5,
+                                  },
+                                }),
+                                "rsvp"
+                              )
+                            }
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="pt-2 flex justify-end">

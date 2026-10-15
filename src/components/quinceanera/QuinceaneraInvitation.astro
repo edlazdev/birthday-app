@@ -14,6 +14,7 @@ import EventCountdownSection from "@/components/EventCountdownSection.astro";
 import EventRibbonDivider from "@/components/EventRibbonDivider.astro";
 import EventFarewellSection from "@/components/EventFarewellSection.astro";
 import EventGiftSection from "@/components/EventGiftSection.astro";
+import EventRsvpModalSection from "@/components/EventRsvpModalSection.astro";
 
 interface Props {
   eventData: EventData;
@@ -35,10 +36,11 @@ const hasWhatsapp = Boolean(eventData.whatsapp && eventData.whatsapp.trim());
 const whatsappDigits = hasWhatsapp ? eventData.whatsapp.replace(/[^0-9]/g, "") : "";
 const showRsvp = eventData.showRsvp !== false && Boolean(whatsappDigits);
 const whatsappName = eventData.whatsappName || celebrant;
-const whatsappMessage = encodeURIComponent(
-  `¡Hola${whatsappName ? ` ${whatsappName}` : ""}! Confirmo con mucha alegría mi asistencia a los XV Años${celebrant ? ` de ${celebrant}` : ""} 🎉`,
-);
-const whatsappUrl = whatsappDigits ? `https://wa.me/${whatsappDigits}?text=${whatsappMessage}` : "";
+const rsvpConfig = eventData.rsvpConfig;
+const rsvpTitle = rsvpConfig?.title || "Confirmar Asistencia";
+const rsvpSubtitle = rsvpConfig?.subtitle || (celebrant ? `Acompáñanos a celebrar los XV Años de ${celebrant}` : "Acompáñanos a celebrar este momento tan especial");
+const rsvpButtonText = rsvpConfig?.buttonText || "CONFIRMAR ASISTENCIA";
+const rsvpMaxGuests = rsvpConfig?.maxGuests || 5;
 
 // Itinerario: solo si viene explícitamente y con elementos
 const hasItinerary = Boolean(
@@ -591,20 +593,22 @@ const sansFontFamily = isCustomSans
         />
       )}
 
-      <!-- 15. Botón de RSVP WhatsApp en Frambuesa Vibrante -->
+      <!-- 15. Componente Reutilizable: Confirmar Asistencia con Modal y WhatsApp -->
       {showRsvp && (
-        <div class="py-4">
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="w-full py-3.5 px-6 rounded-full text-sm font-extrabold tracking-wider uppercase flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition text-white shadow-lg"
-            style={`background-color: ${accentPink}; box-shadow: 0 6px 20px rgba(214, 51, 108, 0.4);`}
-          >
-            <span>✉️</span>
-            <span>CONFIRMAR ASISTENCIA</span>
-          </a>
-        </div>
+        <EventRsvpModalSection
+          whatsapp={whatsappDigits}
+          whatsappName={whatsappName}
+          celebrant={celebrant}
+          eventName={eventData.title || (celebrant ? `Mis XV Años - ${celebrant}` : "Mis XV Años")}
+          title={rsvpTitle}
+          subtitle={rsvpSubtitle}
+          buttonText={rsvpButtonText}
+          maxGuests={rsvpMaxGuests}
+          slug={slug}
+          primaryColor={primaryRose}
+          accentColor={accentPink}
+          textColor={textDark}
+        />
       )}
 
       <!-- 16. Componente Reutilizable: Mensaje de Despedida y Cierre Elegante -->

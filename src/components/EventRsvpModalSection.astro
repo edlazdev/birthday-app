@@ -1,0 +1,523 @@
+---
+export interface Props {
+  whatsapp?: string;
+  whatsappName?: string;
+  celebrant?: string;
+  eventName?: string;
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+  maxGuests?: number;
+  slug?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  textColor?: string;
+  className?: string;
+}
+
+const {
+  whatsapp = "",
+  whatsappName = "",
+  celebrant = "",
+  eventName = "",
+  title = "Confirmar Asistencia",
+  subtitle = "",
+  buttonText = "CONFIRMAR ASISTENCIA",
+  maxGuests = 5,
+  slug = "",
+  primaryColor = "#a85d72",
+  accentColor = "#d6336c",
+  textColor = "#1f2937",
+  className = "",
+} = Astro.props;
+
+// Limpieza del número de WhatsApp para envío de mensaje
+const cleanPhone = whatsapp.replace(/[^0-9]/g, "");
+const resolvedEventName = eventName || (celebrant ? `Mis XV Años - ${celebrant}` : "Mis XV Años");
+const uniqueId = `rsvp-modal-${Math.random().toString(36).substring(2, 9)}`;
+---
+
+<section
+  class={`event-rsvp-section w-full py-4 ${className}`}
+  aria-label={title}
+  data-rsvp-section={uniqueId}
+>
+  <!-- Botón Principal en Frambuesa Vibrante para Abrir el Modal -->
+  <button
+    type="button"
+    class="quince-rsvp-open-trigger w-full py-3.5 px-6 rounded-full text-xs sm:text-sm font-extrabold tracking-wider uppercase flex items-center justify-center gap-2.5 transition-all duration-300 transform hover:scale-[1.02] active:scale-95 text-white shadow-lg cursor-pointer focus:outline-hidden"
+    style={`background-color: ${accentColor}; box-shadow: 0 6px 22px rgba(214, 51, 108, 0.42);`}
+    aria-haspopup="dialog"
+    aria-controls={uniqueId}
+    data-target-dialog={uniqueId}
+  >
+    <span class="text-base">✉️</span>
+    <span>{buttonText}</span>
+  </button>
+
+  <!-- Modal Nativo Dialog con Soporte Moderno closedby="any" -->
+  <dialog
+    id={uniqueId}
+    closedby="any"
+    class="quince-rsvp-dialog m-auto max-w-lg w-[calc(100%-2rem)] p-0 rounded-3xl bg-transparent border-none text-slate-800 shadow-2xl overflow-visible focus:outline-hidden"
+    aria-labelledby={`${uniqueId}-title`}
+  >
+    <div
+      class="relative p-5 sm:p-7 rounded-3xl bg-gradient-to-b from-[#ffffff] via-[#fffbfd] to-[#fff6f8] border border-rose-200/90 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
+      style={`color: ${textColor};`}
+    >
+      <!-- Botón de Cerrar (X) -->
+      <button
+        type="button"
+        class="quince-rsvp-close-btn absolute top-3.5 right-3.5 w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 hover:text-stone-800 flex items-center justify-center text-sm font-bold transition-transform duration-200 hover:scale-110 cursor-pointer shadow-xs"
+        aria-label="Cerrar modal"
+      >
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- Encabezado con Icono y Tipografía Elegante -->
+      <div class="text-center pt-1 space-y-1">
+        <div class="inline-flex items-center justify-center w-11 h-11 rounded-full bg-rose-50 text-rose-500 shadow-xs mb-1">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="3"></rect>
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+          </svg>
+        </div>
+
+        <h3
+          id={`${uniqueId}-title`}
+          class="quince-script-title text-3xl sm:text-4xl font-normal leading-tight drop-shadow-xs"
+          style={`color: ${primaryColor};`}
+        >
+          {title}
+        </h3>
+
+        <p class="quince-sans text-xs text-stone-500 font-medium max-w-xs mx-auto">
+          {subtitle || `Por favor confírmanos quiénes asistirán al evento`}
+        </p>
+
+        <!-- Pastilla identificadora del Evento -->
+        <div class="pt-1">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-rose-100/70 text-rose-800 border border-rose-200">
+            <span>👑</span>
+            <span>{resolvedEventName}</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Formulario de Asistentes -->
+      <form
+        class="quince-rsvp-form space-y-4 pt-1"
+        data-whatsapp={cleanPhone}
+        data-whatsapp-name={whatsappName}
+        data-celebrant={celebrant}
+        data-event-name={resolvedEventName}
+        data-max-guests={maxGuests}
+        data-slug={slug}
+      >
+        <!-- Contador de Asistentes -->
+        <div class="flex items-center justify-between px-1 text-xs">
+          <span class="font-bold text-stone-700 flex items-center gap-1.5">
+            <span>👥</span>
+            <span>Lista de Asistentes:</span>
+          </span>
+          <span class="text-stone-500 font-semibold bg-stone-100 px-2 py-0.5 rounded-full border border-stone-200">
+            <strong class="quince-guest-counter text-rose-600 font-bold">1</strong> de {maxGuests} máx.
+          </span>
+        </div>
+
+        <!-- Contenedor Dinámico de Filas de Invitados -->
+        <div class="quince-guests-container space-y-2.5">
+          <!-- Fila 1 (Inicial por defecto) -->
+          <div class="quince-guest-row p-3 rounded-2xl bg-white border border-stone-200/90 shadow-xs space-y-2 transition-all">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-bold text-stone-700 quince-row-label">Invitado 1 (Titular)</span>
+              <button
+                type="button"
+                class="quince-remove-guest-btn text-rose-400 hover:text-rose-600 font-semibold transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer text-[11px] flex items-center gap-1"
+                disabled
+                title="Eliminar invitado"
+              >
+                <span>🗑️</span>
+                <span>Quitar</span>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+              <!-- Nombre del Invitado -->
+              <div class="sm:col-span-7">
+                <input
+                  type="text"
+                  name="guest_name[]"
+                  placeholder="Nombre y apellido"
+                  class="quince-input-name w-full px-3 py-2 text-xs rounded-xl border border-stone-200 bg-stone-50/70 focus:bg-white focus:border-rose-400 focus:ring-1 focus:ring-rose-300 text-stone-900 outline-none transition"
+                  required
+                />
+              </div>
+
+              <!-- Dropdown de Sexo / Rol con Icono -->
+              <div class="sm:col-span-5">
+                <div class="relative">
+                  <select
+                    name="guest_gender[]"
+                    class="quince-select-gender w-full appearance-none px-3 py-2 pr-8 text-xs rounded-xl border border-stone-200 bg-stone-50/70 focus:bg-white focus:border-rose-400 focus:ring-1 focus:ring-rose-300 text-stone-800 font-medium outline-none transition cursor-pointer"
+                  >
+                    <option value="Dama">👩 Dama</option>
+                    <option value="Caballero">👨 Caballero</option>
+                    <option value="Niña">👧 Niña</option>
+                    <option value="Niño">👦 Niño</option>
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-stone-400 text-xs">
+                    ▼
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón para Agregar Más Invitados (Hasta 5) -->
+        <div>
+          <button
+            type="button"
+            class="quince-add-guest-btn w-full py-2.5 px-4 rounded-xl border-2 border-dashed border-rose-300 hover:border-rose-500 text-xs font-bold text-rose-600 hover:bg-rose-50/60 transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+          >
+            <span class="text-sm">➕</span>
+            <span>Agregar acompañante (hasta {maxGuests})</span>
+          </button>
+          <p class="quince-max-reached-notice hidden text-[11px] text-center text-amber-600 font-medium mt-1">
+            Has alcanzado el límite máximo de {maxGuests} invitados por confirmación.
+          </p>
+        </div>
+
+        <!-- Mensaje o Dedicatoria Opcional -->
+        <div class="space-y-1">
+          <label class="text-[11px] font-semibold text-stone-600 block">
+            Mensaje o dedicatoria para la festejada (opcional):
+          </label>
+          <textarea
+            name="notes"
+            rows="2"
+            class="quince-input-notes w-full px-3 py-2 text-xs rounded-xl border border-stone-200 bg-stone-50/70 focus:bg-white focus:border-rose-400 focus:ring-1 focus:ring-rose-300 text-stone-800 outline-none transition resize-none placeholder:text-stone-400"
+            placeholder="¡Felicidades por tus 15 años! Ahí estaremos para celebrar..."
+          ></textarea>
+        </div>
+
+        <!-- Banner de Error / Validación -->
+        <div class="quince-form-error hidden p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-medium text-center"></div>
+
+        <!-- Botón de Envío Directo a WhatsApp -->
+        <button
+          type="submit"
+          class="w-full py-3.5 px-6 rounded-full text-xs sm:text-sm font-extrabold tracking-wider uppercase text-white shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-95 transition cursor-pointer"
+          style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); box-shadow: 0 6px 20px rgba(37, 211, 102, 0.35);"
+        >
+          <span class="text-base">💬</span>
+          <span>Confirmar y Enviar por WhatsApp</span>
+        </button>
+
+        <p class="text-[10px] text-center text-stone-400">
+          Al presionar, se abrirá WhatsApp con el detalle estructurado de todos los asistentes confirmados.
+        </p>
+      </form>
+    </div>
+  </dialog>
+</section>
+
+<style>
+  /* Animación del Dialog Modal */
+  .quince-rsvp-dialog[open] {
+    animation: rsvpScaleIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .quince-rsvp-dialog::backdrop {
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  @keyframes rsvpScaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.92) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+</style>
+
+<script>
+  function setupRsvpModal() {
+    const sections = document.querySelectorAll<HTMLElement>('.event-rsvp-section');
+
+    sections.forEach((section) => {
+      const openTrigger = section.querySelector<HTMLButtonElement>('.quince-rsvp-open-trigger');
+      const dialog = section.querySelector<HTMLDialogElement>('.quince-rsvp-dialog');
+      if (!openTrigger || !dialog) return;
+
+      const closeBtn = dialog.querySelector<HTMLButtonElement>('.quince-rsvp-close-btn');
+      const form = dialog.querySelector<HTMLFormElement>('.quince-rsvp-form');
+      const guestsContainer = dialog.querySelector<HTMLElement>('.quince-guests-container');
+      const addGuestBtn = dialog.querySelector<HTMLButtonElement>('.quince-add-guest-btn');
+      const maxNotice = dialog.querySelector<HTMLElement>('.quince-max-reached-notice');
+      const counterEl = dialog.querySelector<HTMLElement>('.quince-guest-counter');
+      const errorBanner = dialog.querySelector<HTMLElement>('.quince-form-error');
+
+      if (!form || !guestsContainer || !addGuestBtn) return;
+
+      const maxGuests = parseInt(form.dataset.maxGuests || '5', 10);
+      const whatsapp = form.dataset.whatsapp || '';
+      const whatsappName = form.dataset.whatsappName || '';
+      const celebrant = form.dataset.celebrant || '';
+      const eventName = form.dataset.eventName || 'Mis XV Años';
+      const tenantSlug = form.dataset.slug || '';
+
+      // Apertura del modal
+      openTrigger.addEventListener('click', () => {
+        dialog.showModal();
+      });
+
+      // Cierre del modal
+      closeBtn?.addEventListener('click', () => {
+        dialog.close();
+      });
+
+      // Fallback Light-Dismiss para navegadores que aún no soportan closedby="any"
+      if (!('closedBy' in HTMLDialogElement.prototype)) {
+        dialog.addEventListener('click', (event) => {
+          if (event.target !== dialog) return;
+          const rect = dialog.getBoundingClientRect();
+          const isDialogContent =
+            rect.top <= event.clientY &&
+            event.clientY <= rect.top + rect.height &&
+            rect.left <= event.clientX &&
+            event.clientX <= rect.left + rect.width;
+
+          if (!isDialogContent) {
+            dialog.close();
+          }
+        });
+      }
+
+      // Actualizar numeración de filas y contador
+      function updateGuestRows() {
+        if (!guestsContainer || !counterEl) return;
+        const rows = guestsContainer.querySelectorAll<HTMLElement>('.quince-guest-row');
+        const currentCount = rows.length;
+
+        counterEl.textContent = String(currentCount);
+
+        rows.forEach((row, index) => {
+          const label = row.querySelector<HTMLElement>('.quince-row-label');
+          const removeBtn = row.querySelector<HTMLButtonElement>('.quince-remove-guest-btn');
+
+          if (label) {
+            label.textContent = index === 0 ? 'Invitado 1 (Titular)' : `Invitado ${index + 1}`;
+          }
+
+          if (removeBtn) {
+            // Deshabilitar botón de quitar si solo queda 1 fila
+            removeBtn.disabled = currentCount <= 1;
+            removeBtn.style.opacity = currentCount <= 1 ? '0.3' : '1';
+          }
+        });
+
+        // Actualizar estado del botón "+ Agregar acompañante"
+        if (addGuestBtn) {
+          if (currentCount >= maxGuests) {
+            addGuestBtn.disabled = true;
+            addGuestBtn.classList.add('opacity-40', 'cursor-not-allowed');
+            maxNotice?.classList.remove('hidden');
+          } else {
+            addGuestBtn.disabled = false;
+            addGuestBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+            maxNotice?.classList.add('hidden');
+          }
+        }
+      }
+
+      // Agregar fila de invitado
+      addGuestBtn.addEventListener('click', () => {
+        const currentRows = guestsContainer.querySelectorAll('.quince-guest-row');
+        if (currentRows.length >= maxGuests) return;
+
+        const nextIndex = currentRows.length + 1;
+        const newRow = document.createElement('div');
+        newRow.className =
+          'quince-guest-row p-3 rounded-2xl bg-white border border-stone-200/90 shadow-xs space-y-2 transition-all';
+        newRow.innerHTML = `
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="font-bold text-stone-700 quince-row-label">Invitado ${nextIndex}</span>
+            <button
+              type="button"
+              class="quince-remove-guest-btn text-rose-400 hover:text-rose-600 font-semibold transition cursor-pointer text-[11px] flex items-center gap-1"
+              title="Eliminar invitado"
+            >
+              <span>🗑️</span>
+              <span>Quitar</span>
+            </button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+            <div class="sm:col-span-7">
+              <input
+                type="text"
+                name="guest_name[]"
+                placeholder="Nombre y apellido"
+                class="quince-input-name w-full px-3 py-2 text-xs rounded-xl border border-stone-200 bg-stone-50/70 focus:bg-white focus:border-rose-400 focus:ring-1 focus:ring-rose-300 text-stone-900 outline-none transition"
+                required
+              />
+            </div>
+            <div class="sm:col-span-5">
+              <div class="relative">
+                <select
+                  name="guest_gender[]"
+                  class="quince-select-gender w-full appearance-none px-3 py-2 pr-8 text-xs rounded-xl border border-stone-200 bg-stone-50/70 focus:bg-white focus:border-rose-400 focus:ring-1 focus:ring-rose-300 text-stone-800 font-medium outline-none transition cursor-pointer"
+                >
+                  <option value="Dama">👩 Dama</option>
+                  <option value="Caballero">👨 Caballero</option>
+                  <option value="Niña">👧 Niña</option>
+                  <option value="Niño">👦 Niño</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-stone-400 text-xs">
+                  ▼
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        guestsContainer.appendChild(newRow);
+
+        // Enfocar el nuevo campo de texto
+        const newInput = newRow.querySelector<HTMLInputElement>('.quince-input-name');
+        newInput?.focus();
+
+        updateGuestRows();
+      });
+
+      // Delegación de eventos para eliminar fila
+      guestsContainer.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        const removeBtn = target.closest<HTMLButtonElement>('.quince-remove-guest-btn');
+        if (!removeBtn) return;
+
+        const row = removeBtn.closest<HTMLElement>('.quince-guest-row');
+        if (row && guestsContainer.querySelectorAll('.quince-guest-row').length > 1) {
+          row.remove();
+          updateGuestRows();
+        }
+      });
+
+      // Envío del formulario
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        errorBanner?.classList.add('hidden');
+
+        // Recolectar datos
+        const rows = guestsContainer.querySelectorAll<HTMLElement>('.quince-guest-row');
+        const attendees: { name: string; gender: string; icon: string }[] = [];
+        let hasEmptyName = false;
+
+        rows.forEach((row) => {
+          const nameInput = row.querySelector<HTMLInputElement>('.quince-input-name');
+          const genderSelect = row.querySelector<HTMLSelectElement>('.quince-select-gender');
+
+          const name = nameInput?.value.trim() || '';
+          const gender = genderSelect?.value || 'Dama';
+
+          if (!name) {
+            hasEmptyName = true;
+            nameInput?.classList.add('border-rose-500', 'bg-rose-50/50');
+          } else {
+            nameInput?.classList.remove('border-rose-500', 'bg-rose-50/50');
+            let icon = '👩';
+            if (gender === 'Caballero') icon = '👨';
+            else if (gender === 'Niña') icon = '👧';
+            else if (gender === 'Niño') icon = '👦';
+
+            attendees.push({ name, gender, icon });
+          }
+        });
+
+        if (hasEmptyName || attendees.length === 0) {
+          if (errorBanner) {
+            errorBanner.textContent = 'Por favor escribe el nombre completo de todos los asistentes.';
+            errorBanner.classList.remove('hidden');
+          }
+          return;
+        }
+
+        const notesInput = form.querySelector<HTMLTextAreaElement>('.quince-input-notes');
+        const notes = notesInput?.value.trim() || '';
+
+        // Contar adultos vs niños para respaldo en BD
+        let adultsCount = 0;
+        let boysCount = 0;
+        let girlsCount = 0;
+        attendees.forEach((a) => {
+          if (a.gender === 'Niño') boysCount++;
+          else if (a.gender === 'Niña') girlsCount++;
+          else adultsCount++;
+        });
+
+        // Guardar en Supabase en segundo plano
+        if (tenantSlug) {
+          import('@/services/tenants')
+            .then(({ submitRsvp }) => {
+              submitRsvp({
+                tenantSlug,
+                guestName: attendees.map((a) => `${a.icon} ${a.name} (${a.gender})`).join(', '),
+                adults: adultsCount,
+                boys: boysCount,
+                girls: girlsCount,
+                notes: notes || undefined,
+              }).catch(() => {});
+            })
+            .catch(() => {});
+        }
+
+        // Construir mensaje estructurado de WhatsApp
+        const greeting = whatsappName ? `¡Hola ${whatsappName}!` : '¡Hola!';
+        const eventTitle = eventName || (celebrant ? `los XV Años de ${celebrant}` : 'el evento');
+
+        const messageLines = [
+          `${greeting} Confirmo mi asistencia al evento *${eventTitle}* 🎉`,
+          '',
+          `📋 *Detalle de Asistentes (${attendees.length} en total):*`,
+          ...attendees.map((a, i) => `${i + 1}. ${a.icon} ${a.name} (${a.gender})`),
+        ];
+
+        if (notes) {
+          messageLines.push('');
+          messageLines.push(`💌 *Mensaje:* "${notes}"`);
+        }
+
+        messageLines.push('');
+        messageLines.push('¡Muchas gracias por la invitación! ✨');
+
+        const fullMessage = messageLines.join('\n');
+        const waUrl = whatsapp
+          ? `https://wa.me/${whatsapp}?text=${encodeURIComponent(fullMessage)}`
+          : `https://wa.me/?text=${encodeURIComponent(fullMessage)}`;
+
+        // Abrir WhatsApp en nueva pestaña
+        window.open(waUrl, '_blank');
+
+        // Cerrar modal
+        dialog.close();
+      });
+
+      // Inicialización de la primera fila
+      updateGuestRows();
+    });
+  }
+
+  // Inicializar en carga y tras navegación con View Transitions
+  setupRsvpModal();
+  document.addEventListener('astro:page-load', setupRsvpModal);
+</script>

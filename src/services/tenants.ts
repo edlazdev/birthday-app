@@ -126,6 +126,7 @@ export function mapDbToEventData(row: any): EventData {
             undefined,
         }
       : undefined,
+    rsvpConfig: (features as any)?.rsvp_config || (features as any)?.rsvpConfig || local?.rsvpConfig || undefined,
   };
 }
 
@@ -158,6 +159,7 @@ export function mapEventDataToDb(data: EventData): Record<string, any> {
     show_farewell: data.showFarewell !== false,
     farewell_config: data.farewellConfig || null,
     gift_config: data.giftConfig || null,
+    rsvp_config: data.rsvpConfig || null,
   };
 
   const media = {

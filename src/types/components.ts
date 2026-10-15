@@ -175,6 +175,15 @@ export interface GiftConfig {
   note?: string;
 }
 
+export interface RsvpConfig {
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+  maxGuests?: number;
+  confirmationMessage?: string;
+  notesPlaceholder?: string;
+}
+
 export type EventFeatures = {
   showInvitation?: boolean;
   showAlbum?: boolean;
@@ -205,6 +214,8 @@ export type EventFeatures = {
   farewellConfig?: FarewellConfig;
   gift_config?: GiftConfig;
   giftConfig?: GiftConfig;
+  rsvp_config?: RsvpConfig;
+  rsvpConfig?: RsvpConfig;
 };
 
 export type EventData = {
@@ -316,4 +327,6 @@ export type EventData = {
   farewellConfig?: FarewellConfig;
   /** Configuración visual de la sección de Sugerencia de Regalos / Lluvia de Sobres */
   giftConfig?: GiftConfig;
+  /** Configuración visual del modal y formulario de Confirmar Asistencia (RSVP) */
+  rsvpConfig?: RsvpConfig;
 };
