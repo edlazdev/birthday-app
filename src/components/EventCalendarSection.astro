@@ -1,0 +1,107 @@
+---
+export interface Props {
+  title?: string;
+  monthName?: string;
+  year?: number | string;
+  day?: number;
+  daysInMonth?: number;
+  startOffsetMonday?: number;
+  highlightIcon?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  textColor?: string;
+  subtleColor?: string;
+  className?: string;
+}
+
+const {
+  title = "El gran día",
+  monthName = "",
+  year = "",
+  day = 1,
+  daysInMonth = 31,
+  startOffsetMonday = 0,
+  highlightIcon = "🤍",
+  primaryColor = "#a85d72",
+  accentColor = "#d6336c",
+  textColor = "#374151",
+  subtleColor = "#9ca3af",
+  className = "",
+} = Astro.props;
+
+const dayLabels = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
+---
+
+<section
+  class={`event-calendar-section py-3 px-2 relative text-center select-none ${className}`}
+  aria-label={title}
+>
+  <!-- 1. Título Caligráfico / Script -->
+  {title && (
+    <span
+      class="quince-script-title text-3xl sm:text-4xl block leading-tight drop-shadow-xs"
+      style={`color: ${primaryColor};`}
+    >
+      {title}
+    </span>
+  )}
+
+  <!-- 2. Subtítulo: Mes y Año en Mayúsculas con Tracking -->
+  {(monthName || year) && (
+    <span
+      class="quince-serif-caps text-xs tracking-[0.25em] uppercase font-semibold block mt-0.5"
+      style={`color: ${primaryColor};`}
+    >
+      {monthName} {year}
+    </span>
+  )}
+
+  <!-- 3. Encabezados de Días de la Semana -->
+  <div
+    class="grid grid-cols-7 gap-1 text-[9px] font-semibold mt-3 mb-1"
+    style={`color: ${subtleColor}; font-family: var(--font-quince-sans, 'Montserrat', sans-serif);`}
+  >
+    {dayLabels.map((lbl) => (
+      <span>{lbl}</span>
+    ))}
+  </div>
+
+  <!-- 4. Grilla de Días del Mes -->
+  <div
+    class="grid grid-cols-7 gap-1 text-[11px] font-medium"
+    style={`color: ${textColor}; font-family: var(--font-quince-sans, 'Montserrat', sans-serif);`}
+  >
+    {Array.from({ length: startOffsetMonday }).map(() => (
+      <div />
+    ))}
+    {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
+      <div class="h-6 flex items-center justify-center relative">
+        {d === day ? (
+          <div
+            class="w-6 h-6 rounded-full font-bold text-[11px] flex items-center justify-center text-white shadow-md scale-110"
+            style={`background-color: ${accentColor};`}
+          >
+            {d}
+            {highlightIcon && (
+              <span class="absolute -top-1.5 -right-1.5 text-[9px] drop-shadow-xs">
+                {highlightIcon}
+              </span>
+            )}
+          </div>
+        ) : (
+          <span>{d}</span>
+        )}
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .quince-script-title {
+    font-family: var(--font-quince-script, "Great Vibes", "Alex Brush", "Pinyon Script", cursive);
+  }
+
+  .quince-serif-caps {
+    font-family: var(--font-quince-serif, "Cinzel", "Playfair Display", serif);
+  }
+</style>

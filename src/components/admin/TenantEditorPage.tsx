@@ -203,10 +203,10 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
     }
   };
 
-  // Upload handler for cover, avatar, album
+  // Upload handler for cover, avatar, album, middlePhoto, finalPhoto
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "cover" | "avatar" | "album"
+    type: "cover" | "avatar" | "album" | "middlePhoto" | "finalPhoto" | "qrImage"
   ) => {
     if (!tenant || !e.target.files || e.target.files.length === 0) return;
     setUploading(type);
@@ -229,12 +229,25 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
         setFeedback({ message: `¡${newUrls.length} fotos subidas al álbum! Guarda la sección para persistir cambios.`, type: "success" });
       } else {
         const file = e.target.files[0];
-        const res = await uploadMediaFile(file, `${tenant.slug}/${type}`);
+        if (!file) return;
+        const folderPath = type === "qrImage" ? `${tenant.slug}/qr` : `${tenant.slug}/${type}`;
+        const res = await uploadMediaFile(file, folderPath);
         if (res.url) {
           if (type === "cover") {
-            updateTenant((t) => ({ ...t, coverUrl: res.url }));
+            updateTenant((t) => ({ ...t, coverUrl: res.url }), "media");
           } else if (type === "avatar") {
-            updateTenant((t) => ({ ...t, avatarUrl: res.url }));
+            updateTenant((t) => ({ ...t, avatarUrl: res.url }), "media");
+          } else if (type === "middlePhoto") {
+            updateTenant((t) => ({ ...t, middlePhotoUrl: res.url }), "media");
+          } else if (type === "finalPhoto") {
+            updateTenant((t) => ({ ...t, finalPhotoUrl: res.url }), "media");
+          } else if (type === "qrImage") {
+            updateTenant((t) => ({
+              ...t,
+              qrImageUrl: res.url,
+              giftConfig: { ...(t.giftConfig || {}), qrImageUrl: res.url },
+            }), "media");
+            setDirtySections((prev) => ({ ...prev, extras: true, media: true }));
           }
           setFeedback({ message: `¡Imagen subida con éxito! Guarda la sección para persistir cambios.`, type: "success" });
         } else {
@@ -331,6 +344,12 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
     profile?.role === "super_admin" ||
     user?.email === "edgar.lazaro23@gmail.com";
 
+  const eventType = tenant.type || "birthday";
+  const isWedding = eventType === "wedding";
+  const isQuince = eventType === "quinceanero";
+  const isBirthday = eventType === "birthday";
+  const isOther = eventType === "other";
+
   return (
     <div className="min-h-screen bg-[#FAF7F2] dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors duration-300">
       {/* =========================================================================
@@ -363,6 +382,9 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                   }`}
                 >
                   {tenant.status === "draft" ? "Borrador" : "Publicado"}
+                </span>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0 bg-stone-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-stone-200 dark:border-slate-700">
+                  {isWedding ? "💍 Boda" : isQuince ? "👑 Quinceañero" : isBirthday ? "🎂 Cumpleaños" : "🎉 Otro"}
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono truncate">
@@ -588,7 +610,15 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                           )
                         }
                         required
-                        placeholder="ej: luana, quince-maria"
+                        placeholder={
+                          isWedding
+                            ? "ej: boda-ronal-maria, maria-y-ronal"
+                            : isQuince
+                            ? "ej: luana-xv, mis-15-camila"
+                            : isBirthday
+                            ? "ej: mateo-cumple, valentina-5"
+                            : "ej: gran-evento, aniversario-25"
+                        }
                         className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white font-mono transition outline-none"
                       />
                       <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">
@@ -677,27 +707,50 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
 
                     <div>
                       <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Nombre del Festejado(s) <span className="text-rose-500">*</span>
+                        {isWedding
+                          ? "Nombres de los Novios / Pareja"
+                          : isQuince
+                          ? "Nombre de la Quinceañera"
+                          : isBirthday
+                          ? "Nombre del Cumpleañero(a)"
+                          : "Nombre del Festejado(a) o Evento"}{" "}
+                        <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={tenant.celebrant}
                         onChange={(e) => updateTenant((t) => ({ ...t, celebrant: e.target.value }), "general")}
                         required
-                        placeholder="Ej: Luana, Ronal & María"
+                        placeholder={
+                          isWedding
+                            ? "Ej: Ronal & María"
+                            : isQuince
+                            ? "Ej: Luana, Camila"
+                            : isBirthday
+                            ? "Ej: Mateo, Valentina"
+                            : "Ej: Gran Celebración / Bodas de Plata"
+                        }
                         className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
 
                     <div>
                       <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Texto antes del nombre
+                        {isWedding ? "Texto antes de los nombres" : "Texto antes del nombre"}
                       </label>
                       <input
                         type="text"
                         value={tenant.beforeCelebrant || ""}
                         onChange={(e) => updateTenant((t) => ({ ...t, beforeCelebrant: e.target.value }), "general")}
-                        placeholder="Ej: Celebremos con, Nuestra boda"
+                        placeholder={
+                          isWedding
+                            ? "Ej: Nuestra Boda, Con la bendición de Dios"
+                            : isQuince
+                            ? "Ej: Mis XV Años, Mis 15 Años"
+                            : isBirthday
+                            ? "Ej: Celebremos con, El cumpleaños de"
+                            : "Ej: Gran Celebración de"
+                        }
                         className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
@@ -710,36 +763,65 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                         type="text"
                         value={tenant.title}
                         onChange={(e) => updateTenant((t) => ({ ...t, title: e.target.value }), "general")}
-                        placeholder="Ej: Cumple, Mis, Nuestra"
+                        placeholder={
+                          isWedding
+                            ? "Ej: Nuestra Boda, Boda"
+                            : isQuince
+                            ? "Ej: Mis 15 Años, Quinceañero"
+                            : isBirthday
+                            ? "Ej: Cumple, Mi Fiesta"
+                            : "Ej: Aniversario, Fiesta"
+                        }
                         className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
 
-                    <div>
-                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Edad (opcional para bodas)
-                      </label>
-                      <input
-                        type="text"
-                        value={tenant.age}
-                        onChange={(e) => updateTenant((t) => ({ ...t, age: e.target.value }), "general")}
-                        placeholder="Ej: 1, 15, 30"
-                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
-                      />
-                    </div>
+                    {isWedding ? (
+                      <div className="sm:col-span-2 p-3.5 bg-stone-100/90 dark:bg-slate-950/60 border border-dashed border-stone-300 dark:border-slate-800 rounded-xl flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-lg">🔒</span>
+                          <div>
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                              Campos de Edad y Sufijo Bloqueados
+                            </span>
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                              No aplican para eventos de Boda / Matrimonio. Se mantendrán ocultos en la invitación.
+                            </span>
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-md bg-stone-200 dark:bg-slate-800 text-[10px] font-mono text-slate-600 dark:text-slate-400 font-semibold shrink-0">
+                          Bloqueado
+                        </span>
+                      </div>
+                    ) : (
+                      <>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            {isQuince ? "Edad de la Quinceañera" : isBirthday ? "Edad que cumple" : "Edad / Edición (opcional)"}
+                          </label>
+                          <input
+                            type="text"
+                            value={tenant.age}
+                            onChange={(e) => updateTenant((t) => ({ ...t, age: e.target.value }), "general")}
+                            placeholder={isQuince ? "15" : isBirthday ? "Ej: 1, 5, 18, 30" : "Ej: 25, 50"}
+                            className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                          />
+                        </div>
 
-                    <div>
-                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Sufijo después de la edad
-                      </label>
-                      <input
-                        type="text"
-                        value={tenant.afterAge || ""}
-                        onChange={(e) => updateTenant((t) => ({ ...t, afterAge: e.target.value }), "general")}
-                        placeholder="Ej: añito, añitos, años"
-                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
-                      />
-                    </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Sufijo después de la edad
+                          </label>
+                          <input
+                            type="text"
+                            value={tenant.afterAge || ""}
+                            onChange={(e) => updateTenant((t) => ({ ...t, afterAge: e.target.value }), "general")}
+                            placeholder={isQuince ? "Años, Primaveras" : isBirthday ? "Ej: añito, añitos, años" : "Ej: Años"}
+                            className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                          />
+                        </div>
+                      </>
+                    )}
 
                     <div className="sm:col-span-2">
                       <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
@@ -749,7 +831,15 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                         type="text"
                         value={tenant.tagline || ""}
                         onChange={(e) => updateTenant((t) => ({ ...t, tagline: e.target.value }), "general")}
-                        placeholder="¡Acompáñanos a celebrar este momento especial!"
+                        placeholder={
+                          isWedding
+                            ? "Ej: ¡Acompáñanos a celebrar el inicio de nuestra historia juntos!"
+                            : isQuince
+                            ? "Ej: Mis 15 años: Una noche mágica e inolvidable"
+                            : isBirthday
+                            ? "Ej: ¡Acompáñanos a celebrar este momento especial!"
+                            : "Ej: ¡Celebremos juntos este momento único!"
+                        }
                         className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
@@ -826,102 +916,619 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                 </div>
               </div>
 
-              {openSections["datetime"] && (
-                <div className="p-5 sm:p-6 space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Fecha Mostrada
-                      </label>
-                      <input
-                        type="text"
-                        value={tenant.date}
-                        onChange={(e) => updateTenant((t) => ({ ...t, date: e.target.value }), "datetime")}
-                        placeholder="Ej: Sábado 20 de Octubre"
-                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
-                      />
+              {openSections["datetime"] && (() => {
+                const ceremony = tenant.ceremony || {};
+                const isCeremonyEnabled = tenant.showCeremony !== false && ceremony.enabled !== false;
+
+                const reception = tenant.reception || {};
+                const receptionPlace = reception.place || (tenant.address?.includes(" - ") ? tenant.address.split(" - ")[0].trim() : tenant.address || "");
+                const receptionAddress = reception.address || (tenant.address?.includes(" - ") ? tenant.address.split(" - ").slice(1).join(" - ").trim() : "");
+                const receptionTime = reception.time || tenant.time || "";
+
+                return (
+                  <div className="p-5 sm:p-6 space-y-6">
+                    {/* 1. FECHA Y HORA PRINCIPAL DEL EVENTO */}
+                    <div className="bg-stone-50/70 dark:bg-slate-950/50 p-4 rounded-xl border border-stone-200/70 dark:border-slate-800 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">📅</span>
+                        <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                          Fecha Principal del Evento
+                        </h3>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Fecha Mostrada (Texto)
+                          </label>
+                          <input
+                            type="text"
+                            value={tenant.date}
+                            onChange={(e) => updateTenant((t) => ({ ...t, date: e.target.value }), "datetime")}
+                            placeholder="Ej: Viernes 31 de Julio"
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Hora Principal
+                          </label>
+                          <input
+                            type="text"
+                            value={tenant.time}
+                            onChange={(e) => updateTenant((t) => ({ ...t, time: e.target.value }), "datetime")}
+                            placeholder="Ej: 5:00 PM"
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                          />
+                        </div>
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Hora Mostrada
-                      </label>
-                      <input
-                        type="text"
-                        value={tenant.time}
-                        onChange={(e) => updateTenant((t) => ({ ...t, time: e.target.value }), "datetime")}
-                        placeholder="Ej: 7:00 PM"
-                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
-                      />
+                    {/* 1.1 MONOGRAMA / BANNER DE FECHA */}
+                    <div className="bg-stone-50/70 dark:bg-slate-950/50 p-4 rounded-xl border border-stone-200/70 dark:border-slate-800 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">🗓️</span>
+                        <div>
+                          <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                            Monograma / Banner de Fecha
+                          </h3>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                            Valores mostrados en el monograma (se autocalculan de la fecha principal o puedes editarlos manualmente)
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Mes (Superior)
+                          </label>
+                          <input
+                            type="text"
+                            value={tenant.dateBanner?.month ?? ""}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  dateBanner: { ...(t.dateBanner || {}), month: e.target.value },
+                                }),
+                                "datetime"
+                              )
+                            }
+                            placeholder="Ej: JULIO"
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Día de la Semana
+                          </label>
+                          <input
+                            type="text"
+                            value={tenant.dateBanner?.dayOfWeek ?? ""}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  dateBanner: { ...(t.dateBanner || {}), dayOfWeek: e.target.value },
+                                }),
+                                "datetime"
+                              )
+                            }
+                            placeholder="Ej: VIERNES"
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Día (Número Cursiva)
+                          </label>
+                          <input
+                            type="text"
+                            value={tenant.dateBanner?.day ?? ""}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  dateBanner: { ...(t.dateBanner || {}), day: e.target.value },
+                                }),
+                                "datetime"
+                              )
+                            }
+                            placeholder="Ej: 31"
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Año
+                          </label>
+                          <input
+                            type="text"
+                            value={tenant.dateBanner?.year ?? ""}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  dateBanner: { ...(t.dateBanner || {}), year: e.target.value },
+                                }),
+                                "datetime"
+                              )
+                            }
+                            placeholder="Ej: 2026"
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Vista previa en vivo del Monograma */}
+                      <div className="pt-2 border-t border-stone-200/50 dark:border-slate-800/80">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
+                          Vista previa del monograma:
+                        </span>
+                        <div className="py-2.5 px-3 bg-white dark:bg-slate-900 rounded-xl border border-stone-200/60 dark:border-slate-800 text-center select-none max-w-xs mx-auto">
+                          <span className="text-xs uppercase font-serif tracking-[0.25em] block mb-1" style={{ color: "#a85d72" }}>
+                            {(tenant.dateBanner?.month || "JULIO").toUpperCase()}
+                          </span>
+                          <div className="flex items-center justify-center gap-2">
+                            <div className="flex flex-col items-center justify-center w-20 shrink-0">
+                              <div className="w-full h-[1.5px] bg-[#9fa6b0] rounded-full"></div>
+                              <span className="text-[10px] uppercase font-serif tracking-[0.2em] py-1 block" style={{ color: "#a85d72" }}>
+                                {(tenant.dateBanner?.dayOfWeek || "VIERNES").toUpperCase()}
+                              </span>
+                              <div className="w-full h-[1.5px] bg-[#9fa6b0] rounded-full"></div>
+                            </div>
+                            <div className="px-2 flex items-center justify-center -my-1">
+                              <span className="text-4xl leading-none italic font-serif" style={{ color: "#8e95a0" }}>
+                                {tenant.dateBanner?.day || "31"}
+                              </span>
+                            </div>
+                            <div className="flex flex-col items-center justify-center w-20 shrink-0">
+                              <div className="w-full h-[1.5px] bg-[#9fa6b0] rounded-full"></div>
+                              <span className="text-[10px] uppercase font-serif tracking-widest py-1 block" style={{ color: "#a85d72" }}>
+                                {tenant.dateBanner?.year || "2026"}
+                              </span>
+                              <div className="w-full h-[1.5px] bg-[#9fa6b0] rounded-full"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="sm:col-span-2">
-                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Dirección Completa
-                      </label>
-                      <input
-                        type="text"
-                        value={tenant.address}
-                        onChange={(e) => updateTenant((t) => ({ ...t, address: e.target.value }), "datetime")}
-                        placeholder="Ej: Salón Las Palmeras, Av. Principal 450"
-                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
-                      />
+                    {/* 2. CEREMONIA RELIGIOSA / MISA */}
+                    <div className="bg-rose-50/30 dark:bg-rose-950/10 p-4 sm:p-5 rounded-xl border border-rose-200/50 dark:border-rose-900/30 space-y-4">
+                      <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-rose-100 dark:border-rose-900/40">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">⛪</span>
+                          <div>
+                            <h3 className="text-xs font-bold text-rose-900 dark:text-rose-200 uppercase tracking-wider">
+                              Ceremonia Religiosa / Misa
+                            </h3>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                              Configura el templo, horario y mapa de la ceremonia
+                            </p>
+                          </div>
+                        </div>
+
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={isCeremonyEnabled}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  showCeremony: checked,
+                                  ceremony: {
+                                    ...(t.ceremony || {}),
+                                    enabled: checked,
+                                  },
+                                }),
+                                "datetime"
+                              );
+                            }}
+                            className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500 border-stone-300"
+                          />
+                          <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                            {isCeremonyEnabled ? "Habilitada" : "Deshabilitada"}
+                          </span>
+                        </label>
+                      </div>
+
+                      {isCeremonyEnabled && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                          <div>
+                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                              Título de la Ceremonia
+                            </label>
+                            <input
+                              type="text"
+                              value={ceremony.title ?? "Misa"}
+                              onChange={(e) =>
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    ceremony: { ...(t.ceremony || {}), title: e.target.value },
+                                  }),
+                                  "datetime"
+                                )
+                              }
+                              placeholder="Ej: Misa o Ceremonia Religiosa"
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                                Fecha (ej: 31 JUL)
+                              </label>
+                              <input
+                                type="text"
+                                value={ceremony.date ?? ""}
+                                onChange={(e) =>
+                                  updateTenant(
+                                    (t) => ({
+                                      ...t,
+                                      ceremony: { ...(t.ceremony || {}), date: e.target.value },
+                                    }),
+                                    "datetime"
+                                  )
+                                }
+                                placeholder="31 JUL (opcional)"
+                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                                Hora
+                              </label>
+                              <input
+                                type="text"
+                                value={ceremony.time ?? ""}
+                                onChange={(e) =>
+                                  updateTenant(
+                                    (t) => ({
+                                      ...t,
+                                      ceremony: { ...(t.ceremony || {}), time: e.target.value },
+                                    }),
+                                    "datetime"
+                                  )
+                                }
+                                placeholder="2:00 PM"
+                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                              Nombre del Templo / Iglesia
+                            </label>
+                            <input
+                              type="text"
+                              value={ceremony.place ?? ""}
+                              onChange={(e) =>
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    ceremony: { ...(t.ceremony || {}), place: e.target.value },
+                                  }),
+                                  "datetime"
+                                )
+                              }
+                              placeholder="Ej: Sagrado Corazón"
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                              Dirección de la Ceremonia
+                            </label>
+                            <input
+                              type="text"
+                              value={ceremony.address ?? ""}
+                              onChange={(e) =>
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    ceremony: { ...(t.ceremony || {}), address: e.target.value },
+                                  }),
+                                  "datetime"
+                                )
+                              }
+                              placeholder="Ej: 2800 McGavock Pk Entrance #8, Nashville, TN"
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                              Enlace de Google Maps (Botón "VER UBICACIÓN")
+                            </label>
+                            <input
+                              type="url"
+                              value={ceremony.mapUrl ?? ""}
+                              onChange={(e) =>
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    ceremony: { ...(t.ceremony || {}), mapUrl: e.target.value },
+                                  }),
+                                  "datetime"
+                                )
+                              }
+                              placeholder="https://maps.google.com/?q=..."
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="flex items-center gap-2 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={ceremony.showMap !== false}
+                                onChange={(e) =>
+                                  updateTenant(
+                                    (t) => ({
+                                      ...t,
+                                      ceremony: { ...(t.ceremony || {}), showMap: e.target.checked },
+                                    }),
+                                    "datetime"
+                                  )
+                                }
+                                className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500 border-stone-300"
+                              />
+                              <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                                Mostrar botón "VER UBICACIÓN" para la Ceremonia
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
-                    <div>
-                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Latitud GPS (Mapa)
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        value={tenant.map.lat}
-                        onChange={(e) =>
-                          updateTenant(
-                            (t) => ({
-                              ...t,
-                              map: { ...t.map, lat: parseFloat(e.target.value) || 0 },
-                            }),
-                            "datetime"
-                          )
-                        }
-                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
-                      />
+                    {/* 3. RECEPCIÓN / FIESTA */}
+                    <div className="bg-amber-50/20 dark:bg-amber-950/10 p-4 sm:p-5 rounded-xl border border-amber-200/50 dark:border-amber-900/30 space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-amber-100 dark:border-amber-900/40">
+                        <span className="text-base">🥂</span>
+                        <div>
+                          <h3 className="text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider">
+                            Recepción / Fiesta
+                          </h3>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                            Lugar del festejo, salón de eventos y coordenadas
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Título de la Recepción
+                          </label>
+                          <input
+                            type="text"
+                            value={reception.title ?? "Recepción"}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  reception: { ...(t.reception || {}), title: e.target.value },
+                                }),
+                                "datetime"
+                              )
+                            }
+                            placeholder="Ej: Recepción"
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                              Fecha (ej: 31 JUL)
+                            </label>
+                            <input
+                              type="text"
+                              value={reception.date ?? ""}
+                              onChange={(e) =>
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    reception: { ...(t.reception || {}), date: e.target.value },
+                                  }),
+                                  "datetime"
+                                )
+                              }
+                              placeholder="Opcional"
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                              Hora
+                            </label>
+                            <input
+                              type="text"
+                              value={receptionTime}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    time: val,
+                                    reception: { ...(t.reception || {}), time: val },
+                                  }),
+                                  "datetime"
+                                );
+                              }}
+                              placeholder="5:00 PM"
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Nombre del Salón / Local
+                          </label>
+                          <input
+                            type="text"
+                            value={receptionPlace}
+                            onChange={(e) => {
+                              const placeVal = e.target.value;
+                              const combAddress = placeVal && receptionAddress
+                                ? `${placeVal} - ${receptionAddress}`
+                                : placeVal || receptionAddress;
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  address: combAddress,
+                                  reception: { ...(t.reception || {}), place: placeVal },
+                                }),
+                                "datetime"
+                              );
+                            }}
+                            placeholder="Ej: Premier Center"
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Dirección de la Recepción
+                          </label>
+                          <input
+                            type="text"
+                            value={receptionAddress}
+                            onChange={(e) => {
+                              const addrVal = e.target.value;
+                              const combAddress = receptionPlace && addrVal
+                                ? `${receptionPlace} - ${addrVal}`
+                                : receptionPlace || addrVal;
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  address: combAddress,
+                                  reception: { ...(t.reception || {}), address: addrVal },
+                                }),
+                                "datetime"
+                              );
+                            }}
+                            placeholder="Ej: 90 Volunteer Dr Suite 450, Hendersonville, TN 37075"
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Latitud GPS (Mapa)
+                          </label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={tenant.map.lat}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  map: { ...t.map, lat: parseFloat(e.target.value) || 0 },
+                                }),
+                                "datetime"
+                              )
+                            }
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Longitud GPS (Mapa)
+                          </label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={tenant.map.lng}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  map: { ...t.map, lng: parseFloat(e.target.value) || 0 },
+                                }),
+                                "datetime"
+                              )
+                            }
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Enlace Directo de Google Maps (Opcional)
+                          </label>
+                          <input
+                            type="url"
+                            value={reception.mapUrl ?? ""}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  reception: { ...(t.reception || {}), mapUrl: e.target.value },
+                                }),
+                                "datetime"
+                              )
+                            }
+                            placeholder="https://www.google.com/maps/search/?api=1&query=..."
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={reception.showMap !== false && tenant.showMap !== false}
+                              onChange={(e) => {
+                                const checked = e.target.checked;
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    showMap: checked,
+                                    reception: { ...(t.reception || {}), showMap: checked },
+                                  }),
+                                  "datetime"
+                                );
+                              }}
+                              className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500 border-stone-300"
+                            />
+                            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                              Mostrar botón "VER UBICACIÓN" para la Recepción
+                            </span>
+                          </label>
+                        </div>
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Longitud GPS (Mapa)
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        value={tenant.map.lng}
-                        onChange={(e) =>
-                          updateTenant(
-                            (t) => ({
-                              ...t,
-                              map: { ...t.map, lng: parseFloat(e.target.value) || 0 },
-                            }),
-                            "datetime"
-                          )
-                        }
-                        className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
-                      />
+                    <div className="pt-2 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => handleSaveSection("Fecha & Ubicación", "datetime")}
+                        className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition cursor-pointer shadow-xs"
+                      >
+                        💾 Guardar Ubicación
+                      </button>
                     </div>
                   </div>
-
-                  <div className="pt-2 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => handleSaveSection("Fecha & Ubicación", "datetime")}
-                      className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition cursor-pointer shadow-xs"
-                    >
-                      💾 Guardar Ubicación
-                    </button>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
 
             {/* ===============================================================
@@ -1008,13 +1615,27 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
 
                     <div>
                       <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Nombre o Rol del Contacto WhatsApp
+                        {isWedding
+                          ? "Nombre o Rol del Contacto (Novios / Planner)"
+                          : isQuince
+                          ? "Nombre o Rol del Contacto (Padres / Quinceañera)"
+                          : isBirthday
+                          ? "Nombre o Rol del Contacto (Padres / Cumpleañero)"
+                          : "Nombre o Rol del Contacto WhatsApp"}
                       </label>
                       <input
                         type="text"
                         value={tenant.whatsappName || ""}
                         onChange={(e) => updateTenant((t) => ({ ...t, whatsappName: e.target.value }), "rsvp")}
-                        placeholder="Ej: Mamá de Luana, Novios"
+                        placeholder={
+                          isWedding
+                            ? "Ej: Novia, Novio, Wedding Planner"
+                            : isQuince
+                            ? "Ej: Mamá de la Quinceañera, Papá"
+                            : isBirthday
+                            ? "Ej: Mamá de Mateo, Papá"
+                            : "Ej: Coordinador del evento"
+                        }
                         className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
@@ -1027,7 +1648,15 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                         type="text"
                         value={tenant.msgTooltip || ""}
                         onChange={(e) => updateTenant((t) => ({ ...t, msgTooltip: e.target.value }), "rsvp")}
-                        placeholder="Ej: Asegura tu comida 😜"
+                        placeholder={
+                          isWedding
+                            ? "Ej: ¡Esperamos contar con tu presencia! 🥂"
+                            : isQuince
+                            ? "Ej: ¡No faltes a mi noche mágica! 👑"
+                            : isBirthday
+                            ? "Ej: Asegura tu comida y tu lugar 😜"
+                            : "Ej: Confirma tu asistencia aquí"
+                        }
                         className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
@@ -1040,7 +1669,15 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                         type="text"
                         value={tenant.msgRedirectAlbum || ""}
                         onChange={(e) => updateTenant((t) => ({ ...t, msgRedirectAlbum: e.target.value }), "rsvp")}
-                        placeholder="Ej: Mira cuánto hemos crecido"
+                        placeholder={
+                          isWedding
+                            ? "Ej: Revive nuestras fotos de novios"
+                            : isQuince
+                            ? "Ej: Mira mis fotos de sesión de 15 años"
+                            : isBirthday
+                            ? "Ej: Mira cuánto hemos crecido"
+                            : "Ej: Mira las fotos del recuerdo"
+                        }
                         className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-amber-500 rounded-xl text-sm text-slate-900 dark:text-white transition outline-none"
                       />
                     </div>
@@ -1215,37 +1852,85 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                     </span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {MODULE_DEFINITIONS.map((mod) => {
-                        const isChecked = (tenant as any)[mod.key] !== false;
+                        const isSponsorsMod = mod.key === "showSponsors";
+                        const isWitnessesMod = mod.key === "showWitnesses";
+                        const isLockedForBirthday = isBirthday && (isSponsorsMod || isWitnessesMod);
+
+                        // Dynamic label & description per event type
+                        let dynamicLabel = mod.label;
+                        let dynamicDesc = mod.description;
+
+                        if (isSponsorsMod) {
+                          if (isQuince) {
+                            dynamicLabel = "Padres y Padrinos de Honor";
+                            dynamicDesc = "Mostrar sección de Padres de la Quinceañera y Padrinos de Honor";
+                          } else if (isWedding) {
+                            dynamicLabel = "Padrinos de Boda (Novio y Novia)";
+                            dynamicDesc = "Mostrar padrinos oficiales de boda de los novios";
+                          }
+                        } else if (isWitnessesMod) {
+                          if (isQuince) {
+                            dynamicLabel = "Chambelanes y Damas de Honor";
+                            dynamicDesc = "Mostrar cortejo de Chambelanes y Damas de Honor";
+                          } else if (isWedding) {
+                            dynamicLabel = "Testigos de Honor & Cortejo Nupcial";
+                            dynamicDesc = "Mostrar testigos oficiales de matrimonio y damas de honor";
+                          }
+                        } else if (mod.key === "showItinerary") {
+                          dynamicDesc = isWedding
+                            ? "Cronograma (Ceremonia, Entrada, Cena, Vals, Ramo y Fiesta)"
+                            : isQuince
+                            ? "Cronograma (Misa, Entrada, Cena, Protocolo, Vals y Fiesta)"
+                            : "Cronograma (Recepción, Show, Snacks, Piñata y Torta)";
+                        }
+
+                        const isChecked = !isLockedForBirthday && (tenant as any)[mod.key] !== false;
+
                         return (
                           <div
                             key={mod.key}
-                            className="flex items-center justify-between p-3.5 bg-stone-50/70 dark:bg-slate-950/60 border border-stone-200/80 dark:border-slate-800/80 rounded-xl hover:border-amber-500/30 dark:hover:border-slate-700 transition"
+                            className={`flex items-center justify-between p-3.5 rounded-xl border transition ${
+                              isLockedForBirthday
+                                ? "bg-stone-100/70 dark:bg-slate-950/40 border-stone-200/60 dark:border-slate-800/60 opacity-60 cursor-not-allowed"
+                                : "bg-stone-50/70 dark:bg-slate-950/60 border-stone-200/80 dark:border-slate-800/80 hover:border-amber-500/30 dark:hover:border-slate-700"
+                            }`}
                           >
                             <div className="pr-2">
-                              <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                                <span>{mod.icon}</span>
-                                <span>{mod.label}</span>
-                              </span>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                                  <span>{mod.icon}</span>
+                                  <span>{dynamicLabel}</span>
+                                </span>
+                                {isLockedForBirthday && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-stone-200 dark:bg-slate-800 text-stone-600 dark:text-slate-400 font-semibold">
+                                    🔒 No aplica para Cumpleaños
+                                  </span>
+                                )}
+                              </div>
                               <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
-                                {mod.description}
+                                {isLockedForBirthday
+                                  ? "Módulo bloqueado porque los cumpleaños no llevan cortejo de padrinos o testigos."
+                                  : dynamicDesc}
                               </span>
                             </div>
-                            <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                            <label className={`relative inline-flex items-center shrink-0 ${isLockedForBirthday ? "cursor-not-allowed" : "cursor-pointer"}`}>
                               <input
                                 type="checkbox"
+                                disabled={isLockedForBirthday}
                                 checked={isChecked}
-                                onChange={(e) =>
+                                onChange={(e) => {
+                                  if (isLockedForBirthday) return;
                                   updateTenant(
                                     (t) => ({
                                       ...t,
                                       [mod.key]: e.target.checked,
                                     }),
                                     "modules"
-                                  )
-                                }
+                                  );
+                                }}
                                 className="sr-only peer"
                               />
-                              <div className="w-10 h-5 bg-stone-300 dark:bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                              <div className={`w-10 h-5 bg-stone-300 dark:bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all ${isLockedForBirthday ? "peer-checked:bg-stone-400" : "peer-checked:bg-amber-500"}`}></div>
                             </label>
                           </div>
                         );
@@ -1389,30 +2074,199 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                       Paletas Predefinidas:
                     </span>
                     <div className="flex flex-wrap gap-2">
-                      {THEME_PALETTE_PRESETS.map((pal, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() =>
+                      {THEME_PALETTE_PRESETS.map((pal, idx) => {
+                        const isRecommended =
+                          (isWedding && pal.name.toLowerCase().includes("boda")) ||
+                          (isQuince && pal.name.toLowerCase().includes("quinceañero")) ||
+                          (isBirthday && (pal.name.toLowerCase().includes("dorado") || pal.name.toLowerCase().includes("fiesta")));
+
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  theme: {
+                                    primary: pal.primary,
+                                    secondary: pal.secondary,
+                                    tertiary: pal.tertiary,
+                                    bg: pal.bg,
+                                  },
+                                }),
+                                "theme"
+                              )
+                            }
+                            className={`px-2.5 py-1 rounded-lg border text-xs flex items-center gap-1.5 transition cursor-pointer shadow-2xs ${
+                              isRecommended
+                                ? "bg-amber-500/15 border-amber-500/40 text-amber-900 dark:text-amber-300 font-bold"
+                                : "bg-white dark:bg-slate-850 hover:bg-stone-100 dark:hover:bg-slate-800 border-stone-200 dark:border-slate-800 text-slate-700 dark:text-slate-300"
+                            }`}
+                            title={pal.suitableFor}
+                          >
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: pal.primary }} />
+                            <span>{pal.name}</span>
+                            {isRecommended && (
+                              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-normal">
+                                ★ Recomendada
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Tipografías & Fuentes */}
+                  <div className="p-4 bg-stone-50/70 dark:bg-slate-950/40 border border-stone-200/80 dark:border-slate-800/80 rounded-xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                        <span>🖋️</span>
+                        <span>Tipografía & Estilos de Letra</span>
+                      </span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                        Compatible con Google Fonts y temas del evento
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Fuente de Títulos */}
+                      <div>
+                        <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">
+                          Fuente de Títulos y Caligrafía
+                        </label>
+                        <select
+                          value={tenant.fonts?.title?.family || (isQuince ? "Great Vibes" : isWedding ? "Cinzel" : "Poppins")}
+                          onChange={(e) => {
+                            const newFamily = e.target.value;
                             updateTenant(
                               (t) => ({
                                 ...t,
-                                theme: {
-                                  primary: pal.primary,
-                                  secondary: pal.secondary,
-                                  tertiary: pal.tertiary,
-                                  bg: pal.bg,
+                                fonts: {
+                                  title: {
+                                    type: "google",
+                                    family: newFamily,
+                                    weights: ["400", "600", "700"],
+                                  },
+                                  text: t.fonts?.text || {
+                                    type: "google",
+                                    family: isQuince ? "Playfair Display" : "Poppins",
+                                    weights: ["400", "500", "600"],
+                                  },
                                 },
                               }),
                               "theme"
-                            )
-                          }
-                          className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-850 hover:bg-stone-100 dark:hover:bg-slate-800 border border-stone-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+                            );
+                          }}
+                          className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
                         >
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: pal.primary }} />
-                          <span>{pal.name}</span>
-                        </button>
-                      ))}
+                          <optgroup label="Cursiva / Caligrafía de Gala">
+                            <option value="Great Vibes">Great Vibes (Caligrafía Quince / Cursiva)</option>
+                            <option value="Alex Brush">Alex Brush (Cursiva Fina y Delicada)</option>
+                            <option value="Pinyon Script">Pinyon Script (Cursiva Aristocrática)</option>
+                            <option value="Pacifico">Pacifico (Casual y Festiva)</option>
+                          </optgroup>
+                          <optgroup label="Serif Elegante / Romano">
+                            <option value="Cinzel">Cinzel (Romano Imperial / Mayúsculas de Lujo)</option>
+                            <option value="Playfair Display">Playfair Display (Serif de Gala Tradicional)</option>
+                            <option value="Cormorant Garamond">Cormorant Garamond (Editorial Fino)</option>
+                          </optgroup>
+                          <optgroup label="Moderna / Sans-Serif">
+                            <option value="Poppins">Poppins (Sans-Serif Limpia y Redondeada)</option>
+                            <option value="Montserrat">Montserrat (Geométrica Moderna)</option>
+                          </optgroup>
+                        </select>
+                      </div>
+
+                      {/* Fuente de Texto y Contenido */}
+                      <div>
+                        <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">
+                          Fuente de Contenido y Párrafos
+                        </label>
+                        <select
+                          value={tenant.fonts?.text?.family || (isQuince ? "Playfair Display" : "Poppins")}
+                          onChange={(e) => {
+                            const newFamily = e.target.value;
+                            updateTenant(
+                              (t) => ({
+                                ...t,
+                                fonts: {
+                                  title: t.fonts?.title || {
+                                    type: "google",
+                                    family: isQuince ? "Great Vibes" : isWedding ? "Cinzel" : "Poppins",
+                                    weights: ["400", "600", "700"],
+                                  },
+                                  text: {
+                                    type: "google",
+                                    family: newFamily,
+                                    weights: ["300", "400", "500", "600"],
+                                  },
+                                },
+                              }),
+                              "theme"
+                            );
+                          }}
+                          className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
+                        >
+                          <option value="Playfair Display">Playfair Display (Serif Clásico)</option>
+                          <option value="Montserrat">Montserrat (Equilibrada y Limpia)</option>
+                          <option value="Poppins">Poppins (Sans-Serif Moderna Legible)</option>
+                          <option value="Cinzel">Cinzel (Clásica Formal)</option>
+                          <option value="Inter">Inter (Minimalista Neutra)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Presets Tipográficos Rápidos */}
+                    <div>
+                      <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1.5">
+                        Combinaciones Recomendadas:
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { name: "👑 Quinceañera de Gala", title: "Great Vibes", text: "Playfair Display" },
+                          { name: "💍 Boda Majestuosa", title: "Cinzel", text: "Playfair Display" },
+                          { name: "🎂 Cumpleaños Moderno", title: "Poppins", text: "Poppins" },
+                          { name: "📜 Editorial Romántico", title: "Playfair Display", text: "Montserrat" },
+                        ].map((comb, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  fonts: {
+                                    title: { type: "google", family: comb.title, weights: ["400", "600", "700"] },
+                                    text: { type: "google", family: comb.text, weights: ["300", "400", "500", "600"] },
+                                  },
+                                }),
+                                "theme"
+                              )
+                            }
+                            className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 hover:border-amber-400 text-xs text-slate-700 dark:text-slate-300 cursor-pointer transition shadow-2xs"
+                          >
+                            {comb.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Vista Previa de Tipografía */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-stone-200 dark:border-slate-800 text-center">
+                      <span
+                        className="text-2xl sm:text-3xl block leading-tight text-amber-600 dark:text-amber-400 mb-1"
+                        style={{ fontFamily: tenant.fonts?.title?.family || "Great Vibes, serif" }}
+                      >
+                        {tenant.celebrant || "Mis XV Años"}
+                      </span>
+                      <p
+                        className="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto"
+                        style={{ fontFamily: tenant.fonts?.text?.family || "Playfair Display, serif" }}
+                      >
+                        "Hay momentos inolvidables que se atesoran en el corazón para siempre."
+                      </p>
                     </div>
                   </div>
 
@@ -1422,7 +2276,7 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                       onClick={() => handleSaveSection("Tema & Colores", "theme")}
                       className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition cursor-pointer shadow-xs"
                     >
-                      💾 Guardar Colores
+                      💾 Guardar Tema & Fuentes
                     </button>
                   </div>
                 </div>
@@ -1489,20 +2343,55 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
 
               {openSections.itinerary && (
                 <div className="p-4 sm:p-5 space-y-4">
-                  {/* Plantillas rápidas para Quinceañera */}
+                  {/* Plantillas rápidas dinámicas por tipo de evento */}
                   <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
                     <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 block mb-1.5">
-                      💡 Sugerencias Rápidas para Quinceañero / Evento:
+                      {isWedding
+                        ? "💡 Sugerencias Rápidas para Boda / Matrimonio:"
+                        : isQuince
+                        ? "💡 Sugerencias Rápidas para Quinceañero:"
+                        : isBirthday
+                        ? "💡 Sugerencias Rápidas para Cumpleaños:"
+                        : "💡 Sugerencias Rápidas para el Evento:"}
                     </span>
                     <div className="flex flex-wrap gap-1.5">
-                      {[
-                        { time: "2:00 PM", title: "Misa / Ceremonia", icon: "⛪" },
-                        { time: "5:00 PM", title: "Entrada de la Quinceañera", icon: "👑" },
-                        { time: "5:30 PM", title: "Comida / Cena", icon: "🍽️" },
-                        { time: "6:30 PM", title: "Protocolo & Vals", icon: "🏰" },
-                        { time: "7:30 PM", title: "Baile & Fiesta", icon: "💃" },
-                        { time: "9:00 PM", title: "Brindis & Torta", icon: "🎂" },
-                      ].map((sug, i) => (
+                      {(isWedding
+                        ? [
+                            { time: "3:00 PM", title: "Ceremonia Religiosa / Civil", icon: "⛪" },
+                            { time: "5:00 PM", title: "Recepción de Invitados", icon: "🥂" },
+                            { time: "5:30 PM", title: "Entrada de los Novios", icon: "💍" },
+                            { time: "6:00 PM", title: "Cena Nupcial", icon: "🍽️" },
+                            { time: "7:00 PM", title: "Vals de los Novios", icon: "🏰" },
+                            { time: "7:30 PM", title: "Brindis de Honor", icon: "🥂" },
+                            { time: "8:00 PM", title: "Lanzamiento de Ramo", icon: "💐" },
+                            { time: "8:30 PM", title: "Baile & Fiesta General", icon: "💃" },
+                          ]
+                        : isQuince
+                        ? [
+                            { time: "2:00 PM", title: "Misa de Acción de Gracias", icon: "⛪" },
+                            { time: "5:00 PM", title: "Recepción & Sesión de Fotos", icon: "📸" },
+                            { time: "6:00 PM", title: "Entrada de la Quinceañera", icon: "👑" },
+                            { time: "6:30 PM", title: "Cena de Gala", icon: "🍽️" },
+                            { time: "7:30 PM", title: "Cambio de Zapatilla & Vals", icon: "👠" },
+                            { time: "8:30 PM", title: "Baile Sorpresa & Fiesta", icon: "💃" },
+                            { time: "10:00 PM", title: "Brindis & Torta", icon: "🎂" },
+                          ]
+                        : isBirthday
+                        ? [
+                            { time: "3:00 PM", title: "Recepción de Invitados", icon: "🎈" },
+                            { time: "4:00 PM", title: "Show & Animación Infantil", icon: "🎪" },
+                            { time: "5:30 PM", title: "Snacks & Bocaditos", icon: "🍕" },
+                            { time: "6:30 PM", title: "Hora de la Piñata", icon: "🪅" },
+                            { time: "7:00 PM", title: "Cantar Cumpleaños & Torta", icon: "🎂" },
+                            { time: "7:30 PM", title: "Fotos & Sorpresas", icon: "🎁" },
+                          ]
+                        : [
+                            { time: "6:00 PM", title: "Recepción & Bienvenida", icon: "🥂" },
+                            { time: "7:00 PM", title: "Palabras de Apertura", icon: "🎤" },
+                            { time: "7:30 PM", title: "Cena & Brindis", icon: "🍽️" },
+                            { time: "8:30 PM", title: "Música & Fiesta", icon: "🎉" },
+                          ]
+                      ).map((sug, i) => (
                         <button
                           key={i}
                           type="button"
@@ -1592,7 +2481,15 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                                 newIt[idx] = { ...newIt[idx], title: e.target.value };
                                 updateTenant((t) => ({ ...t, itinerary: newIt }), "itinerary");
                               }}
-                              placeholder="Entrada de la Quinceañera"
+                              placeholder={
+                                isWedding
+                                  ? "Entrada de los Novios"
+                                  : isQuince
+                                  ? "Entrada de la Quinceañera"
+                                  : isBirthday
+                                  ? "Cantar Cumpleaños"
+                                  : "Actividad Principal"
+                              }
                               className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
                             />
                           </div>
@@ -1613,7 +2510,14 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                                 className="w-14 px-2 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-center text-slate-900 dark:text-white"
                               />
                               <div className="flex gap-0.5">
-                                {["👑", "🍽️", "🏰", "💃"].map((ico) => (
+                                {(isWedding
+                                  ? ["💍", "⛪", "🥂", "🍽️", "🏰", "💃"]
+                                  : isQuince
+                                  ? ["👑", "⛪", "👠", "🍽️", "🏰", "💃"]
+                                  : isBirthday
+                                  ? ["🎈", "🎪", "🍕", "🪅", "🎂", "🎁"]
+                                  : ["🥂", "🎤", "🍽️", "🎉", "✨", "📸"]
+                                ).map((ico) => (
                                   <button
                                     key={ico}
                                     type="button"
@@ -1648,6 +2552,100 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                       </div>
                     ))}
                   </div>
+
+                  {/* Personalización de Encabezados del Itinerario en Arco */}
+                  <div className="p-3 bg-stone-50 dark:bg-slate-950/60 border border-stone-200 dark:border-slate-800 rounded-xl space-y-2">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <span>🏷️</span>
+                      <span>Encabezado de la Tarjeta en Arco</span>
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Título Principal</label>
+                        <input
+                          type="text"
+                          value={tenant.itineraryConfig?.title ?? "Itinerario"}
+                          onChange={(e) =>
+                            updateTenant(
+                              (t) => ({
+                                ...t,
+                                itineraryConfig: { ...(t.itineraryConfig || {}), title: e.target.value },
+                              }),
+                              "itinerary"
+                            )
+                          }
+                          placeholder="Itinerario"
+                          className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">Subtítulo (segunda línea)</label>
+                        <input
+                          type="text"
+                          value={tenant.itineraryConfig?.subtitle ?? "Actividades"}
+                          onChange={(e) =>
+                            updateTenant(
+                              (t) => ({
+                                ...t,
+                                itineraryConfig: { ...(t.itineraryConfig || {}), subtitle: e.target.value },
+                              }),
+                              "itinerary"
+                            )
+                          }
+                          placeholder="Actividades"
+                          className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Vista Previa Visual de la Línea de Tiempo en Arco */}
+                  {(tenant.itinerary || []).length > 0 && (
+                    <div className="p-4 rounded-2xl bg-gradient-to-b from-stone-50 to-stone-100/90 dark:from-slate-950 dark:to-slate-900 border border-stone-200 dark:border-slate-800 text-center select-none mt-2">
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500 block mb-3">
+                        Vista Previa de la Línea de Tiempo Alternada
+                      </span>
+                      <div
+                        className="max-w-[300px] mx-auto rounded-t-[100px] rounded-b-2xl p-5 text-white shadow-md relative overflow-hidden"
+                        style={{ backgroundColor: isQuince ? "#c78596" : "#be7688" }}
+                      >
+                        <h3 className="text-2xl font-serif leading-none drop-shadow-xs">{tenant.itineraryConfig?.title || "Itinerario"}</h3>
+                        <p className="text-xl font-serif -mt-1 drop-shadow-xs">{tenant.itineraryConfig?.subtitle || "Actividades"}</p>
+                        <div className="w-8 h-0.5 bg-white/40 mx-auto my-2"></div>
+
+                        <div className="relative py-2 my-2">
+                          <div className="absolute left-1/2 -translate-x-1/2 top-2 bottom-2 w-[1.5px] bg-white/70"></div>
+                          <div className="space-y-4">
+                            {(tenant.itinerary || []).map((it, idx) => {
+                              const isEven = idx % 2 === 0;
+                              return (
+                                <div key={idx} className="relative flex items-center justify-between text-xs min-h-[36px]">
+                                  <div className="absolute left-1/2 -translate-x-1/2 z-10 w-3 h-3 rounded-full border-2 border-white bg-pink-700/80 shadow-xs"></div>
+                                  {isEven ? (
+                                    <>
+                                      <div className="w-[calc(50%-10px)] pr-2 text-right text-base">{it.icon || "✨"}</div>
+                                      <div className="w-[calc(50%-10px)] pl-2 text-left">
+                                        <span className="font-bold block uppercase tracking-wider text-[11px] leading-tight">{it.title}</span>
+                                        <span className="text-[10px] text-white/90">{it.time}</span>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="w-[calc(50%-10px)] pr-2 text-right">
+                                        <span className="font-bold block uppercase tracking-wider text-[11px] leading-tight">{it.title}</span>
+                                        <span className="text-[10px] text-white/90">{it.time}</span>
+                                      </div>
+                                      <div className="w-[calc(50%-10px)] pl-2 text-left text-base">{it.icon || "✨"}</div>
+                                    </>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between pt-2">
                     <button
@@ -1813,6 +2811,145 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                           </button>
                         </div>
                       )}
+                    </div>
+
+                    {/* Section & Special Photos: Middle, Final & QR */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {/* Middle Photo */}
+                      <div className="p-4 bg-stone-50/70 dark:bg-slate-950/60 border border-stone-200/80 dark:border-slate-800/80 rounded-xl space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                            Foto Sección Intermedia
+                          </label>
+                          {uploading === "middlePhoto" && <span className="text-xs text-amber-500 animate-pulse">Subiendo...</span>}
+                        </div>
+                        <input
+                          type="text"
+                          value={tenant.middlePhotoUrl || ""}
+                          onChange={(e) => updateTenant((t) => ({ ...t, middlePhotoUrl: e.target.value }), "media")}
+                          placeholder="URL directa o sube archivo"
+                          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                        />
+                        <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-stone-200 hover:bg-stone-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs text-slate-800 dark:text-slate-200 rounded-lg transition border border-stone-300 dark:border-slate-700">
+                          <span>📤</span> Subir Foto Intermedia
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileUpload(e, "middlePhoto")}
+                            className="hidden"
+                          />
+                        </label>
+                        {tenant.middlePhotoUrl && (
+                          <div className="h-24 rounded-lg overflow-hidden border border-stone-200 dark:border-slate-800 relative group mt-2">
+                            <img src={tenant.middlePhotoUrl} alt="Foto Intermedia" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => updateTenant((t) => ({ ...t, middlePhotoUrl: "" }), "media")}
+                              className="absolute top-1 right-1 p-1 bg-rose-600 text-white rounded text-[10px] opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Final Photo */}
+                      <div className="p-4 bg-stone-50/70 dark:bg-slate-950/60 border border-stone-200/80 dark:border-slate-800/80 rounded-xl space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                            Foto Sección Final
+                          </label>
+                          {uploading === "finalPhoto" && <span className="text-xs text-amber-500 animate-pulse">Subiendo...</span>}
+                        </div>
+                        <input
+                          type="text"
+                          value={tenant.finalPhotoUrl || ""}
+                          onChange={(e) => updateTenant((t) => ({ ...t, finalPhotoUrl: e.target.value }), "media")}
+                          placeholder="URL directa o sube archivo"
+                          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                        />
+                        <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-stone-200 hover:bg-stone-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs text-slate-800 dark:text-slate-200 rounded-lg transition border border-stone-300 dark:border-slate-700">
+                          <span>📤</span> Subir Foto Final
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileUpload(e, "finalPhoto")}
+                            className="hidden"
+                          />
+                        </label>
+                        {tenant.finalPhotoUrl && (
+                          <div className="h-24 rounded-lg overflow-hidden border border-stone-200 dark:border-slate-800 relative group mt-2">
+                            <img src={tenant.finalPhotoUrl} alt="Foto Final" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => updateTenant((t) => ({ ...t, finalPhotoUrl: "" }), "media")}
+                              className="absolute top-1 right-1 p-1 bg-rose-600 text-white rounded text-[10px] opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Imagen QR de Regalos (Yape / Plin) */}
+                      <div className="p-4 bg-stone-50/70 dark:bg-slate-950/60 border border-stone-200/80 dark:border-slate-800/80 rounded-xl space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                            Foto / QR Regalos (Yape / Plin)
+                          </label>
+                          {uploading === "qrImage" && <span className="text-xs text-amber-500 animate-pulse">Subiendo...</span>}
+                        </div>
+                        <input
+                          type="text"
+                          value={tenant.qrImageUrl || tenant.giftConfig?.qrImageUrl || ""}
+                          onChange={(e) =>
+                            updateTenant(
+                              (t) => ({
+                                ...t,
+                                qrImageUrl: e.target.value,
+                                giftConfig: { ...(t.giftConfig || {}), qrImageUrl: e.target.value },
+                              }),
+                              "media"
+                            )
+                          }
+                          placeholder="URL directa o sube archivo"
+                          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                        />
+                        <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-stone-200 hover:bg-stone-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs text-slate-800 dark:text-slate-200 rounded-lg transition border border-stone-300 dark:border-slate-700">
+                          <span>📤</span> Subir Imagen QR
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileUpload(e, "qrImage")}
+                            className="hidden"
+                          />
+                        </label>
+                        {(tenant.qrImageUrl || tenant.giftConfig?.qrImageUrl) && (
+                          <div className="h-24 rounded-lg overflow-hidden border border-stone-200 dark:border-slate-800 relative group mt-2 bg-white flex items-center justify-center">
+                            <img
+                              src={tenant.qrImageUrl || tenant.giftConfig?.qrImageUrl}
+                              alt="Código QR"
+                              className="h-full object-contain p-1"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    qrImageUrl: "",
+                                    giftConfig: { ...(t.giftConfig || {}), qrImageUrl: "" },
+                                  }),
+                                  "media"
+                                )
+                              }
+                              className="absolute top-1 right-1 p-1 bg-rose-600 text-white rounded text-[10px] opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -1991,9 +3128,278 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
 
               {openSections["extras"] && (
                 <div className="p-5 sm:p-6 space-y-4">
+                  {/* Tarjeta de Gestión: Lluvia de Sobres & Código QR a Supabase */}
+                  <div className="p-4 sm:p-5 rounded-xl bg-stone-50/80 dark:bg-slate-950/60 border border-amber-900/[0.08] dark:border-slate-800 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-xl">💌</span>
+                        <div>
+                          <span className="text-xs font-bold text-slate-900 dark:text-white block">
+                            Lluvia de Sobres & Código QR (Yape / Plin)
+                          </span>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                            Gestiona el modal con el QR de pago subido a Supabase y datos del titular
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Switch de visibilidad rápida */}
+                      <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={tenant.showGifts !== false}
+                          onChange={(e) =>
+                            updateTenant(
+                              (t) => ({
+                                ...t,
+                                showGifts: e.target.checked,
+                                features: {
+                                  ...(t.features || {}),
+                                  show_gifts: e.target.checked,
+                                },
+                              }),
+                              "extras"
+                            )
+                          }
+                          className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-stone-300 dark:bg-slate-700 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                      </label>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                          Título de la Sección
+                        </label>
+                        <input
+                          type="text"
+                          value={tenant.giftConfig?.title ?? "Sugerencia de regalos"}
+                          onChange={(e) =>
+                            updateTenant(
+                              (t) => ({
+                                ...t,
+                                giftConfig: { ...(t.giftConfig || {}), title: e.target.value },
+                              }),
+                              "extras"
+                            )
+                          }
+                          placeholder="Ej: Sugerencia de regalos"
+                          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                          Texto del Botón / Sobre
+                        </label>
+                        <input
+                          type="text"
+                          value={tenant.giftConfig?.buttonText ?? "Lluvia de sobres"}
+                          onChange={(e) =>
+                            updateTenant(
+                              (t) => ({
+                                ...t,
+                                giftConfig: { ...(t.giftConfig || {}), buttonText: e.target.value },
+                              }),
+                              "extras"
+                            )
+                          }
+                          placeholder="Ej: Lluvia de sobres"
+                          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                          Mensaje Explicativo
+                        </label>
+                        <input
+                          type="text"
+                          value={tenant.giftConfig?.message ?? "El mejor detalle es tu presencia, pero si quieres tener un detalle conmigo, haz click aquí."}
+                          onChange={(e) =>
+                            updateTenant(
+                              (t) => ({
+                                ...t,
+                                giftConfig: { ...(t.giftConfig || {}), message: e.target.value },
+                              }),
+                              "extras"
+                            )
+                          }
+                          placeholder="El mejor detalle es tu presencia, pero si quieres tener un detalle conmigo, haz click aquí."
+                          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                          Nombre del Titular / Persona
+                        </label>
+                        <input
+                          type="text"
+                          value={tenant.giftConfig?.accountHolder ?? ""}
+                          onChange={(e) =>
+                            updateTenant(
+                              (t) => ({
+                                ...t,
+                                giftConfig: { ...(t.giftConfig || {}), accountHolder: e.target.value },
+                              }),
+                              "extras"
+                            )
+                          }
+                          placeholder="Ej: Luana Martínez"
+                          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                          Billetera / Banco
+                        </label>
+                        <input
+                          type="text"
+                          value={tenant.giftConfig?.bank ?? "Yape"}
+                          onChange={(e) =>
+                            updateTenant(
+                              (t) => ({
+                                ...t,
+                                giftConfig: { ...(t.giftConfig || {}), bank: e.target.value },
+                              }),
+                              "extras"
+                            )
+                          }
+                          placeholder="Ej: Yape / Plin / BCP"
+                          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                          Número Celular / Yape
+                        </label>
+                        <input
+                          type="text"
+                          value={tenant.giftConfig?.phone ?? ""}
+                          onChange={(e) =>
+                            updateTenant(
+                              (t) => ({
+                                ...t,
+                                giftConfig: { ...(t.giftConfig || {}), phone: e.target.value },
+                              }),
+                              "extras"
+                            )
+                          }
+                          placeholder="Ej: 987 654 321"
+                          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                          Nota de Agradecimiento
+                        </label>
+                        <input
+                          type="text"
+                          value={tenant.giftConfig?.note ?? "¡Muchas gracias por tu cariño y buenos deseos!"}
+                          onChange={(e) =>
+                            updateTenant(
+                              (t) => ({
+                                ...t,
+                                giftConfig: { ...(t.giftConfig || {}), note: e.target.value },
+                              }),
+                              "extras"
+                            )
+                          }
+                          placeholder="¡Muchas gracias por acompañarme!"
+                          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                        />
+                      </div>
+
+                      {/* Subida de Imagen QR directamente a Supabase Storage */}
+                      <div className="sm:col-span-2 pt-2 border-t border-stone-200 dark:border-slate-800 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                            <span>📷</span>
+                            <span>Imagen del Código QR (Subida a Supabase Storage)</span>
+                          </label>
+                          {uploading === "qrImage" && (
+                            <span className="text-xs text-amber-500 font-semibold animate-pulse">
+                              Subiendo a Supabase...
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
+                          <input
+                            type="text"
+                            value={tenant.qrImageUrl || tenant.giftConfig?.qrImageUrl || ""}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  qrImageUrl: e.target.value,
+                                  giftConfig: { ...(t.giftConfig || {}), qrImageUrl: e.target.value },
+                                }),
+                                "extras"
+                              )
+                            }
+                            placeholder="URL de Supabase Storage o sube archivo"
+                            className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                          />
+
+                          <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl transition shadow-xs shrink-0">
+                            <span>📤</span> Subir QR a Supabase
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleFileUpload(e, "qrImage")}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+
+                        {(tenant.qrImageUrl || tenant.giftConfig?.qrImageUrl) && (
+                          <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 mt-2">
+                            <div className="w-16 h-16 rounded-lg overflow-hidden border border-stone-200 dark:border-slate-800 bg-white p-1 shrink-0">
+                              <img
+                                src={tenant.qrImageUrl || tenant.giftConfig?.qrImageUrl}
+                                alt="QR Subido a Supabase"
+                                className="w-full h-full object-contain mx-auto"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0 text-xs">
+                              <span className="font-semibold text-emerald-600 dark:text-emerald-400 block">
+                                ✓ Imagen QR subida
+                              </span>
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate block font-mono">
+                                {tenant.qrImageUrl || tenant.giftConfig?.qrImageUrl}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    qrImageUrl: "",
+                                    giftConfig: { ...(t.giftConfig || {}), qrImageUrl: "" },
+                                  }),
+                                  "extras"
+                                )
+                              }
+                              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 transition cursor-pointer"
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                      Sugerencias de Regalo (un ítem por línea)
+                      Otras Sugerencias de Regalo (un ítem por línea)
                     </label>
                     <textarea
                       rows={3}
@@ -2012,75 +3418,493 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                     />
                   </div>
 
-                  {(tenant.type === "wedding" || tenant.type === "quinceanero") && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                      <div>
-                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                          {tenant.type === "wedding" ? "Padrinos del Novio" : "Padrinos Principales"}
-                        </label>
-                        <textarea
-                          rows={3}
-                          value={(tenant.sponsors?.groom || []).join("\n")}
-                          onChange={(e) =>
-                            updateTenant(
-                              (t) => ({
-                                ...t,
-                                sponsors: {
-                                  groom: e.target.value.split("\n").filter((s) => s.trim() !== ""),
-                                  bride: t.sponsors?.bride || [],
-                                },
-                              }),
-                              "extras"
-                            )
-                          }
-                          className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 rounded-xl text-xs text-slate-900 dark:text-white"
-                        />
+                  {isBirthday ? (
+                    <div className="p-4 rounded-xl bg-stone-100/90 dark:bg-slate-950/60 border border-dashed border-stone-300 dark:border-slate-800 flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 text-base">
+                        🔒
                       </div>
-
-                      <div>
-                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                          {tenant.type === "wedding" ? "Padrinos de la Novia" : "Padrinos Secundarios"}
-                        </label>
-                        <textarea
-                          rows={3}
-                          value={(tenant.sponsors?.bride || []).join("\n")}
-                          onChange={(e) =>
-                            updateTenant(
-                              (t) => ({
-                                ...t,
-                                sponsors: {
-                                  groom: t.sponsors?.groom || [],
-                                  bride: e.target.value.split("\n").filter((s) => s.trim() !== ""),
-                                },
-                              }),
-                              "extras"
-                            )
-                          }
-                          className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 rounded-xl text-xs text-slate-900 dark:text-white"
-                        />
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                          {tenant.type === "wedding" ? "Testigos de Honor" : "Chambelanes / Damas"}
-                        </label>
-                        <textarea
-                          rows={3}
-                          value={(tenant.witnesses || []).join("\n")}
-                          onChange={(e) =>
-                            updateTenant(
-                              (t) => ({
-                                ...t,
-                                witnesses: e.target.value.split("\n").filter((s) => s.trim() !== ""),
-                              }),
-                              "extras"
-                            )
-                          }
-                          className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 rounded-xl text-xs text-slate-900 dark:text-white"
-                        />
+                      <div className="text-xs">
+                        <span className="font-bold text-slate-800 dark:text-slate-200 block mb-0.5">
+                          Campos de Padrinos y Testigos Bloqueados
+                        </span>
+                        <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
+                          Los campos de cortejo de Padrinos y Testigos de honor están reservados para eventos formales como <strong>Bodas</strong> y <strong>Quinceañeros</strong>. Para este cumpleaños no aplican y se mantendrán ocultos en la invitación.
+                        </p>
                       </div>
                     </div>
+                  ) : (
+                    <div className="space-y-4 pt-1">
+                      {/* Switch de visibilidad rápida */}
+                      <div className="flex items-center justify-between p-3.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40">
+                        <div>
+                          <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <span>✨</span>
+                            <span>{isQuince ? "¿Mostrar Padres y Padrinos en la invitación?" : "¿Mostrar Padrinos en la invitación?"}</span>
+                          </span>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                            {tenant.showSponsors !== false
+                              ? "La sección de cortejo está visible en la invitación."
+                              : "La sección de cortejo está oculta actualmente."}
+                          </span>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                          <input
+                            type="checkbox"
+                            checked={tenant.showSponsors !== false}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  showSponsors: e.target.checked,
+                                  features: {
+                                    ...(t.features || {}),
+                                    show_sponsors: e.target.checked,
+                                  },
+                                }),
+                                "extras"
+                              )
+                            }
+                            className="sr-only peer"
+                          />
+                          <div className="w-9 h-5 bg-stone-300 dark:bg-slate-700 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                        </label>
+                      </div>
+
+                      {/* Nombres de Padres y Padrinos */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            {isWedding
+                              ? "Padrinos del Novio"
+                              : isQuince
+                              ? "Padres de la Quinceañera (Mis Padres)"
+                              : "Padrinos / Anfitriones Principales"}
+                          </label>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">
+                            {isQuince
+                              ? "Nombres de los padres de la quinceañera (un nombre por línea)"
+                              : isWedding
+                              ? "Padrinos de honor por parte del novio (un nombre por línea)"
+                              : "Nombres principales (un nombre por línea)"}
+                          </span>
+                          <textarea
+                            rows={3}
+                            value={(tenant.sponsors?.groom || []).join("\n")}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  sponsors: {
+                                    groom: e.target.value.split("\n").filter((s) => s.trim() !== ""),
+                                    bride: t.sponsors?.bride || [],
+                                  },
+                                }),
+                                "extras"
+                              )
+                            }
+                            placeholder={
+                              isWedding
+                                ? "Ej: Carlos Mendoza\nRosa Flores"
+                                : isQuince
+                                ? "Ej: Saúl Martínez\nLucy Brambila"
+                                : "Ej: Nombre 1\nNombre 2"
+                            }
+                            className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 rounded-xl text-xs text-slate-900 dark:text-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            {isWedding
+                              ? "Padrinos de la Novia"
+                              : isQuince
+                              ? "Padrinos de la Quinceañera (Mis Padrinos)"
+                              : "Padrinos / Anfitriones Secundarios"}
+                          </label>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">
+                            {isQuince
+                              ? "Nombres de los padrinos de honor (un nombre por línea)"
+                              : isWedding
+                              ? "Padrinos de honor por parte de la novia (un nombre por línea)"
+                              : "Nombres secundarios (un nombre por línea)"}
+                          </span>
+                          <textarea
+                            rows={3}
+                            value={(tenant.sponsors?.bride || []).join("\n")}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  sponsors: {
+                                    groom: t.sponsors?.groom || [],
+                                    bride: e.target.value.split("\n").filter((s) => s.trim() !== ""),
+                                  },
+                                }),
+                                "extras"
+                              )
+                            }
+                            placeholder={
+                              isWedding
+                                ? "Ej: Fernando Castro\nElena Ramos"
+                                : isQuince
+                                ? "Ej: Filiberto Nava\nAlicia Martínez"
+                                : "Ej: Nombre 1\nNombre 2"
+                            }
+                            className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 rounded-xl text-xs text-slate-900 dark:text-white"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            {isWedding
+                              ? "Testigos de Honor & Cortejo Nupcial"
+                              : isQuince
+                              ? "Chambelanes & Damas de Honor"
+                              : "Testigos / Acompañantes de Honor"}
+                          </label>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">
+                            {isQuince
+                              ? "Cortejo de acompañantes (un nombre por línea)"
+                              : isWedding
+                              ? "Testigos oficiales de matrimonio y damas (un nombre por línea)"
+                              : "Lista de acompañantes (un nombre por línea)"}
+                          </span>
+                          <textarea
+                            rows={3}
+                            value={(tenant.witnesses || []).join("\n")}
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  witnesses: e.target.value.split("\n").filter((s) => s.trim() !== ""),
+                                }),
+                                "extras"
+                              )
+                            }
+                            placeholder={
+                              isWedding
+                                ? "Ej: Testigo: Juan Pérez\nTestigo: Mariana Díaz\nDama de Honor: Valeria"
+                                : isQuince
+                                ? "Ej: Chambelán de Honor: Carlos\nDama: Lucía\nDama: Sofía"
+                                : "Ej: Acompañante 1\nAcompañante 2"
+                            }
+                            className="w-full px-3 py-2 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 rounded-xl text-xs text-slate-900 dark:text-white"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Configuración de Textos y Títulos (sponsorsConfig) */}
+                      <div className="p-4 rounded-xl bg-stone-50/80 dark:bg-slate-950/60 border border-stone-200 dark:border-slate-800 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                            <span>📝</span>
+                            <span>Textos y Etiquetas de la Sección (Opcional)</span>
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                            Personaliza las frases que acompañan al cortejo
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">
+                              Texto Introductorio
+                            </label>
+                            <input
+                              type="text"
+                              value={tenant.sponsorsConfig?.introText ?? "ACOMPÁÑAME EN ESTE DÍA\nTAN ESPECIAL JUNTO A"}
+                              onChange={(e) =>
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    sponsorsConfig: {
+                                      ...(t.sponsorsConfig || {}),
+                                      introText: e.target.value,
+                                    },
+                                  }),
+                                  "extras"
+                                )
+                              }
+                              placeholder="ACOMPÁÑAME EN ESTE DÍA..."
+                              className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">
+                              Texto de Cierre (antes del Monograma)
+                            </label>
+                            <input
+                              type="text"
+                              value={tenant.sponsorsConfig?.outroText ?? "A FESTEJAR MIS"}
+                              onChange={(e) =>
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    sponsorsConfig: {
+                                      ...(t.sponsorsConfig || {}),
+                                      outroText: e.target.value,
+                                    },
+                                  }),
+                                  "extras"
+                                )
+                              }
+                              placeholder="A FESTEJAR MIS"
+                              className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">
+                              Etiqueta Padres
+                            </label>
+                            <input
+                              type="text"
+                              value={tenant.sponsorsConfig?.parentsLabel ?? "MIS PADRES:"}
+                              onChange={(e) =>
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    sponsorsConfig: {
+                                      ...(t.sponsorsConfig || {}),
+                                      parentsLabel: e.target.value,
+                                    },
+                                  }),
+                                  "extras"
+                                )
+                              }
+                              placeholder="MIS PADRES:"
+                              className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">
+                              Etiqueta Padrinos
+                            </label>
+                            <input
+                              type="text"
+                              value={tenant.sponsorsConfig?.godparentsLabel ?? "MIS PADRINOS:"}
+                              onChange={(e) =>
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    sponsorsConfig: {
+                                      ...(t.sponsorsConfig || {}),
+                                      godparentsLabel: e.target.value,
+                                    },
+                                  }),
+                                  "extras"
+                                )
+                              }
+                              placeholder="MIS PADRINOS:"
+                              className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Vista Previa Visual del Componente */}
+                      {tenant.showSponsors !== false && ((tenant.sponsors?.groom?.length || 0) > 0 || (tenant.sponsors?.bride?.length || 0) > 0) && (
+                        <div className="p-4 rounded-xl bg-gradient-to-b from-stone-50 to-stone-100/90 dark:from-slate-950 dark:to-slate-900 border border-stone-200 dark:border-slate-800 text-center select-none">
+                          <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500 block mb-3">
+                            Vista Previa en la Invitación
+                          </span>
+                          <div className="max-w-[280px] mx-auto p-4 bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-stone-200/80 dark:border-slate-800 space-y-2">
+                            <p className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold whitespace-pre-line leading-tight">
+                              {tenant.sponsorsConfig?.introText || "ACOMPÁÑAME EN ESTE DÍA\nTAN ESPECIAL JUNTO A"}
+                            </p>
+                            {(tenant.sponsors?.groom || []).length > 0 && (
+                              <div className="py-0.5">
+                                <span className="text-[9px] uppercase tracking-widest text-rose-500 font-bold block">
+                                  {tenant.sponsorsConfig?.parentsLabel || "MIS PADRES:"}
+                                </span>
+                                <p className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wide">
+                                  {(tenant.sponsors?.groom || []).join(" &\n")}
+                                </p>
+                              </div>
+                            )}
+                            {(tenant.sponsors?.bride || []).length > 0 && (
+                              <div className="py-0.5">
+                                <span className="text-[9px] uppercase tracking-widest text-rose-500 font-bold block">
+                                  {tenant.sponsorsConfig?.godparentsLabel || "MIS PADRINOS:"}
+                                </span>
+                                <p className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wide">
+                                  {(tenant.sponsors?.bride || []).join(" &\n")}
+                                </p>
+                              </div>
+                            )}
+                            <p className="text-[10px] uppercase tracking-wider text-slate-700 dark:text-slate-300 font-bold pt-1">
+                              {tenant.sponsorsConfig?.outroText || "A FESTEJAR MIS"}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
+
+                  {/* Configuración de Código de Vestimenta (Dress Code) */}
+                  <div className="p-4 rounded-xl bg-stone-50/80 dark:bg-slate-950/60 border border-stone-200 dark:border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                        <span>👗</span>
+                        <span>Código de Vestimenta (Dress Code)</span>
+                      </span>
+                      <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={tenant.showDressCode !== false}
+                          onChange={(e) =>
+                            updateTenant(
+                              (t) => ({
+                                ...t,
+                                showDressCode: e.target.checked,
+                                features: {
+                                  ...(t.features || {}),
+                                  show_dress_code: e.target.checked,
+                                },
+                              }),
+                              "extras"
+                            )
+                          }
+                          className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-stone-300 dark:bg-slate-700 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                      </label>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Personaliza la indicación de etiqueta formal y los colores reservados exclusivamente para el festejado/a.
+                    </p>
+
+                    {tenant.showDressCode !== false && (
+                      <div className="space-y-3 pt-1">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">
+                              Título (Caligrafía)
+                            </label>
+                            <input
+                              type="text"
+                              value={tenant.dressCodeConfig?.title ?? "Código de vestimenta"}
+                              onChange={(e) =>
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    dressCodeConfig: {
+                                      ...(t.dressCodeConfig || {}),
+                                      title: e.target.value,
+                                    },
+                                  }),
+                                  "extras"
+                                )
+                              }
+                              placeholder="Código de vestimenta"
+                              className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">
+                              Categoría / Estilo (Mayúsculas)
+                            </label>
+                            <input
+                              type="text"
+                              value={tenant.dressCodeConfig?.category ?? "FORMAL"}
+                              onChange={(e) =>
+                                updateTenant(
+                                  (t) => ({
+                                    ...t,
+                                    dressCodeConfig: {
+                                      ...(t.dressCodeConfig || {}),
+                                      category: e.target.value,
+                                    },
+                                  }),
+                                  "extras"
+                                )
+                              }
+                              placeholder="FORMAL / ETIQUETA RIGUROSA"
+                              className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">
+                            Mensaje de Colores Reservados
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={
+                              tenant.dressCodeConfig?.message ??
+                              "Con mucho cariño le pedimos evitar el color Plateado, Rosa y Fucsia está reservado para la quinceañera"
+                            }
+                            onChange={(e) =>
+                              updateTenant(
+                                (t) => ({
+                                  ...t,
+                                  dressCodeConfig: {
+                                    ...(t.dressCodeConfig || {}),
+                                    message: e.target.value,
+                                  },
+                                }),
+                                "extras"
+                              )
+                            }
+                            placeholder="Con mucho cariño le pedimos evitar..."
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
+                          />
+                        </div>
+
+                        {/* Vista Previa Visual del Componente Dress Code */}
+                        <div className="p-4 rounded-xl bg-gradient-to-b from-stone-50 to-stone-100/90 dark:from-slate-950 dark:to-slate-900 border border-stone-200 dark:border-slate-800 text-center select-none">
+                          <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500 block mb-2">
+                            Vista Previa del Código de Vestimenta
+                          </span>
+                          <div className="max-w-[280px] mx-auto p-4 bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-stone-200/80 dark:border-slate-800 space-y-2">
+                            <span
+                              className="text-base italic font-serif block text-rose-500"
+                            >
+                              {tenant.dressCodeConfig?.title || "Código de vestimenta"}
+                            </span>
+                            <span className="text-[10px] tracking-[0.25em] font-semibold text-slate-700 dark:text-slate-300 uppercase block">
+                              {(tenant.dressCodeConfig?.category || "FORMAL").split("").join(" ")}
+                            </span>
+                            <div className="flex items-center justify-center gap-3 py-1 text-slate-700 dark:text-slate-300">
+                              {/* Traje */}
+                              <svg viewBox="0 0 80 90" className="w-9 h-10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M22 20 L10 50 L18 48 L20 34" />
+                                <path d="M58 20 L70 50 L62 48 L60 34" />
+                                <path d="M20 34 L23 74 C34 76 46 76 57 74 L60 34" />
+                                <path d="M22 20 L30 14 L50 14 L58 20" />
+                                <path d="M30 14 L29 28 L35 32 L31 37 L40 54 L49 37 L45 32 L51 28 L50 14" />
+                                <path d="M34 18 L40 25 L46 18" />
+                                <path d="M38.5 25 L41.5 25 L42.5 29 L41 46 L40 49 L39 46 L37.5 29 Z" />
+                                <path d="M40 54 L40 75" />
+                                <circle cx="40" cy="62" r="1.3" fill="currentColor" stroke="none" />
+                              </svg>
+                              {/* Vestido */}
+                              <svg viewBox="0 0 80 90" className="w-9 h-10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M32 16 L35 16 M45 16 L48 16" />
+                                <path d="M35 16 Q40 24 45 16" />
+                                <path d="M32 16 C29 22 29 27 32 35" />
+                                <path d="M48 16 C51 22 51 27 48 35" />
+                                <path d="M32 35 Q40 37 48 35" />
+                                <path d="M32.5 38 Q40 40 47.5 38" />
+                                <path d="M32.5 38 C30 52 23 68 16 80 Q40 84 64 80 C57 68 50 52 47.5 38" />
+                                <path d="M29 80 C32 66 35 52 36 38" />
+                                <path d="M40 82 C40 68 40 52 40 40" />
+                                <path d="M51 80 C48 66 45 52 44 38" />
+                              </svg>
+                            </div>
+                            <p className="text-[9.5px] leading-relaxed text-slate-600 dark:text-slate-400 font-serif">
+                              {tenant.dressCodeConfig?.message ||
+                                "Con mucho cariño le pedimos evitar el color Plateado, Rosa y Fucsia está reservado para la quinceañera"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="pt-2 flex justify-end">
                     <button

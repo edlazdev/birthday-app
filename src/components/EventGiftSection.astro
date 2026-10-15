@@ -1,0 +1,367 @@
+---
+export interface Props {
+  title?: string;
+  message?: string;
+  buttonText?: string;
+  accountHolder?: string;
+  bank?: string;
+  phone?: string;
+  accountNumber?: string;
+  qrImageUrl?: string;
+  note?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  textColor?: string;
+  className?: string;
+}
+
+const {
+  title = "Sugerencia de regalos",
+  message = "El mejor detalle es tu presencia, pero si quieres tener un detalle conmigo, haz click aquí.",
+  buttonText = "Lluvia de sobres",
+  accountHolder = "Luana Martínez",
+  bank = "Yape",
+  phone = "987 654 321",
+  accountNumber = "",
+  qrImageUrl = "",
+  note = "¡Muchas gracias por tu cariño y buenos deseos!",
+  primaryColor = "#a85d72",
+  accentColor = "#d6336c",
+  textColor = "#1f2937",
+  className = "",
+} = Astro.props;
+
+// Generar identificador único para la sección y su modal
+const uniqueId = `gift-modal-${Math.random().toString(36).substring(2, 9)}`;
+---
+
+<section
+  class={`event-gift-section text-center select-none py-4 px-3 sm:px-6 space-y-3 ${className}`}
+  aria-label={title}
+  data-gift-section={uniqueId}
+>
+  <!-- 1. Título Cursivo Elegante -->
+  {title && (
+    <h3
+      class="quince-script-title text-3xl sm:text-4xl font-normal leading-tight drop-shadow-xs"
+      style={`color: ${primaryColor};`}
+    >
+      {title}
+    </h3>
+  )}
+
+  <!-- 2. Párrafo explicativo -->
+  {message && (
+    <p
+      class="quince-sans text-xs sm:text-sm max-w-xs sm:max-w-sm mx-auto leading-relaxed text-stone-700"
+      style={`color: ${textColor};`}
+    >
+      {message.includes("haz click aquí") || message.includes("haz click aqui") ? (
+        <>
+          {message.replace(/,\s*haz click aqu[ií]\.?/i, "")}.{" "}
+          <button
+            type="button"
+            class="quince-gift-open-trigger font-semibold underline underline-offset-2 hover:opacity-80 transition cursor-pointer"
+            style={`color: ${accentColor};`}
+            aria-haspopup="dialog"
+          >
+            Haz click aquí
+          </button>
+        </>
+      ) : (
+        message
+      )}
+    </p>
+  )}
+
+  <!-- 3. Botón / Icono del Sobre -->
+  <div class="pt-1">
+    <button
+      type="button"
+      class="quince-gift-open-trigger group relative inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-full text-xs sm:text-sm font-semibold tracking-wider uppercase transition-all duration-300 transform hover:scale-[1.03] active:scale-95 shadow-md hover:shadow-lg focus:outline-none cursor-pointer"
+      style={`background: linear-gradient(135deg, #ffffff 0%, #fff5f7 100%); border: 1.5px solid #edd6dc; color: ${primaryColor}; box-shadow: 0 4px 14px rgba(168, 93, 114, 0.12);`}
+      aria-haspopup="dialog"
+      aria-controls={uniqueId}
+    >
+      <!-- Icono de Sobre con Sello Romántico -->
+      <span class="flex items-center justify-center w-7 h-7 rounded-full bg-rose-50 text-rose-500 group-hover:scale-110 transition-transform duration-300 shadow-xs">
+        <svg
+          class="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect x="2" y="4" width="20" height="16" rx="3"></rect>
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+        </svg>
+      </span>
+
+      <span class="quince-serif-caps font-semibold tracking-widest text-[11px] sm:text-xs">
+        {buttonText}
+      </span>
+
+      <!-- Detalle de brillo sutil -->
+      <span class="text-xs opacity-75 group-hover:translate-x-0.5 transition-transform">
+        ✨
+      </span>
+    </button>
+  </div>
+
+  <!-- 4. Modal Nativo (<dialog>) conforme a Modern Web Guidance -->
+  <dialog
+    id={uniqueId}
+    closedby="any"
+    class="quince-gift-dialog"
+    aria-labelledby={`${uniqueId}-title`}
+  >
+    <div class="relative bg-white rounded-3xl p-5 sm:p-7 text-center shadow-2xl border border-rose-100 max-w-sm mx-auto overflow-hidden">
+      <!-- Botón de Cerrar (X) -->
+      <button
+        type="button"
+        class="quince-gift-close-btn absolute top-3.5 right-3.5 w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 hover:text-stone-800 flex items-center justify-center transition cursor-pointer focus:outline-none"
+        aria-label="Cerrar modal"
+      >
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- Encabezado con Icono -->
+      <div class="w-12 h-12 mx-auto rounded-full bg-rose-50 flex items-center justify-center text-rose-500 shadow-xs mb-2">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="4" width="20" height="16" rx="3"></rect>
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+        </svg>
+      </div>
+
+      <!-- Título del Modal -->
+      <h4
+        id={`${uniqueId}-title`}
+        class="quince-script-title text-3xl sm:text-4xl font-normal leading-tight drop-shadow-xs"
+        style={`color: ${primaryColor};`}
+      >
+        {buttonText || "Lluvia de Sobres"}
+      </h4>
+      <p class="quince-sans text-[11px] sm:text-xs text-stone-500 mt-0.5 mb-3">
+        Agradecemos con amor tu gentil muestra de cariño
+      </p>
+
+      <!-- Tarjeta de Datos de la Persona / Titular -->
+      <div class="bg-stone-50/90 rounded-2xl p-3 border border-stone-200/70 mb-3 space-y-1">
+        {bank && (
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#742284] text-white shadow-xs">
+            <span>💜</span>
+            <span>{bank}</span>
+          </span>
+        )}
+
+        <!-- Nombre de la Persona -->
+        {accountHolder && (
+          <div class="quince-serif-caps text-sm sm:text-base font-bold text-stone-800 tracking-wider pt-0.5">
+            {accountHolder}
+          </div>
+        )}
+
+        <!-- Teléfono con botón Copiar si existe -->
+        {phone && (
+          <div class="flex items-center justify-center gap-2 pt-1 text-xs text-stone-600 font-medium">
+            <span>Número:</span>
+            <span class="font-bold tracking-wider text-stone-900 font-mono">{phone}</span>
+            <button
+              type="button"
+              class="quince-gift-copy-btn px-2 py-0.5 text-[10px] font-semibold rounded-md bg-stone-200 hover:bg-stone-300 text-stone-700 transition cursor-pointer"
+              data-copy-text={phone.replace(/\s+/g, "")}
+              title="Copiar número"
+            >
+              Copiar
+            </button>
+          </div>
+        )}
+
+        {accountNumber && (
+          <div class="text-[11px] text-stone-600 font-mono">
+            Cuenta: {accountNumber}
+          </div>
+        )}
+      </div>
+
+      <!-- Imagen QR de Yape (Subida por el usuario) -->
+      {qrImageUrl ? (
+        <div class="relative mx-auto my-2 p-2 rounded-2xl bg-white border border-stone-200 shadow-sm max-w-[240px] sm:max-w-[260px]">
+          <img
+            src={qrImageUrl}
+            alt={`Código QR ${bank} de ${accountHolder}`}
+            class="w-full h-auto rounded-xl object-contain mx-auto"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      ) : (
+        <div class="my-3 p-4 rounded-2xl bg-stone-50 border border-dashed border-stone-300 text-stone-600 text-xs text-center space-y-1">
+          <span class="text-2xl block">📱</span>
+          <p class="font-medium text-stone-700">Imagen de código QR no disponible</p>
+          <p class="text-[11px] text-stone-500 leading-snug">
+            Puedes realizar tu presente mediante el número celular indicado arriba.
+          </p>
+        </div>
+      )}
+
+      <!-- Nota al pie -->
+      {note && (
+        <p class="quince-sans text-[11px] sm:text-xs text-stone-600 italic mt-2 px-2 leading-relaxed">
+          "{note}"
+        </p>
+      )}
+
+      <!-- Botón de Cerrar al pie -->
+      <div class="pt-3">
+        <button
+          type="button"
+          class="quince-gift-close-btn w-full py-2.5 rounded-full text-xs font-bold uppercase tracking-wider bg-stone-100 hover:bg-stone-200 text-stone-700 transition cursor-pointer"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </dialog>
+</section>
+
+<script>
+  // Inicializador seguro para todas las secciones de regalos
+  function initGiftSections() {
+    const sections = document.querySelectorAll("[data-gift-section]");
+    sections.forEach((section) => {
+      const dialog = section.querySelector<HTMLDialogElement>(".quince-gift-dialog");
+      const openTriggers = section.querySelectorAll<HTMLElement>(".quince-gift-open-trigger");
+      const closeButtons = section.querySelectorAll<HTMLElement>(".quince-gift-close-btn");
+      const copyButtons = section.querySelectorAll<HTMLButtonElement>(".quince-gift-copy-btn");
+
+      if (!dialog) return;
+
+      // Abrir modal con showModal()
+      openTriggers.forEach((trigger) => {
+        trigger.addEventListener("click", () => {
+          dialog.showModal();
+        });
+      });
+
+      // Cerrar modal
+      closeButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          dialog.close();
+        });
+      });
+
+      // Copiar número al portapapeles
+      copyButtons.forEach((copyBtn) => {
+        copyBtn.addEventListener("click", async () => {
+          const textToCopy = copyBtn.getAttribute("data-copy-text");
+          if (!textToCopy) return;
+          try {
+            await navigator.clipboard.writeText(textToCopy);
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = "¡Copiado! ✓";
+            copyBtn.classList.add("bg-emerald-100", "text-emerald-700");
+            setTimeout(() => {
+              copyBtn.textContent = originalText;
+              copyBtn.classList.remove("bg-emerald-100", "text-emerald-700");
+            }, 2000);
+          } catch (err) {
+            console.error("No se pudo copiar el texto", err);
+          }
+        });
+      });
+
+      // Fallback para navegadores sin soporte de closedby nativo
+      if (!("closedBy" in HTMLDialogElement.prototype)) {
+        dialog.addEventListener("click", (event) => {
+          if (event.target !== dialog) return;
+          const rect = dialog.getBoundingClientRect();
+          const isInside =
+            rect.top <= event.clientY &&
+            event.clientY <= rect.top + rect.height &&
+            rect.left <= event.clientX &&
+            event.clientX <= rect.left + rect.width;
+          if (!isInside) {
+            dialog.close();
+          }
+        });
+      }
+    });
+  }
+
+  // Ejecutar al cargar la página y en transiciones de vista (View Transitions)
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initGiftSections);
+  } else {
+    initGiftSections();
+  }
+  document.addEventListener("astro:page-load", initGiftSections);
+</script>
+
+<style>
+  .quince-script-title {
+    font-family: var(
+      --font-quince-script,
+      "Great Vibes",
+      "Alex Brush",
+      "Pinyon Script",
+      cursive
+    );
+  }
+
+  .quince-serif-caps {
+    font-family: var(
+      --font-quince-serif,
+      "Cinzel",
+      "Playfair Display",
+      serif
+    );
+  }
+
+  .quince-sans {
+    font-family: var(
+      --font-quince-sans,
+      "Montserrat",
+      sans-serif
+    );
+  }
+
+  /* Estilos del Dialog y Backdrop conforme a Modern Web Guidance */
+  .quince-gift-dialog {
+    border: none;
+    padding: 0;
+    background: transparent;
+    max-width: 92vw;
+    width: 380px;
+    margin: auto;
+    border-radius: 1.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    outline: none;
+  }
+
+  .quince-gift-dialog::backdrop {
+    background-color: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+
+  .quince-gift-dialog[open] {
+    animation: giftDialogFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes giftDialogFadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.92) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+</style>

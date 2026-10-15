@@ -1,0 +1,373 @@
+---
+export interface ItineraryItem {
+  time: string;
+  title: string;
+  description?: string;
+  icon?: string;
+}
+
+export interface Props {
+  itinerary?: ItineraryItem[];
+  title?: string;
+  subtitle?: string;
+  archBg?: string;
+  textColor?: string;
+  lineColor?: string;
+  className?: string;
+}
+
+const {
+  itinerary = [],
+  title = "Itinerario",
+  subtitle = "Actividades",
+  archBg = "#c78596",
+  textColor = "#ffffff",
+  lineColor = "rgba(255, 255, 255, 0.85)",
+  className = "",
+} = Astro.props;
+
+// Normalizar lista de actividades
+const cleanItems = (itinerary || []).filter(
+  (item) => item && (item.title || item.time)
+);
+
+// Helper para determinar el tipo de ícono metálico plateado
+function resolveIconType(item: ItineraryItem): string {
+  const icon = (item.icon || "").trim().toLowerCase();
+  const title = (item.title || "").toLowerCase();
+
+  if (icon === "👑" || title.includes("corona") || title.includes("tiara") || title.includes("quinceañera") || title.includes("entrada") || title.includes("presentación")) {
+    return "crown";
+  }
+  if (icon === "🍽️" || icon === "🍽" || icon === "🍴" || title.includes("comida") || title.includes("cena") || title.includes("banquete") || title.includes("almuerzo") || title.includes("buffet")) {
+    return "dinner";
+  }
+  if (icon === "⛪" || icon === "✝️" || icon === "⛪️" || title.includes("misa") || title.includes("iglesia") || title.includes("ceremonia") || title.includes("religiosa") || title.includes("capilla")) {
+    return "church";
+  }
+  if (icon === "💃" || icon === "🕺" || icon === "🏰" || title.includes("vals") || title.includes("baile") || title.includes("danza") || title.includes("fiesta") || title.includes("pista") || title.includes("protocolo")) {
+    return "waltz";
+  }
+  if (icon === "🥂" || icon === "🍾" || icon === "🍷" || title.includes("brindis") || title.includes("recepción") || title.includes("bienvenida") || title.includes("cóctel") || title.includes("coctel")) {
+    return "toast";
+  }
+  if (icon === "👠" || title.includes("zapatilla") || title.includes("tacón") || title.includes("calzado")) {
+    return "slipper";
+  }
+  if (icon === "📸" || icon === "📷" || title.includes("foto") || title.includes("sesión")) {
+    return "camera";
+  }
+  if (icon === "🎂" || icon === "🍰" || title.includes("torta") || title.includes("pastel") || title.includes("cumpleaños")) {
+    return "cake";
+  }
+  return "custom";
+}
+---
+
+{cleanItems.length > 0 && (
+  <div class={`event-itinerary-arc-section w-full max-w-[390px] sm:max-w-[420px] mx-auto py-2 ${className}`}>
+    <!-- Definiciones SVG Compartidas de Gradientes Plateados Metálicos con Relieve -->
+    <svg width="0" height="0" class="absolute pointer-events-none" aria-hidden="true">
+      <defs>
+        <linearGradient id="silver-metallic-shine" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#ffffff" />
+          <stop offset="20%" stop-color="#eef2f6" />
+          <stop offset="45%" stop-color="#cad2dc" />
+          <stop offset="70%" stop-color="#8f99a8" />
+          <stop offset="85%" stop-color="#e8ecf1" />
+          <stop offset="100%" stop-color="#737e8e" />
+        </linearGradient>
+        <radialGradient id="silver-metallic-rim" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#e2e7ec" />
+          <stop offset="55%" stop-color="#b0b8c4" />
+          <stop offset="85%" stop-color="#ffffff" />
+          <stop offset="100%" stop-color="#7a8494" />
+        </radialGradient>
+      </defs>
+    </svg>
+
+    <!-- La Icónica Tarjeta en Arco -->
+    <div
+      class="quince-arch-card relative rounded-t-[140px] sm:rounded-t-[160px] rounded-b-3xl px-4 pt-10 pb-9 sm:px-6 sm:pt-12 sm:pb-10 overflow-hidden text-center text-white"
+      style={`background-color: ${archBg}; box-shadow: 0 15px 40px rgba(186, 119, 137, 0.45);`}
+    >
+      <!-- Silueta SVG de Fondo sutil en Arco -->
+      <svg
+        viewBox="0 0 400 600"
+        fill="currentColor"
+        class="w-full h-full absolute inset-0 pointer-events-none opacity-10 text-white"
+        preserveAspectRatio="none"
+      >
+        <path d="M0,200 C0,89.54 89.54,0 200,0 C310.46,0 400,89.54 400,200 V600 H0 V200 Z"></path>
+      </svg>
+
+      <!-- Encabezado Elegante en Arco -->
+      <div class="relative z-10 text-center pb-5 select-none">
+        {title && (
+          <h2
+            class="quince-script-title text-4xl sm:text-5xl font-normal leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.18)]"
+            style={`color: ${textColor};`}
+          >
+            {title}
+          </h2>
+        )}
+        {subtitle && (
+          <p
+            class="quince-script-title text-4xl sm:text-5xl font-normal -mt-1.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.18)]"
+            style={`color: ${textColor};`}
+          >
+            {subtitle}
+          </p>
+        )}
+        <!-- Divisor delicado con rombo central -->
+        <div class="flex items-center justify-center gap-2 mt-2.5 opacity-80">
+          <span class="w-10 h-[1px] bg-white"></span>
+          <span class="w-1.5 h-1.5 rotate-45 bg-white shadow-xs"></span>
+          <span class="w-10 h-[1px] bg-white"></span>
+        </div>
+      </div>
+
+      <!-- Línea de Tiempo Alternada (Zig-zag) con Línea Central Continua -->
+      <div class="relative z-10 max-w-[320px] sm:max-w-[340px] mx-auto py-2">
+        <!-- Línea Vertical Continua Central -->
+        <div
+          class="absolute left-1/2 -translate-x-1/2 top-4 bottom-4 w-[1.5px] pointer-events-none"
+          style={`background-color: ${lineColor};`}
+        ></div>
+
+        <!-- Lista de Hitos Alternados -->
+        <div class="space-y-6 sm:space-y-7 relative">
+          {cleanItems.map((item, index) => {
+            const isEven = index % 2 === 0;
+            const iconType = resolveIconType(item);
+
+            return (
+              <div class="relative flex items-center justify-between w-full min-h-[52px]">
+                <!-- Nodo Circular Anillo en la Línea Central -->
+                <div
+                  class="absolute left-1/2 -translate-x-1/2 z-10 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center shadow-xs"
+                  style={`background-color: ${archBg};`}
+                >
+                  <div class="w-1.5 h-1.5 rounded-full bg-white/70"></div>
+                </div>
+
+                {isEven ? (
+                  <>
+                    <!-- Columna Izquierda: Ícono Plateado Metálico -->
+                    <div class="w-[calc(50%-14px)] pr-3 flex justify-end items-center">
+                      <div class="w-12 h-11 sm:w-14 sm:h-12 flex items-center justify-end drop-shadow-[0_3px_5px_rgba(0,0,0,0.25)] select-none">
+                        {iconType === "crown" ? (
+                          <svg viewBox="0 0 100 50" class="w-full h-full" fill="none">
+                            <path d="M10,44 Q50,48 90,44" stroke="url(#silver-metallic-shine)" stroke-width="3" stroke-linecap="round" fill="none" />
+                            <path d="M14,40 Q50,44 86,40" stroke="url(#silver-metallic-shine)" stroke-width="1.8" fill="none" />
+                            <path d="M50,12 C44,4 34,10 38,20 C42,28 50,38 50,38 C50,38 58,28 62,20 C66,10 56,4 50,12 Z" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.8" />
+                            <path d="M50,16 C46,10 39,15 42,21 C45,26 50,32 50,32 C50,32 55,26 58,21 C61,15 54,10 50,16 Z" fill={archBg} />
+                            <circle cx="50" cy="22" r="3" fill="#ffffff" />
+                            <path d="M38,22 C30,16 22,24 28,34 C31,39 37,40 37,40" stroke="url(#silver-metallic-shine)" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                            <circle cx="26" cy="18" r="3.5" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <path d="M22,30 C16,26 12,32 18,39" stroke="url(#silver-metallic-shine)" stroke-width="2" fill="none" stroke-linecap="round" />
+                            <circle cx="14" cy="28" r="2.5" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <path d="M62,22 C70,16 78,24 72,34 C69,39 63,40 63,40" stroke="url(#silver-metallic-shine)" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                            <circle cx="74" cy="18" r="3.5" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <path d="M78,30 C84,26 88,32 82,39" stroke="url(#silver-metallic-shine)" stroke-width="2" fill="none" stroke-linecap="round" />
+                            <circle cx="86" cy="28" r="2.5" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <circle cx="30" cy="45" r="1.5" fill="#ffffff" />
+                            <circle cx="40" cy="46" r="1.5" fill="#ffffff" />
+                            <circle cx="50" cy="46.5" r="1.8" fill="#ffffff" />
+                            <circle cx="60" cy="46" r="1.5" fill="#ffffff" />
+                            <circle cx="70" cy="45" r="1.5" fill="#ffffff" />
+                          </svg>
+                        ) : iconType === "church" ? (
+                          <svg viewBox="0 0 60 60" class="w-full h-full" fill="none">
+                            <path d="M30,4 L30,12 M27,7 L33,7" stroke="url(#silver-metallic-shine)" stroke-width="2" stroke-linecap="round" />
+                            <path d="M26,16 C26,12 34,12 34,16 L35,22 L25,22 Z" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <path d="M28,20 C28,17 32,17 32,20 L32,23 L28,23 Z" fill={archBg} />
+                            <path d="M23,22 L37,22 L37,28 L49,34 L49,54 L11,54 L11,34 L23,28 Z" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.8" />
+                            <path d="M25,54 L25,42 C25,37 35,37 35,42 L35,54 Z" fill={archBg} stroke="#ffffff" stroke-width="0.6" />
+                            <path d="M16,46 L16,40 C16,37 20,37 20,40 L20,46 Z" fill={archBg} />
+                            <path d="M40,46 L40,40 C40,37 44,37 44,40 L44,46 Z" fill={archBg} />
+                            <circle cx="30" cy="32" r="3.5" fill={archBg} stroke="#ffffff" stroke-width="0.6" />
+                            <line x1="8" y1="54" x2="52" y2="54" stroke="url(#silver-metallic-shine)" stroke-width="2" stroke-linecap="round" />
+                          </svg>
+                        ) : iconType === "toast" ? (
+                          <svg viewBox="0 0 60 60" class="w-full h-full" fill="none">
+                            <g transform="translate(14, 8) rotate(15)">
+                              <path d="M10,4 L16,4 L15,18 C15,22 11,22 11,18 Z" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.7" />
+                              <line x1="13" y1="21" x2="13" y2="34" stroke="url(#silver-metallic-shine)" stroke-width="2" />
+                              <ellipse cx="13" cy="35" rx="6" ry="1.5" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            </g>
+                            <g transform="translate(46, 8) rotate(-15)">
+                              <path d="M-16,4 L-10,4 L-11,18 C-11,22 -15,22 -15,18 Z" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.7" />
+                              <line x1="-13" y1="21" x2="-13" y2="34" stroke="url(#silver-metallic-shine)" stroke-width="2" />
+                              <ellipse cx="-13" cy="35" rx="6" ry="1.5" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            </g>
+                            <path d="M30,8 L30,14 M27,11 L33,11" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" />
+                            <circle cx="28" cy="18" r="1" fill="#ffffff" />
+                            <circle cx="32" cy="16" r="1.2" fill="#ffffff" />
+                          </svg>
+                        ) : iconType === "slipper" ? (
+                          <svg viewBox="0 0 60 50" class="w-full h-full" fill="none">
+                            <path d="M48,16 C46,24 38,28 30,30 C20,32 10,38 8,40 C8,40 18,37 28,34 C36,31 42,22 46,15 Z" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.8" />
+                            <path d="M47,20 L45,42 L42,42 L43,26" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <circle cx="15" cy="37" r="2.5" fill="#ffffff" />
+                          </svg>
+                        ) : iconType === "camera" ? (
+                          <svg viewBox="0 0 60 50" class="w-full h-full" fill="none">
+                            <rect x="8" y="16" width="44" height="28" rx="4" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.8" />
+                            <path d="M22,16 L24,11 L36,11 L38,16 Z" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.6" />
+                            <circle cx="15" cy="22" r="2" fill="#ffffff" />
+                            <circle cx="30" cy="30" r="10" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="1.2" />
+                            <circle cx="30" cy="30" r="6" fill={archBg} stroke="#ffffff" stroke-width="0.8" />
+                          </svg>
+                        ) : iconType === "cake" ? (
+                          <svg viewBox="0 0 60 55" class="w-full h-full" fill="none">
+                            <rect x="29" y="8" width="2" height="7" fill="url(#silver-metallic-shine)" />
+                            <path d="M30,3 C29,5 28,6 30,8 C32,6 31,5 30,3 Z" fill="#ffffff" />
+                            <rect x="20" y="15" width="20" height="12" rx="2" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.7" />
+                            <rect x="14" y="27" width="32" height="13" rx="2" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.7" />
+                            <rect x="8" y="40" width="44" height="6" rx="2" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.7" />
+                          </svg>
+                        ) : (
+                          <span class="text-2xl drop-shadow-md">{item.icon || "✨"}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <!-- Columna Derecha: Título y Hora -->
+                    <div class="w-[calc(50%-14px)] pl-3 text-left">
+                      <span
+                        class="quince-serif-caps text-xs sm:text-[13px] font-bold tracking-[0.12em] uppercase block leading-tight text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                      >
+                        {item.title}
+                      </span>
+                      {item.time && (
+                        <span
+                          class="quince-serif-caps text-xs sm:text-[13px] font-bold tracking-wider block text-white/95 mt-0.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]"
+                        >
+                          {item.time}
+                        </span>
+                      )}
+                      {item.description && (
+                        <span class="text-[10px] text-white/80 block mt-0.5 leading-tight font-sans">
+                          {item.description}
+                        </span>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <!-- Columna Izquierda: Título y Hora -->
+                    <div class="w-[calc(50%-14px)] pr-3 text-right">
+                      <span
+                        class="quince-serif-caps text-xs sm:text-[13px] font-bold tracking-[0.12em] uppercase block leading-tight text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                      >
+                        {item.title}
+                      </span>
+                      {item.time && (
+                        <span
+                          class="quince-serif-caps text-xs sm:text-[13px] font-bold tracking-wider block text-white/95 mt-0.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]"
+                        >
+                          {item.time}
+                        </span>
+                      )}
+                      {item.description && (
+                        <span class="text-[10px] text-white/80 block mt-0.5 leading-tight font-sans">
+                          {item.description}
+                        </span>
+                      )}
+                    </div>
+
+                    <!-- Columna Derecha: Ícono Plateado Metálico -->
+                    <div class="w-[calc(50%-14px)] pl-3 flex justify-start items-center">
+                      <div class="w-12 h-11 sm:w-14 sm:h-12 flex items-center justify-start drop-shadow-[0_3px_5px_rgba(0,0,0,0.25)] select-none">
+                        {iconType === "dinner" ? (
+                          <svg viewBox="0 0 80 60" class="w-full h-full" fill="none">
+                            <!-- Fork (Left) -->
+                            <path d="M15,10 C15,10 17,20 16,35 C15.5,42 17,52 16,52 C15,52 14,42 14.5,35 C15,20 13,10 13,10" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <path d="M12,10 L12,22 C12,26 17,26 17,22 L17,10" stroke="url(#silver-metallic-shine)" stroke-width="1.2" fill="none" />
+                            <line x1="13.7" y1="10" x2="13.7" y2="23" stroke="url(#silver-metallic-shine)" stroke-width="1" />
+                            <line x1="15.3" y1="10" x2="15.3" y2="23" stroke="url(#silver-metallic-shine)" stroke-width="1" />
+                            <!-- Plate (Center) -->
+                            <circle cx="40" cy="30" r="23" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="1" />
+                            <circle cx="40" cy="30" r="18" fill="url(#silver-metallic-rim)" stroke="#7e8896" stroke-width="0.8" />
+                            <circle cx="40" cy="30" r="13" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.6" />
+                            <!-- Spoon (Right) -->
+                            <ellipse cx="65" cy="18" rx="5" ry="8" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.8" />
+                            <ellipse cx="65" cy="18" rx="3.5" ry="6" fill="url(#silver-metallic-rim)" />
+                            <path d="M64,25 C64,25 65.5,35 65,42 C64.5,48 65.5,52 65,52 C64,52 63.5,48 64,42 C64.5,35 63,25 63,25 Z" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                          </svg>
+                        ) : iconType === "waltz" ? (
+                          <svg viewBox="0 0 60 65" class="w-full h-full" fill="none">
+                            <!-- Lady (Left) -->
+                            <circle cx="24" cy="14" r="3.5" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <circle cx="21.5" cy="13" r="1.8" fill="url(#silver-metallic-shine)" />
+                            <path d="M24,18 L26,27 L22,27 Z" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <path d="M25,20 C29,20 33,23 35,25" stroke="url(#silver-metallic-shine)" stroke-width="1.8" stroke-linecap="round" fill="none" />
+                            <path d="M24,27 C24,27 16,38 12,56 C22,58 34,58 38,56 C34,44 26,27 24,27 Z" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.8" />
+                            <path d="M23,32 C21,41 19,50 18,56" stroke="#ffffff" stroke-width="0.8" opacity="0.6" fill="none" />
+                            <path d="M26,32 C28,42 30,50 32,56" stroke="#ffffff" stroke-width="0.8" opacity="0.6" fill="none" />
+                            <!-- Gentleman (Right) -->
+                            <circle cx="38" cy="12" r="3.5" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <path d="M34,16 L42,16 L41,30 L36,30 Z" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <path d="M35,18 C32,20 29,22 26,24" stroke="url(#silver-metallic-shine)" stroke-width="1.8" stroke-linecap="round" fill="none" />
+                            <path d="M41,30 L43,44 L39,30 Z" fill="url(#silver-metallic-shine)" />
+                            <path d="M36,30 L35,56 L38,56 L39,38 L40,56 L43,56 L41,30 Z" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                          </svg>
+                        ) : iconType === "crown" ? (
+                          <svg viewBox="0 0 100 50" class="w-full h-full" fill="none">
+                            <path d="M10,44 Q50,48 90,44" stroke="url(#silver-metallic-shine)" stroke-width="3" stroke-linecap="round" fill="none" />
+                            <path d="M14,40 Q50,44 86,40" stroke="url(#silver-metallic-shine)" stroke-width="1.8" fill="none" />
+                            <path d="M50,12 C44,4 34,10 38,20 C42,28 50,38 50,38 C50,38 58,28 62,20 C66,10 56,4 50,12 Z" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.8" />
+                            <path d="M50,16 C46,10 39,15 42,21 C45,26 50,32 50,32 C50,32 55,26 58,21 C61,15 54,10 50,16 Z" fill={archBg} />
+                            <circle cx="50" cy="22" r="3" fill="#ffffff" />
+                            <path d="M38,22 C30,16 22,24 28,34 C31,39 37,40 37,40" stroke="url(#silver-metallic-shine)" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                            <circle cx="26" cy="18" r="3.5" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <path d="M22,30 C16,26 12,32 18,39" stroke="url(#silver-metallic-shine)" stroke-width="2" fill="none" stroke-linecap="round" />
+                            <circle cx="14" cy="28" r="2.5" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <path d="M62,22 C70,16 78,24 72,34 C69,39 63,40 63,40" stroke="url(#silver-metallic-shine)" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                            <circle cx="74" cy="18" r="3.5" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <path d="M78,30 C84,26 88,32 82,39" stroke="url(#silver-metallic-shine)" stroke-width="2" fill="none" stroke-linecap="round" />
+                            <circle cx="86" cy="28" r="2.5" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <circle cx="30" cy="45" r="1.5" fill="#ffffff" />
+                            <circle cx="40" cy="46" r="1.5" fill="#ffffff" />
+                            <circle cx="50" cy="46.5" r="1.8" fill="#ffffff" />
+                            <circle cx="60" cy="46" r="1.5" fill="#ffffff" />
+                            <circle cx="70" cy="45" r="1.5" fill="#ffffff" />
+                          </svg>
+                        ) : iconType === "church" ? (
+                          <svg viewBox="0 0 60 60" class="w-full h-full" fill="none">
+                            <path d="M30,4 L30,12 M27,7 L33,7" stroke="url(#silver-metallic-shine)" stroke-width="2" stroke-linecap="round" />
+                            <path d="M26,16 C26,12 34,12 34,16 L35,22 L25,22 Z" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.5" />
+                            <path d="M28,20 C28,17 32,17 32,20 L32,23 L28,23 Z" fill={archBg} />
+                            <path d="M23,22 L37,22 L37,28 L49,34 L49,54 L11,54 L11,34 L23,28 Z" fill="url(#silver-metallic-shine)" stroke="#ffffff" stroke-width="0.8" />
+                            <path d="M25,54 L25,42 C25,37 35,37 35,42 L35,54 Z" fill={archBg} stroke="#ffffff" stroke-width="0.6" />
+                            <path d="M16,46 L16,40 C16,37 20,37 20,40 L20,46 Z" fill={archBg} />
+                            <path d="M40,46 L40,40 C40,37 44,37 44,40 L44,46 Z" fill={archBg} />
+                            <circle cx="30" cy="32" r="3.5" fill={archBg} stroke="#ffffff" stroke-width="0.6" />
+                            <line x1="8" y1="54" x2="52" y2="54" stroke="url(#silver-metallic-shine)" stroke-width="2" stroke-linecap="round" />
+                          </svg>
+                        ) : (
+                          <span class="text-2xl drop-shadow-md">{item.icon || "✨"}</span>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+<style>
+  .quince-script-title {
+    font-family: var(--font-quince-script, "Great Vibes", "Alex Brush", "Pinyon Script", cursive);
+  }
+
+  .quince-serif-caps {
+    font-family: var(--font-quince-serif, "Cinzel", "Playfair Display", serif);
+  }
+</style>

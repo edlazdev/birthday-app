@@ -107,8 +107,25 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                 ["--secondary" as any]: tenant.theme?.secondary || "#2196f3",
                 ["--tertiary" as any]: tenant.theme?.tertiary || "#e91e63",
                 ["--bg" as any]: tenant.theme?.bg || "#ffffff",
+                ["--font-title" as any]: tenant.fonts?.title?.family ? `'${tenant.fonts.title.family}', serif` : "'Cinzel', serif",
+                ["--font-text" as any]: tenant.fonts?.text?.family ? `'${tenant.fonts.text.family}', sans-serif` : "'Playfair Display', serif",
+                ["--font-script" as any]: tenant.fonts?.title?.family && (tenant.fonts.title.family.includes("Vibes") || tenant.fonts.title.family.includes("Script") || tenant.fonts.title.family.includes("Brush") || tenant.fonts.title.family.includes("Pacifico")) ? `'${tenant.fonts.title.family}', cursive` : "'Great Vibes', cursive",
+                fontFamily: tenant.fonts?.text?.family || "inherit",
               }}
             >
+              {tenant.fonts?.title?.family && (
+                <link
+                  rel="stylesheet"
+                  href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(tenant.fonts.title.family)}:wght@400;600;700&display=swap`}
+                />
+              )}
+              {tenant.fonts?.text?.family && tenant.fonts.text.family !== tenant.fonts.title?.family && (
+                <link
+                  rel="stylesheet"
+                  href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(tenant.fonts.text.family)}:wght@400;600;700&display=swap`}
+                />
+              )}
+
               {/* Floating Navigation Pill (solo si ambas vistas están activadas) */}
               {tenant.showAlbum !== false && tenant.showInvitation !== false && (
                 <div className="sticky top-2 z-20 px-4 pt-2">
@@ -244,30 +261,45 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                 {/* Date & Time Card */}
                 {tenant.type === "quinceanero" ? (
                   <div className="space-y-3">
-                    {/* Quinceañero Date Badge */}
-                    <div
-                      className="py-2.5 px-3 rounded-2xl border text-center"
-                      style={{
-                        backgroundColor: isDark ? "#1d1f24" : "rgba(255, 255, 255, 0.9)",
-                        borderColor: `${tenant.theme?.primary || "#e79db4"}35`,
-                      }}
-                    >
+                    {/* Quinceañero Date Badge (Monograma con doble línea y número cursivo) */}
+                    <div className="py-2.5 px-3 rounded-2xl text-center select-none" style={{ backgroundColor: isDark ? "#1d1f24" : "rgba(255, 255, 255, 0.9)" }}>
                       <span
-                        className="text-[10px] uppercase tracking-widest font-bold block"
-                        style={{ color: tenant.theme?.primary || "#e79db4" }}
+                        className="text-[11px] uppercase font-serif tracking-[0.25em] block mb-1"
+                        style={{ color: tenant.theme?.primary || "#a85d72" }}
                       >
-                        {parsedDate.monthName}
+                        {(tenant.dateBanner?.month || parsedDate.monthName).toUpperCase()}
                       </span>
-                      <div className="flex items-center justify-center gap-2 my-0.5">
-                        <span className="text-[11px] font-serif uppercase tracking-wider opacity-75">
-                          {parsedDate.dayOfWeekName}
-                        </span>
-                        <span className="text-2xl font-bold font-serif" style={{ color: tenant.theme?.primary || "#e79db4" }}>
-                          {parsedDate.day}
-                        </span>
-                        <span className="text-[11px] font-serif uppercase tracking-wider opacity-75">
-                          {parsedDate.year}
-                        </span>
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="flex flex-col items-center justify-center w-20 shrink-0">
+                          <div className="w-full h-[1.5px] bg-[#9fa6b0] rounded-full"></div>
+                          <span
+                            className="text-[10px] uppercase font-serif tracking-[0.2em] py-1 block"
+                            style={{ color: tenant.theme?.primary || "#a85d72" }}
+                          >
+                            {(tenant.dateBanner?.dayOfWeek || parsedDate.dayOfWeekName).toUpperCase()}
+                          </span>
+                          <div className="w-full h-[1.5px] bg-[#9fa6b0] rounded-full"></div>
+                        </div>
+
+                        <div className="px-2 flex items-center justify-center -my-1">
+                          <span
+                            className="text-4xl leading-none italic font-serif"
+                            style={{ color: "#8e95a0" }}
+                          >
+                            {tenant.dateBanner?.day || parsedDate.day}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col items-center justify-center w-20 shrink-0">
+                          <div className="w-full h-[1.5px] bg-[#9fa6b0] rounded-full"></div>
+                          <span
+                            className="text-[10px] uppercase font-serif tracking-widest py-1 block"
+                            style={{ color: tenant.theme?.primary || "#a85d72" }}
+                          >
+                            {tenant.dateBanner?.year || parsedDate.year}
+                          </span>
+                          <div className="w-full h-[1.5px] bg-[#9fa6b0] rounded-full"></div>
+                        </div>
                       </div>
                     </div>
 
@@ -344,49 +376,122 @@ export default function LivePhonePreview({ tenant }: LivePhonePreviewProps) {
                   <div
                     className={
                       tenant.type === "quinceanero"
-                        ? "rounded-t-[36px] rounded-b-2xl p-4 space-y-2.5 border border-[#e79db4]/35 shadow-lg text-center bg-[#282b33]"
+                        ? "rounded-t-[40px] rounded-b-2xl p-3.5 space-y-2 shadow-lg text-center text-white relative overflow-hidden"
                         : `${cardClass} rounded-3xl space-y-2 border-t-4`
                     }
                     style={{
+                      backgroundColor: tenant.type === "quinceanero" ? "#c78596" : undefined,
                       borderTopColor: tenant.theme?.primary,
                     }}
                   >
-                    <div className="text-center pb-1.5 border-b border-white/10">
-                      <span
-                        className="text-xs font-serif italic font-bold tracking-wider block"
-                        style={{ color: tenant.theme?.primary }}
-                      >
-                        Itinerario de Actividades
+                    <div className="text-center pb-1">
+                      <span className="text-sm font-serif block text-white">
+                        {tenant.itineraryConfig?.title || "Itinerario"}
                       </span>
+                      <span className="text-xs font-serif -mt-1 block text-white/90">
+                        {tenant.itineraryConfig?.subtitle || "Actividades"}
+                      </span>
+                      <div className="w-8 h-0.5 bg-white/40 mx-auto mt-1"></div>
                     </div>
-                    <div className="space-y-1.5 text-xs">
-                      {tenant.itinerary.map((item, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-2 py-1 border-b border-white/5 last:border-0 text-left"
-                        >
-                          <span className="w-6 h-6 rounded-full bg-[#e79db4]/20 text-[#e79db4] flex items-center justify-center text-xs shrink-0">
-                            {item.icon || "✨"}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <span className="font-semibold block truncate uppercase text-[10px]">
-                              {item.title}
-                            </span>
-                            {item.description && (
-                              <span className="text-[9px] opacity-70 block truncate">
-                                {item.description}
-                              </span>
-                            )}
+                    {/* Alternating timeline preview */}
+                    <div className="relative py-1">
+                      <div className="absolute left-1/2 -translate-x-1/2 top-1 bottom-1 w-[1.5px] bg-white/60"></div>
+                      <div className="space-y-2.5 relative">
+                        {tenant.itinerary.map((item, idx) => {
+                          const isEven = idx % 2 === 0;
+                          return (
+                            <div key={idx} className="relative flex items-center justify-between text-[9px] min-h-[24px]">
+                              <div className="absolute left-1/2 -translate-x-1/2 z-10 w-2.5 h-2.5 rounded-full border border-white bg-pink-800"></div>
+                              {isEven ? (
+                                <>
+                                  <div className="w-[calc(50%-8px)] pr-1.5 text-right text-xs select-none">{item.icon || "✨"}</div>
+                                  <div className="w-[calc(50%-8px)] pl-1.5 text-left text-white">
+                                    <span className="font-bold block uppercase tracking-wider leading-tight">{item.title}</span>
+                                    <span className="text-[8px] text-white/90">{item.time}</span>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="w-[calc(50%-8px)] pr-1.5 text-right text-white">
+                                    <span className="font-bold block uppercase tracking-wider leading-tight">{item.title}</span>
+                                    <span className="text-[8px] text-white/90">{item.time}</span>
+                                  </div>
+                                  <div className="w-[calc(50%-8px)] pl-1.5 text-left text-xs select-none">{item.icon || "✨"}</div>
+                                </>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Dress Code Preview (if enabled) */}
+                {tenant.showDressCode !== false && (
+                  <div
+                    className="text-center p-3.5 rounded-2xl border space-y-1.5 shadow-sm"
+                    style={{
+                      backgroundColor: isDark ? "#1d1f24" : "rgba(255, 255, 255, 0.9)",
+                      borderColor: `${tenant.theme?.primary || "#e79db4"}35`,
+                    }}
+                  >
+                    <span
+                      className="text-xs font-serif italic block"
+                      style={{ color: tenant.theme?.primary || "#e79db4" }}
+                    >
+                      {tenant.dressCodeConfig?.title || "Código de vestimenta"}
+                    </span>
+                    <span
+                      className="text-[9px] uppercase tracking-[0.25em] font-semibold block text-slate-700 dark:text-slate-300"
+                    >
+                      {(tenant.dressCodeConfig?.category || "FORMAL").split("").join(" ")}
+                    </span>
+                    <div className="flex items-center justify-center gap-3 py-1 text-slate-700 dark:text-slate-300">
+                      {/* Mini Tuxedo */}
+                      <svg viewBox="0 0 80 90" className="w-8 h-9" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 20 L10 50 L18 48 L20 34" />
+                        <path d="M58 20 L70 50 L62 48 L60 34" />
+                        <path d="M20 34 L23 74 C34 76 46 76 57 74 L60 34" />
+                        <path d="M22 20 L30 14 L50 14 L58 20" />
+                        <path d="M30 14 L29 28 L35 32 L31 37 L40 54 L49 37 L45 32 L51 28 L50 14" />
+                        <path d="M34 18 L40 25 L46 18" />
+                        <path d="M38.5 25 L41.5 25 L42.5 29 L41 46 L40 49 L39 46 L37.5 29 Z" />
+                        <path d="M40 54 L40 75" />
+                        <circle cx="40" cy="62" r="1.3" fill="currentColor" stroke="none" />
+                      </svg>
+                      {/* Mini Dress */}
+                      <svg viewBox="0 0 80 90" className="w-8 h-9" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M32 16 L35 16 M45 16 L48 16" />
+                        <path d="M35 16 Q40 24 45 16" />
+                        <path d="M32 16 C29 22 29 27 32 35" />
+                        <path d="M48 16 C51 22 51 27 48 35" />
+                        <path d="M32 35 Q40 37 48 35" />
+                        <path d="M32.5 38 Q40 40 47.5 38" />
+                        <path d="M32.5 38 C30 52 23 68 16 80 Q40 84 64 80 C57 68 50 52 47.5 38" />
+                        <path d="M29 80 C32 66 35 52 36 38" />
+                        <path d="M40 82 C40 68 40 52 40 40" />
+                        <path d="M51 80 C48 66 45 52 44 38" />
+                      </svg>
+                    </div>
+                    <p className="text-[8.5px] leading-tight text-slate-600 dark:text-slate-400 max-w-[200px] mx-auto">
+                      {tenant.dressCodeConfig?.message ||
+                        "Con mucho cariño le pedimos evitar el color Plateado, Rosa y Fucsia está reservado para la quinceañera"}
+                    </p>
+                    {tenant.dressCodeConfig?.showColors !== false && (
+                      <div className="flex items-center justify-center gap-1.5 pt-1">
+                        {(tenant.dressCodeConfig?.reservedColors || [
+                          { name: "Plateado", hex: "#c5cad1" },
+                          { name: "Rosa", hex: "#f4a6b8" },
+                          { name: "Fucsia", hex: "#d946ef" },
+                        ]).map((c, i) => (
+                          <div key={i} className="flex items-center gap-0.5">
+                            <span className="w-2 h-2 rounded-full border border-stone-300 dark:border-stone-600" style={{ background: c.hex }}></span>
+                            <span className="text-[7px] text-slate-500">{c.name}</span>
                           </div>
-                          <span
-                            className="text-[10px] font-bold shrink-0"
-                            style={{ color: tenant.theme?.primary }}
-                          >
-                            {item.time}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 

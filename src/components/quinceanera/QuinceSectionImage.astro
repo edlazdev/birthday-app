@@ -1,0 +1,46 @@
+---
+interface Props {
+  src?: string;
+  alt?: string;
+  aspectRatio?: "square" | "portrait" | "wide" | "auto";
+  className?: string;
+  caption?: string;
+  border?: boolean;
+}
+
+const {
+  src,
+  alt = "Fotografía",
+  aspectRatio = "portrait",
+  className = "",
+  caption,
+  border = false,
+} = Astro.props;
+
+if (!src) return null;
+
+const aspectClass = {
+  square: "aspect-square",
+  portrait: "aspect-[3/4]",
+  wide: "aspect-[16/9]",
+  auto: "",
+}[aspectRatio];
+---
+
+<div class={`quince-section-image-wrapper my-4 w-full flex flex-col items-center justify-center ${className}`}>
+  <div
+    class={`quince-portrait-box w-full rounded-2xl overflow-hidden shadow-md ${aspectClass} ${border ? "border border-[#edd6dc]" : ""}`}
+  >
+    <img
+      src={src}
+      alt={alt}
+      class="w-full h-full object-cover select-none"
+      loading="lazy"
+    />
+  </div>
+  {caption && (
+    <p class="text-[11px] text-gray-500 font-serif italic mt-1.5 text-center">
+      {caption}
+    </p>
+  )}
+</div>

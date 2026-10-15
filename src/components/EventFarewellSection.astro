@@ -1,0 +1,66 @@
+---
+export interface Props {
+  message?: string;
+  signature?: string;
+  primaryColor?: string;
+  textColor?: string;
+  className?: string;
+}
+
+const {
+  message = "TU PRESENCIA HARÁ DE ESA NOCHE ALGO ESPECIAL, ÚNICA E INOLVIDABLE",
+  signature = "¡Te esperamos!",
+  primaryColor = "#a85d72",
+  textColor = "#1f2937",
+  className = "",
+} = Astro.props;
+
+const cleanMessage = message?.trim();
+const cleanSignature = signature?.trim();
+---
+
+{(cleanMessage || cleanSignature) && (
+  <section
+    class={`event-farewell-section text-center select-none py-6 px-4 space-y-3 ${className}`}
+    aria-label="Mensaje de despedida"
+  >
+    {cleanMessage && (
+      <p
+        class="quince-serif-caps text-xs sm:text-sm font-medium tracking-[0.16em] uppercase leading-relaxed max-w-xs sm:max-w-sm mx-auto whitespace-pre-line"
+        style={`color: ${textColor};`}
+      >
+        {cleanMessage}
+      </p>
+    )}
+
+    {cleanSignature && (
+      <p
+        class="quince-script-title text-3xl sm:text-4xl font-normal leading-tight mt-1 sm:mt-2 drop-shadow-xs"
+        style={`color: ${primaryColor};`}
+      >
+        {cleanSignature}
+      </p>
+    )}
+  </section>
+)}
+
+<style>
+  .quince-script-title {
+    font-family: var(
+      --font-quince-script,
+      "Great Vibes",
+      "Alex Brush",
+      "Pinyon Script",
+      cursive
+    );
+  }
+
+  .quince-serif-caps {
+    font-family: var(
+      --font-quince-serif,
+      "Cinzel",
+      "Playfair Display",
+      serif
+    );
+  }
+</style>

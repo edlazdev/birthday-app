@@ -49,7 +49,7 @@ if (!forceInvitation && data.showInvitation === false && data.showAlbum !== fals
   </html>
 ) : data.type === "quinceanero" ? (
   <EventLayout eventData={data}>
-    <main class="quince-root-container">
+    <main class="quince-root-container m-0 p-0">
       <EventNav slug={data.slug} showAlbum={data.showAlbum} showInvitation={data.showInvitation} />
       <QuinceaneraInvitation eventData={data} />
     </main>

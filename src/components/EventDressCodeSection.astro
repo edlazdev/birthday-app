@@ -1,0 +1,181 @@
+---
+export interface DressCodeColor {
+  name: string;
+  hex: string;
+}
+
+export interface Props {
+  title?: string;
+  category?: string;
+  message?: string;
+  showColors?: boolean;
+  reservedColors?: DressCodeColor[];
+  primaryColor?: string;
+  textColor?: string;
+  textMutedColor?: string;
+  className?: string;
+}
+
+const {
+  title = "Código de vestimenta",
+  category = "FORMAL",
+  message = "Con mucho cariño le pedimos evitar el color Plateado, Rosa y Fucsia está reservado para la quinceañera",
+  showColors = true,
+  reservedColors = [
+    { name: "Plateado", hex: "#c5cad1" },
+    { name: "Rosa", hex: "#f4a6b8" },
+    { name: "Fucsia", hex: "#d946ef" },
+  ],
+  primaryColor = "#a85d72",
+  textColor = "#1f2937",
+  textMutedColor = "#4b5563",
+  className = "",
+} = Astro.props;
+
+const hasReservedColors = showColors && reservedColors && reservedColors.length > 0;
+---
+
+<section
+  class={`event-dress-code-section text-center select-none py-4 px-3 sm:px-6 space-y-3 ${className}`}
+  aria-label={title}
+>
+  <!-- 1. Título Cursivo / Caligrafía Elegante -->
+  {title && (
+    <h3
+      class="quince-script-title text-3xl sm:text-4xl font-normal leading-tight drop-shadow-xs"
+      style={`color: ${primaryColor};`}
+    >
+      {title}
+    </h3>
+  )}
+
+  <!-- 2. Categoría / Estilo (FORMAL, ETIQUETA, etc.) -->
+  {category && (
+    <div
+      class="quince-serif-caps text-xs sm:text-sm font-semibold tracking-[0.28em] uppercase select-none -mt-1"
+      style={`color: ${textColor};`}
+    >
+      {category.split("").join(" ")}
+    </div>
+  )}
+
+  <!-- 3. Iconos Line-Art: Traje Formal (Tuxedo) y Vestido de Gala -->
+  <div class="flex items-center justify-center gap-4 sm:gap-6 py-1 my-0.5 text-stone-700">
+    <!-- Tuxedo / Traje -->
+    <div
+      class="transition-transform hover:scale-105 duration-300"
+      title="Traje formal / smoking"
+    >
+      <svg
+        viewBox="0 0 80 90"
+        class="w-14 h-16 sm:w-16 sm:h-20 drop-shadow-xs"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <!-- Mangas -->
+        <path d="M22 20 L10 50 L18 48 L20 34"></path>
+        <path d="M58 20 L70 50 L62 48 L60 34"></path>
+        <!-- Silueta del cuerpo -->
+        <path d="M20 34 L23 74 C34 76 46 76 57 74 L60 34"></path>
+        <path d="M22 20 L30 14 L50 14 L58 20"></path>
+        <!-- Solapas en punta / V abierta -->
+        <path d="M30 14 L29 28 L35 32 L31 37 L40 54 L49 37 L45 32 L51 28 L50 14"></path>
+        <!-- Cuello camisa -->
+        <path d="M34 18 L40 25 L46 18"></path>
+        <!-- Corbata / Moño -->
+        <path d="M38.5 25 L41.5 25 L42.5 29 L41 46 L40 49 L39 46 L37.5 29 Z"></path>
+        <!-- Costura central y botón -->
+        <path d="M40 54 L40 75"></path>
+        <circle cx="40" cy="62" r="1.3" fill="currentColor" stroke="none"></circle>
+        <!-- Bolsillo de pecho -->
+        <path d="M25 40 L30 39"></path>
+      </svg>
+    </div>
+
+    <!-- Vestido de Gala -->
+    <div
+      class="transition-transform hover:scale-105 duration-300"
+      title="Vestido de noche / gala"
+    >
+      <svg
+        viewBox="0 0 80 90"
+        class="w-14 h-16 sm:w-16 sm:h-20 drop-shadow-xs"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <!-- Tirantes -->
+        <path d="M32 16 L35 16 M45 16 L48 16"></path>
+        <!-- Escote elegante corazón / V -->
+        <path d="M35 16 Q40 24 45 16"></path>
+        <!-- Sisas y torso entallado -->
+        <path d="M32 16 C29 22 29 27 32 35"></path>
+        <path d="M48 16 C51 22 51 27 48 35"></path>
+        <!-- Cintura entallada / Faja -->
+        <path d="M32 35 Q40 37 48 35"></path>
+        <path d="M32.5 38 Q40 40 47.5 38"></path>
+        <!-- Falda larga con caída acampanada -->
+        <path d="M32.5 38 C30 52 23 68 16 80 Q40 84 64 80 C57 68 50 52 47.5 38"></path>
+        <!-- Pliegues y vuelo del vestido -->
+        <path d="M29 80 C32 66 35 52 36 38"></path>
+        <path d="M40 82 C40 68 40 52 40 40"></path>
+        <path d="M51 80 C48 66 45 52 44 38"></path>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 4. Mensaje de Colores Reservados -->
+  {message && (
+    <div class="max-w-xs sm:max-w-sm mx-auto px-1">
+      <p
+        class="quince-dress-message text-xs sm:text-[13px] font-normal leading-relaxed"
+        style={`color: ${textMutedColor}; font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif;`}
+      >
+        {message}
+      </p>
+    </div>
+  )}
+
+  <!-- 5. Muestras visuales de colores reservados (Pastillas / Círculos elegantes) -->
+  {hasReservedColors && (
+    <div class="flex items-center justify-center gap-3 pt-1">
+      {reservedColors.map((color) => (
+        <div class="flex flex-col items-center gap-1 group">
+          <div
+            class="w-5 h-5 rounded-full shadow-xs border border-stone-200/90 transition-transform group-hover:scale-110"
+            style={`background: ${color.hex === "#c5cad1" ? "linear-gradient(135deg, #e5e7eb 0%, #c5cbd3 50%, #9ca3af 100%)" : color.hex};`}
+            title={`Color ${color.name}`}
+          ></div>
+          <span
+            class="text-[9px] uppercase tracking-wider font-semibold text-stone-500"
+            style="font-family: var(--font-quince-sans, 'Montserrat', sans-serif);"
+          >
+            {color.name}
+          </span>
+        </div>
+      ))}
+    </div>
+  )}
+</section>
+
+<style>
+  .quince-script-title {
+    font-family: var(--font-quince-script, "Great Vibes", "Alex Brush", "Pinyon Script", cursive);
+  }
+
+  .quince-serif-caps {
+    font-family: var(--font-quince-serif, "Cinzel", "Playfair Display", serif);
+  }
+
+  .quince-dress-message {
+    font-family: var(--font-quince-sans, "Montserrat", sans-serif);
+    letter-spacing: 0.01em;
+  }
+</style>

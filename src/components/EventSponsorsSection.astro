@@ -1,0 +1,118 @@
+---
+export interface Props {
+  introText?: string;
+  parentsLabel?: string;
+  parents?: string[];
+  godparentsLabel?: string;
+  godparents?: string[];
+  primaryColor?: string;
+  textColor?: string;
+  className?: string;
+}
+
+const {
+  introText = "ACOMPÁÑAME EN ESTE DÍA\nTAN ESPECIAL JUNTO A",
+  parentsLabel = "MIS PADRES:",
+  parents = [],
+  godparentsLabel = "MIS PADRINOS:",
+  godparents = [],
+  primaryColor = "#a85d72",
+  textColor = "#1f2937",
+  className = "",
+} = Astro.props;
+
+const cleanParents = (parents || []).filter(Boolean);
+const cleanGodparents = (godparents || []).filter(Boolean);
+const hasParents = cleanParents.length > 0;
+const hasGodparents = cleanGodparents.length > 0;
+
+// Función para formatear pareja con '&'
+function formatCouple(names: string[]): string[] {
+  if (names.length === 0) return [];
+  if (names.length === 1) return [names[0].trim()];
+  if (names.length === 2) {
+    const first = names[0].trim();
+    const second = names[1].trim();
+    const formattedFirst = first.endsWith("&") ? first : `${first} &`;
+    return [formattedFirst, second];
+  }
+  // Si son más de 2 nombres
+  return names.map((name, i) => {
+    const trimmed = name.trim();
+    if (i < names.length - 1 && !trimmed.endsWith("&")) {
+      return `${trimmed} &`;
+    }
+    return trimmed;
+  });
+}
+
+const formattedParents = formatCouple(cleanParents);
+const formattedGodparents = formatCouple(cleanGodparents);
+const introLines = introText ? introText.split(/\r?\n/) : [];
+---
+
+{(hasParents || hasGodparents) && (
+  <div class={`event-sponsors-section text-center select-none py-3 px-2 space-y-3 ${className}`}>
+    <!-- Texto Introductorio en 2 Líneas -->
+    {introLines.length > 0 && (
+      <div
+        class="quince-serif-caps text-xs sm:text-sm font-medium tracking-[0.14em] uppercase leading-snug space-y-0.5"
+        style={`color: ${textColor};`}
+      >
+        {introLines.map((line) => (
+          <p>{line.trim()}</p>
+        ))}
+      </div>
+    )}
+
+    <!-- Bloque Mis Padres -->
+    {hasParents && (
+      <div class="space-y-1">
+        {parentsLabel && (
+          <span
+            class="quince-serif-caps text-[11px] sm:text-xs uppercase tracking-[0.2em] font-semibold block"
+            style={`color: ${primaryColor};`}
+          >
+            {parentsLabel}
+          </span>
+        )}
+        <div
+          class="quince-serif-caps text-sm sm:text-base font-bold tracking-[0.12em] uppercase leading-tight space-y-0.5"
+          style={`color: ${textColor};`}
+        >
+          {formattedParents.map((line) => (
+            <p>{line}</p>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <!-- Bloque Mis Padrinos -->
+    {hasGodparents && (
+      <div class="space-y-1">
+        {godparentsLabel && (
+          <span
+            class="quince-serif-caps text-[11px] sm:text-xs uppercase tracking-[0.2em] font-semibold block"
+            style={`color: ${primaryColor};`}
+          >
+            {godparentsLabel}
+          </span>
+        )}
+        <div
+          class="quince-serif-caps text-sm sm:text-base font-bold tracking-[0.12em] uppercase leading-tight space-y-0.5"
+          style={`color: ${textColor};`}
+        >
+          {formattedGodparents.map((line) => (
+            <p>{line}</p>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+)}
+
+<style>
+  .quince-serif-caps {
+    font-family: var(--font-quince-serif, "Cinzel", "Playfair Display", serif);
+  }
+</style>

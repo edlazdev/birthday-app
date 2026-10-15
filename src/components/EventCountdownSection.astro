@@ -1,0 +1,195 @@
+---
+export interface Props {
+  title?: string;
+  targetIso?: string;
+  initialDays?: number | string;
+  initialHours?: number | string;
+  initialMinutes?: number | string;
+  initialSeconds?: number | string;
+  hasPassed?: boolean;
+  celebrationText?: string;
+  primaryColor?: string;
+  textColor?: string;
+  subtleColor?: string;
+  accentColor?: string;
+  className?: string;
+}
+
+const {
+  title = "Solo faltan",
+  targetIso = "",
+  initialDays = 0,
+  initialHours = 0,
+  initialMinutes = 0,
+  initialSeconds = 0,
+  hasPassed = false,
+  celebrationText = "🎉 ¡Llegó el gran día!",
+  primaryColor = "#a85d72",
+  textColor = "#1f2937",
+  subtleColor = "#9ca3af",
+  accentColor = "#d6336c",
+  className = "",
+} = Astro.props;
+---
+
+<section
+  class={`event-countdown-section py-4 px-2 text-center select-none ${className}`}
+  aria-label={title}
+>
+  <!-- 1. Título Caligráfico / Script -->
+  {title && (
+    <span
+      class="quince-script-title text-4xl sm:text-5xl block mb-1 drop-shadow-xs"
+      style={`color: ${textColor};`}
+    >
+      {title}
+    </span>
+  )}
+
+  <!-- 2. Cajas del Contador Digital / Números Grandes -->
+  <div
+    class="countdown-display flex items-center justify-center gap-2 sm:gap-3 my-3"
+    id="quince-live-countdown"
+    data-target={targetIso}
+  >
+    <div class="timer-box flex flex-col items-center">
+      <span
+        class="text-2xl sm:text-3xl font-extrabold leading-none"
+        id="q-days"
+        style={`color: ${textColor}; font-family: var(--font-quince-sans, 'Montserrat', sans-serif);`}
+      >
+        {String(initialDays).padStart(2, "0")}
+      </span>
+      <span
+        class="text-[9px] uppercase tracking-wider mt-1 font-semibold"
+        style={`color: ${subtleColor}; font-family: var(--font-quince-sans, 'Montserrat', sans-serif);`}
+      >
+        Días
+      </span>
+    </div>
+
+    <span
+      class="text-xl font-bold -mt-3.5 select-none"
+      style={`color: ${primaryColor};`}
+    >
+      :
+    </span>
+
+    <div class="timer-box flex flex-col items-center">
+      <span
+        class="text-2xl sm:text-3xl font-extrabold leading-none"
+        id="q-hours"
+        style={`color: ${textColor}; font-family: var(--font-quince-sans, 'Montserrat', sans-serif);`}
+      >
+        {String(initialHours).padStart(2, "0")}
+      </span>
+      <span
+        class="text-[9px] uppercase tracking-wider mt-1 font-semibold"
+        style={`color: ${subtleColor}; font-family: var(--font-quince-sans, 'Montserrat', sans-serif);`}
+      >
+        Horas
+      </span>
+    </div>
+
+    <span
+      class="text-xl font-bold -mt-3.5 select-none"
+      style={`color: ${primaryColor};`}
+    >
+      :
+    </span>
+
+    <div class="timer-box flex flex-col items-center">
+      <span
+        class="text-2xl sm:text-3xl font-extrabold leading-none"
+        id="q-minutes"
+        style={`color: ${textColor}; font-family: var(--font-quince-sans, 'Montserrat', sans-serif);`}
+      >
+        {String(initialMinutes).padStart(2, "0")}
+      </span>
+      <span
+        class="text-[9px] uppercase tracking-wider mt-1 font-semibold"
+        style={`color: ${subtleColor}; font-family: var(--font-quince-sans, 'Montserrat', sans-serif);`}
+      >
+        Minutos
+      </span>
+    </div>
+
+    <span
+      class="text-xl font-bold -mt-3.5 select-none"
+      style={`color: ${primaryColor};`}
+    >
+      :
+    </span>
+
+    <div class="timer-box flex flex-col items-center">
+      <span
+        class="text-2xl sm:text-3xl font-extrabold leading-none"
+        id="q-seconds"
+        style={`color: ${textColor}; font-family: var(--font-quince-sans, 'Montserrat', sans-serif);`}
+      >
+        {String(initialSeconds).padStart(2, "0")}
+      </span>
+      <span
+        class="text-[9px] uppercase tracking-wider mt-1 font-semibold"
+        style={`color: ${subtleColor}; font-family: var(--font-quince-sans, 'Montserrat', sans-serif);`}
+      >
+        Segundos
+      </span>
+    </div>
+  </div>
+
+  <!-- 3. Badge Festivo cuando se cumple la fecha -->
+  <div
+    id="q-celebration"
+    class={`text-xs font-bold tracking-wide mt-2 py-1 px-3.5 rounded-full inline-block shadow-xs transition-all ${hasPassed ? "" : "hidden"}`}
+    style={`background-color: #fce7f3; color: ${accentColor}; font-family: var(--font-text, 'Montserrat', sans-serif);`}
+  >
+    {celebrationText}
+  </div>
+</section>
+
+<!-- Script reactivo para el contador de tiempo -->
+<script is:inline>
+  (function initLiveCountdown() {
+    const el = document.getElementById("quince-live-countdown");
+    if (!el) return;
+    const targetIso = el.getAttribute("data-target");
+    if (!targetIso) return;
+
+    const targetTime = new Date(targetIso).getTime();
+    if (isNaN(targetTime)) return;
+
+    const dEl = document.getElementById("q-days");
+    const hEl = document.getElementById("q-hours");
+    const mEl = document.getElementById("q-minutes");
+    const sEl = document.getElementById("q-seconds");
+    const celebrationEl = document.getElementById("q-celebration");
+
+    function update() {
+      const now = Date.now();
+      const diff = Math.max(0, targetTime - now);
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      if (dEl) dEl.textContent = String(days).padStart(2, "0");
+      if (hEl) hEl.textContent = String(hours).padStart(2, "0");
+      if (mEl) mEl.textContent = String(minutes).padStart(2, "0");
+      if (sEl) sEl.textContent = String(seconds).padStart(2, "0");
+
+      if (diff === 0 && celebrationEl) {
+        celebrationEl.classList.remove("hidden");
+      }
+    }
+
+    update();
+    setInterval(update, 1000);
+  })();
+</script>
+
+<style>
+  .quince-script-title {
+    font-family: var(--font-quince-script, "Great Vibes", "Alex Brush", "Pinyon Script", cursive);
+  }
+</style>

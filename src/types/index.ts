@@ -30,7 +30,7 @@ export type {
 } from "./components";
 
 // Data types
-export type { EventData, ThemeVariables, EventFeatures, EventType, ItineraryItem } from "./components";
+export type { EventData, ThemeVariables, EventFeatures, EventType, ItineraryItem, FarewellConfig, GiftConfig } from "./components";
 export type { PublicationRequest } from "@/services/payments";
 
 

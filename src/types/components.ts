@@ -120,6 +120,61 @@ export interface ItineraryItem {
   icon?: string;
 }
 
+export interface EventLocationInfo {
+  enabled?: boolean;
+  title?: string;
+  date?: string;
+  time?: string;
+  place?: string;
+  address?: string;
+  mapUrl?: string;
+  showMap?: boolean;
+}
+
+export interface EventDateBannerData {
+  month?: string;
+  dayOfWeek?: string;
+  day?: string | number;
+  year?: string | number;
+}
+
+export interface SponsorsConfig {
+  introText?: string;
+  parentsLabel?: string;
+  godparentsLabel?: string;
+  outroText?: string;
+}
+
+export interface DressCodeColor {
+  name: string;
+  hex: string;
+}
+
+export interface DressCodeConfig {
+  title?: string;
+  category?: string;
+  message?: string;
+  showColors?: boolean;
+  reservedColors?: DressCodeColor[];
+}
+
+export interface FarewellConfig {
+  message?: string;
+  signature?: string;
+}
+
+export interface GiftConfig {
+  title?: string;
+  message?: string;
+  buttonText?: string;
+  accountHolder?: string;
+  bank?: string;
+  phone?: string;
+  accountNumber?: string;
+  qrImageUrl?: string;
+  note?: string;
+}
+
 export type EventFeatures = {
   showInvitation?: boolean;
   showAlbum?: boolean;
@@ -128,10 +183,28 @@ export type EventFeatures = {
   showMap?: boolean;
   showRsvp?: boolean;
   showGifts?: boolean;
+  showDressCode?: boolean;
+  show_dress_code?: boolean;
+  showFarewell?: boolean;
+  show_farewell?: boolean;
   showSponsors?: boolean;
   showWitnesses?: boolean;
   showSocialLinks?: boolean;
   showItinerary?: boolean;
+  showCeremony?: boolean;
+  ceremony?: EventLocationInfo;
+  reception?: EventLocationInfo;
+  dateBanner?: EventDateBannerData;
+  sponsors_config?: SponsorsConfig;
+  sponsorsConfig?: SponsorsConfig;
+  itinerary_config?: ItineraryConfig;
+  itineraryConfig?: ItineraryConfig;
+  dress_code_config?: DressCodeConfig;
+  dressCodeConfig?: DressCodeConfig;
+  farewell_config?: FarewellConfig;
+  farewellConfig?: FarewellConfig;
+  gift_config?: GiftConfig;
+  giftConfig?: GiftConfig;
 };
 
 export type EventData = {
@@ -181,10 +254,15 @@ export type EventData = {
   showMap?: boolean;
   showRsvp?: boolean;
   showGifts?: boolean;
+  showDressCode?: boolean;
   showSponsors?: boolean;
   showWitnesses?: boolean;
   showSocialLinks?: boolean;
   showItinerary?: boolean;
+  showCeremony?: boolean;
+  ceremony?: EventLocationInfo;
+  reception?: EventLocationInfo;
+  dateBanner?: EventDateBannerData;
   features?: EventFeatures;
   /** Cronograma o itinerario de actividades del evento */
   itinerary?: ItineraryItem[];
@@ -192,6 +270,9 @@ export type EventData = {
   coverUrl?: string;
   avatarUrl?: string;
   albumUrls?: string[];
+  middlePhotoUrl?: string;
+  finalPhotoUrl?: string;
+  qrImageUrl?: string;
   backgroundVideo?: {
     // Video único para todas las páginas (compatibilidad hacia atrás)
     youtubeId?: string;
@@ -223,4 +304,16 @@ export type EventData = {
   };
   /** Bodas: testigos (lista única para ambos). Si está vacío o no se define, no se muestra el bloque. */
   witnesses?: string[];
+  /** Configuración visual de textos y etiquetas para la sección de Padrinos/Padres */
+  sponsorsConfig?: SponsorsConfig;
+  /** Configuración visual de encabezados del Itinerario en Arco */
+  itineraryConfig?: ItineraryConfig;
+  /** Configuración visual del Código de Vestimenta (Dress Code) */
+  dressCodeConfig?: DressCodeConfig;
+  /** Si es true (por defecto), se muestra el mensaje de despedida / cierre */
+  showFarewell?: boolean;
+  /** Configuración visual del Mensaje de Despedida y Te esperamos */
+  farewellConfig?: FarewellConfig;
+  /** Configuración visual de la sección de Sugerencia de Regalos / Lluvia de Sobres */
+  giftConfig?: GiftConfig;
 };

@@ -1,0 +1,252 @@
+---
+export interface Props {
+  id?: string;
+  type?: "ceremony" | "reception" | "party" | "custom";
+  icon?: "church" | "reception" | "rings" | "party" | "none";
+  iconColor?: string;
+  title: string;
+  date?: string;
+  time?: string;
+  place?: string;
+  address?: string;
+  mapUrl?: string;
+  showMap?: boolean;
+  buttonText?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  textColor?: string;
+  textMutedColor?: string;
+  className?: string;
+}
+
+const {
+  id,
+  type = "ceremony",
+  icon = type === "reception" ? "reception" : "church",
+  iconColor = "#9fa6b0",
+  title,
+  date,
+  time,
+  place,
+  address,
+  mapUrl,
+  showMap = true,
+  buttonText = "VER UBICACIÓN",
+  primaryColor = "#a85d72",
+  accentColor = "#ba6d82",
+  textColor = "#1f2937",
+  textMutedColor = "#6b7280",
+  className = "",
+} = Astro.props;
+
+const hasDateTime = Boolean(date || time);
+const hasButton = showMap && Boolean(mapUrl);
+const addressLines = address ? address.split(/\r?\n/) : [];
+---
+
+<div
+  id={id}
+  class={`event-location-card py-5 px-3 space-y-3 text-center ${className}`}
+>
+  <!-- Icono Superior en Trazo Plateado / Gris Elegante -->
+  {icon !== "none" && (
+    <div
+      class="w-11 h-11 mx-auto flex items-center justify-center transition-transform hover:scale-105"
+      style={`color: ${iconColor};`}
+    >
+      {icon === "church" && (
+        <svg
+          viewBox="0 0 48 48"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="w-10 h-10 drop-shadow-xs"
+        >
+          <!-- Cruz en la aguja -->
+          <path d="M24 2.5v5M21.5 5h5"></path>
+          <!-- Techo agudo del campanario -->
+          <path d="M20 12l4-4.5 4 4.5"></path>
+          <!-- Muros del campanario -->
+          <path d="M21 12v5h6v-5"></path>
+          <!-- Arco / abertura del campanario -->
+          <path d="M23 14.5a1 1 0 0 1 2 0v2.5h-2z"></path>
+          <!-- Cornisa central -->
+          <path d="M19.5 17h9"></path>
+          <!-- Techo central nave principal -->
+          <path d="M19 21.5l5-4.5 5 4.5"></path>
+          <!-- Caída techos naves laterales -->
+          <path d="M19 21.5l-7.5 4M29 21.5l7.5 4"></path>
+          <!-- Muros exteriores laterales -->
+          <path d="M11.5 25.5v13.5M36.5 25.5v13.5"></path>
+          <!-- Ventanas con arco naves laterales -->
+          <path d="M14 30.5a1.2 1.2 0 0 1 2.4 0v4.5H14z"></path>
+          <path d="M31.6 30.5a1.2 1.2 0 0 1 2.4 0v4.5h-2.4z"></path>
+          <!-- Columnas / muros nave central -->
+          <path d="M19 21.5v17.5M29 21.5v17.5"></path>
+          <!-- Puerta principal en arco -->
+          <path d="M21.5 39v-8.5a2.5 2.5 0 0 1 5 0v8.5"></path>
+          <!-- Línea base de soporte -->
+          <path d="M9.5 39h29"></path>
+        </svg>
+      )}
+
+      {icon === "reception" && (
+        <svg
+          viewBox="0 0 48 48"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="w-10 h-10 drop-shadow-xs"
+        >
+          <!-- Copa Izquierda -->
+          <path d="M16 8l3 10c1 3.5 3.5 4.5 5 4.5"></path>
+          <path d="M20 8l-1 10c-.5 2.5-2 4-4.5 4.5"></path>
+          <path d="M16 8h4"></path>
+          <path d="M18.5 22.5v13.5"></path>
+          <path d="M14 36h9"></path>
+          <!-- Copa Derecha -->
+          <path d="M32 8l-3 10c-1 3.5-3.5 4.5-5 4.5"></path>
+          <path d="M28 8l1 10c.5 2.5 2 4 4.5 4.5"></path>
+          <path d="M28 8h4"></path>
+          <path d="M29.5 22.5v13.5"></path>
+          <path d="M25 36h9"></path>
+          <!-- Destellos de brindis -->
+          <path d="M24 10v-3M22.5 8.5h3"></path>
+          <circle cx="21" cy="13" r="0.8" fill="currentColor"></circle>
+          <circle cx="27" cy="13" r="0.8" fill="currentColor"></circle>
+        </svg>
+      )}
+
+      {icon === "rings" && (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="w-9 h-9"
+        >
+          <circle cx="8" cy="12" r="5"></circle>
+          <circle cx="16" cy="12" r="5"></circle>
+          <path d="M8 7l1-2h2l1 2"></path>
+        </svg>
+      )}
+
+      {icon === "party" && (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="w-9 h-9"
+        >
+          <path d="M4 22l8-16 8 16H4z"></path>
+          <circle cx="12" cy="5" r="1"></circle>
+        </svg>
+      )}
+    </div>
+  )}
+
+  <!-- Título Cursivo Elegante (ej. Misa, Recepción) -->
+  {title && (
+    <h3
+      class="quince-script-title text-4xl sm:text-5xl leading-none font-normal"
+      style={`color: ${primaryColor};`}
+    >
+      {title}
+    </h3>
+  )}
+
+  <!-- Bloque Fecha & Hora con Línea Separadora Vertical -->
+  {hasDateTime && (
+    <div class="flex items-center justify-center gap-5 sm:gap-6 pt-1 pb-1">
+      {date && (
+        <span
+          class="quince-serif-caps text-lg sm:text-xl font-light tracking-[0.18em]"
+          style={`color: ${primaryColor};`}
+        >
+          {date.toUpperCase()}
+        </span>
+      )}
+
+      {date && time && (
+        <div
+          class="w-[1px] h-7 sm:h-8 self-center"
+          style="background: linear-gradient(180deg, transparent, #9fa6b0, #9fa6b0, transparent);"
+        ></div>
+      )}
+
+      {time && (
+        <span
+          class="quince-serif-caps text-lg sm:text-xl font-light tracking-[0.18em]"
+          style={`color: ${primaryColor};`}
+        >
+          {time.toUpperCase()}
+        </span>
+      )}
+    </div>
+  )}
+
+  <!-- Nombre del Lugar / Templo en Mayúsculas Serif Bold -->
+  {place && (
+    <p
+      class="quince-serif-caps text-sm sm:text-base font-bold tracking-[0.16em] pt-0.5"
+      style={`color: ${textColor};`}
+    >
+      {place.toUpperCase()}
+    </p>
+  )}
+
+  <!-- Dirección Detallada (admite saltos de línea) -->
+  {addressLines.length > 0 && (
+    <div
+      class="text-[10.5px] sm:text-[11px] font-sans tracking-wide leading-snug max-w-[280px] mx-auto uppercase space-y-0.5"
+      style={`color: ${textMutedColor};`}
+    >
+      {addressLines.map((line) => (
+        <p>{line.trim()}</p>
+      ))}
+    </div>
+  )}
+
+  <!-- Botón Píldora Ubicación -->
+  {hasButton && (
+    <div class="pt-2">
+      <a
+        href={mapUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="quince-btn-pill inline-flex items-center justify-center px-6 py-2.5 rounded-full text-xs font-bold tracking-[0.12em] uppercase transition shadow-md hover:scale-105 active:scale-95 text-white"
+        style={`background-color: ${accentColor}; box-shadow: 0 4px 14px rgba(186, 109, 130, 0.35);`}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          class="w-3.5 h-3.5 mr-1.5 shrink-0"
+        >
+          <path
+            d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+          ></path>
+        </svg>
+        <span>{buttonText}</span>
+      </a>
+    </div>
+  )}
+</div>
+
+<style>
+  .quince-script-title {
+    font-family: var(--font-quince-script, "Great Vibes", "Alex Brush", "Pinyon Script", cursive);
+  }
+
+  .quince-serif-caps {
+    font-family: var(--font-quince-serif, "Cinzel", "Playfair Display", serif);
+  }
+</style>

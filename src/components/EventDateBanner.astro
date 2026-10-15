@@ -1,0 +1,106 @@
+---
+import { parseEventDateTime } from "@/utils/dateParser";
+
+export interface Props {
+  date?: string;
+  time?: string;
+  month?: string;
+  dayOfWeek?: string;
+  day?: string | number;
+  year?: string | number;
+  primaryColor?: string;
+  dayColor?: string;
+  lineColor?: string;
+  className?: string;
+}
+
+const {
+  date,
+  time,
+  month: explicitMonth,
+  dayOfWeek: explicitDayOfWeek,
+  day: explicitDay,
+  year: explicitYear,
+  primaryColor = "#a85d72",
+  dayColor = "#8e95a0",
+  lineColor = "#9fa6b0",
+  className = "",
+} = Astro.props;
+
+// Parsea la fecha automáticamente si se provee
+const parsed = date ? parseEventDateTime(date, time) : null;
+
+const month = (explicitMonth || parsed?.monthName || "JULIO").toUpperCase();
+const dayOfWeek = (explicitDayOfWeek || parsed?.dayOfWeekName || "VIERNES").toUpperCase();
+const day = explicitDay !== undefined && explicitDay !== "" ? explicitDay : (parsed?.day ?? 31);
+const year = explicitYear !== undefined && explicitYear !== "" ? explicitYear : (parsed?.year ?? 2026);
+---
+
+<div class={`event-date-banner py-2.5 px-2 text-center select-none ${className}`}>
+  <!-- Mes Centrado Arriba en Mayúsculas Serif -->
+  <span
+    class="event-date-month quince-serif-caps uppercase tracking-[0.25em] text-sm sm:text-base font-normal block mb-1.5"
+    style={`color: ${primaryColor};`}
+  >
+    {month}
+  </span>
+
+  <!-- Fila Central: [Línea + Día Semana + Línea] [Día Script 31] [Línea + Año + Línea] -->
+  <div class="flex items-center justify-center gap-2 sm:gap-3">
+    <!-- Ala Izquierda: Día de la semana entre dos líneas horizontales -->
+    <div class="flex flex-col items-center justify-center w-24 sm:w-28 md:w-32 shrink-0">
+      <div
+        class="w-full h-[1.5px] rounded-full"
+        style={`background-color: ${lineColor};`}
+      ></div>
+      <span
+        class="event-date-dayofweek quince-serif-caps uppercase text-xs sm:text-sm tracking-[0.2em] py-1 sm:py-1.5 font-normal block text-center"
+        style={`color: ${primaryColor};`}
+      >
+        {dayOfWeek}
+      </span>
+      <div
+        class="w-full h-[1.5px] rounded-full"
+        style={`background-color: ${lineColor};`}
+      ></div>
+    </div>
+
+    <!-- Centro: Número del Día en Cursiva Caligráfica Plateada -->
+    <div class="px-2 sm:px-3 flex items-center justify-center -my-2">
+      <span
+        class="event-date-number quince-script-title text-5xl sm:text-6xl leading-none italic font-normal"
+        style={`color: ${dayColor};`}
+      >
+        {day}
+      </span>
+    </div>
+
+    <!-- Ala Derecha: Año entre dos líneas horizontales -->
+    <div class="flex flex-col items-center justify-center w-24 sm:w-28 md:w-32 shrink-0">
+      <div
+        class="w-full h-[1.5px] rounded-full"
+        style={`background-color: ${lineColor};`}
+      ></div>
+      <span
+        class="event-date-year quince-serif-caps uppercase text-xs sm:text-sm tracking-[0.2em] py-1 sm:py-1.5 font-normal block text-center"
+        style={`color: ${primaryColor};`}
+      >
+        {year}
+      </span>
+      <div
+        class="w-full h-[1.5px] rounded-full"
+        style={`background-color: ${lineColor};`}
+      ></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .quince-script-title {
+    font-family: var(--font-quince-script, "Great Vibes", "Alex Brush", "Pinyon Script", cursive);
+  }
+
+  .quince-serif-caps {
+    font-family: var(--font-quince-serif, "Cinzel", "Playfair Display", serif);
+  }
+</style>

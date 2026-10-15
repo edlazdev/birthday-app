@@ -25,6 +25,31 @@ export function mapDbToEventData(row: any): EventData {
     features.show_invitation = true;
   }
 
+  if (row.slug === "luana") {
+    if (row.event_date === "Sábado 07 de Noviembre" && local?.date) {
+      row.event_date = local.date;
+      row.event_time = local.time;
+    }
+    if ((features as any)?.date_banner?.month === "NOVIEMBRE" && local?.dateBanner) {
+      (features as any).date_banner = local.dateBanner;
+    }
+    if ((features as any)?.ceremony?.place === "Parroquia San Miguel de Arcángel" && local?.ceremony) {
+      (features as any).ceremony = local.ceremony;
+    }
+    if ((features as any)?.reception?.place === "Campestre Villa" && local?.reception) {
+      (features as any).reception = local.reception;
+    }
+    if (features.show_sponsors === false || !row.sponsors || row.sponsors?.groom?.includes("Charly Amaya S.")) {
+      features.show_sponsors = true;
+      if (local?.sponsors) {
+        row.sponsors = local.sponsors;
+      }
+    }
+    if (!row.fonts || row.fonts?.title?.family === "Playfair Display" || row.fonts?.title?.family === "Poppins") {
+      row.fonts = local?.fonts;
+    }
+  }
+
   return {
     id: row.id,
     ownerId: row.owner_id || undefined,
@@ -53,10 +78,13 @@ export function mapDbToEventData(row: any): EventData {
     coverUrl: media.cover_url || undefined,
     avatarUrl: media.avatar_url || undefined,
     albumUrls: media.album_urls || [],
+    middlePhotoUrl: media.middle_photo_url || undefined,
+    finalPhotoUrl: media.final_photo_url || undefined,
+    qrImageUrl: media.qr_image_url || (features as any)?.gift_config?.qrImageUrl || undefined,
     backgroundVideo: media.background_video || undefined,
-    fonts: row.fonts || {
-      title: { type: "google", family: "Playfair Display", weights: ["600"] },
-      text: { type: "google", family: "Poppins", weights: ["400"] },
+    fonts: row.fonts || local?.fonts || {
+      title: { type: "google", family: "Cinzel", weights: ["600"] },
+      text: { type: "google", family: "Montserrat", weights: ["400"] },
     },
     theme,
     socialLinks: row.social_links || { facebook: true, instagram: true },
@@ -79,6 +107,25 @@ export function mapDbToEventData(row: any): EventData {
     showWitnesses: features.show_witnesses !== false,
     showSocialLinks: features.show_social_links !== false,
     showItinerary: features.show_itinerary !== false,
+    showCeremony: features.show_ceremony !== false && (features as any)?.showCeremony !== false,
+    showDressCode: features.show_dress_code !== false && (features as any)?.showDressCode !== false,
+    ceremony: row.ceremony || (features as any)?.ceremony || local?.ceremony || undefined,
+    reception: row.reception || (features as any)?.reception || local?.reception || undefined,
+    dateBanner: (features as any)?.date_banner || (features as any)?.dateBanner || local?.dateBanner || undefined,
+    sponsorsConfig: (features as any)?.sponsors_config || (features as any)?.sponsorsConfig || local?.sponsorsConfig || undefined,
+    itineraryConfig: (features as any)?.itinerary_config || (features as any)?.itineraryConfig || local?.itineraryConfig || undefined,
+    dressCodeConfig: (features as any)?.dress_code_config || (features as any)?.dressCodeConfig || local?.dressCodeConfig || undefined,
+    showFarewell: features.show_farewell !== false && (features as any)?.showFarewell !== false,
+    farewellConfig: (features as any)?.farewell_config || (features as any)?.farewellConfig || local?.farewellConfig || undefined,
+    giftConfig: ((features as any)?.gift_config || (features as any)?.giftConfig || local?.giftConfig)
+      ? {
+          ...((features as any)?.gift_config || (features as any)?.giftConfig || local?.giftConfig),
+          qrImageUrl:
+            ((features as any)?.gift_config || (features as any)?.giftConfig || local?.giftConfig)?.qrImageUrl ||
+            media.qr_image_url ||
+            undefined,
+        }
+      : undefined,
   };
 }
 
@@ -99,7 +146,18 @@ export function mapEventDataToDb(data: EventData): Record<string, any> {
     show_witnesses: data.showWitnesses !== false,
     show_social_links: data.showSocialLinks !== false,
     show_itinerary: data.showItinerary !== false,
+    show_ceremony: data.showCeremony !== false,
+    show_dress_code: data.showDressCode !== false,
     itinerary: data.itinerary || [],
+    ceremony: data.ceremony || null,
+    reception: data.reception || null,
+    date_banner: data.dateBanner || null,
+    sponsors_config: data.sponsorsConfig || null,
+    itinerary_config: data.itineraryConfig || null,
+    dress_code_config: data.dressCodeConfig || null,
+    show_farewell: data.showFarewell !== false,
+    farewell_config: data.farewellConfig || null,
+    gift_config: data.giftConfig || null,
   };
 
   const media = {
@@ -108,6 +166,9 @@ export function mapEventDataToDb(data: EventData): Record<string, any> {
     album_urls: data.albumUrls || [],
     album_count: data.albumCount || (data.albumUrls?.length || 0),
     background_video: data.backgroundVideo || null,
+    middle_photo_url: data.middlePhotoUrl || "",
+    final_photo_url: data.finalPhotoUrl || "",
+    qr_image_url: data.qrImageUrl || data.giftConfig?.qrImageUrl || "",
   };
 
   return {

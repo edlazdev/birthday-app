@@ -12,6 +12,12 @@ export const luana: EventData = {
   tagline:
     "Hay momentos inolvidables que se atesoran en el corazón para siempre. Por esa razón, quiero que compartas conmigo este día tan especial.",
   date: "Viernes 31 de Julio",
+  dateBanner: {
+    month: "JULIO",
+    dayOfWeek: "VIERNES",
+    day: "31",
+    year: "2026",
+  },
   time: "5:00 PM",
   address: "Premier Center - 90 Volunteer Dr Suite 450, Hendersonville, TN 37075",
   whatsapp: "51902767559",
@@ -26,8 +32,8 @@ export const luana: EventData = {
   fonts: {
     title: {
       type: "google",
-      family: "Playfair Display",
-      weights: ["400", "600", "700", "900"],
+      family: "Cinzel",
+      weights: ["400", "600", "700"],
     },
     text: {
       type: "google",
@@ -45,6 +51,27 @@ export const luana: EventData = {
   showSponsors: true,
   showMap: true,
   showRsvp: true,
+  showCeremony: true,
+  ceremony: {
+    enabled: true,
+    title: "Misa",
+    date: "31 JUL",
+    time: "2:00 PM",
+    place: "Sagrado Corazón",
+    address: "2800 McGavock Pk Entrance #8\nNashville, TN 37214",
+    mapUrl: "https://maps.google.com/?q=Sagrado+Corazón+2800+McGavock+Pk+Nashville+TN",
+    showMap: true,
+  },
+  reception: {
+    enabled: true,
+    title: "Recepción",
+    date: "31 JUL",
+    time: "5:00 PM",
+    place: "Premier Center",
+    address: "90 Volunteer Dr Suite 450\nHendersonville, TN 37075",
+    mapUrl: "https://www.google.com/maps/search/?api=1&query=36.3047,-86.620",
+    showMap: true,
+  },
   theme: {
     primary: "#e79db4",
     secondary: "#fce7f3",
@@ -89,6 +116,12 @@ export const luana: EventData = {
       icon: "💃",
     },
   ],
+  sponsorsConfig: {
+    introText: "ACOMPÁÑAME EN ESTE DÍA\nTAN ESPECIAL JUNTO A",
+    parentsLabel: "MIS PADRES:",
+    godparentsLabel: "MIS PADRINOS:",
+    outroText: "A FESTEJAR MIS",
+  },
   sponsors: {
     groom: ["Saúl Martínez", "Lucy Brambila"],
     bride: ["Filiberto Nava", "Alicia Martínez"],
@@ -98,5 +131,33 @@ export const luana: EventData = {
     "Mesa de regalos",
     "Transferencia Bancaria",
   ],
+  showGifts: true,
+  giftConfig: {
+    title: "Sugerencia de regalos",
+    message: "El mejor detalle es tu presencia, pero si quieres tener un detalle conmigo, haz click aquí.",
+    buttonText: "Lluvia de sobres",
+    accountHolder: "Luana Martínez",
+    bank: "Yape",
+    phone: "987 654 321",
+    qrImageUrl: "/assets/events/luana/yape_qr.png",
+    note: "¡Muchas gracias por acompañarme en este día tan especial!",
+  },
+  showDressCode: true,
+  dressCodeConfig: {
+    title: "Código de vestimenta",
+    category: "FORMAL",
+    message: "Con mucho cariño le pedimos evitar el color Plateado, Rosa y Fucsia está reservado para la quinceañera",
+    showColors: true,
+    reservedColors: [
+      { name: "Plateado", hex: "#c5cad1" },
+      { name: "Rosa", hex: "#f4a6b8" },
+      { name: "Fucsia", hex: "#d946ef" },
+    ],
+  },
+  showFarewell: true,
+  farewellConfig: {
+    message: "TU PRESENCIA HARÁ DE ESA NOCHE ALGO ESPECIAL, ÚNICA E INOLVIDABLE",
+    signature: "¡Te esperamos!",
+  },
   showVideoBackground: false,
 };

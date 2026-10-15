@@ -1,0 +1,111 @@
+---
+export interface Props {
+  tagline?: string;
+  celebrant?: string;
+  crestFrameUrl?: string;
+  monogramText?: string;
+  badgeText?: string;
+  primaryColor?: string;
+  textColor?: string;
+  textMutedColor?: string;
+  borderColor?: string;
+  className?: string;
+}
+
+const {
+  tagline = "",
+  celebrant = "",
+  crestFrameUrl = "/assets/events/luana/marco_flores.jpg",
+  monogramText = "XV",
+  badgeText = "QUINCEAÑERA",
+  primaryColor = "#a85d72",
+  textColor = "#1f2937",
+  textMutedColor = "#6b7280",
+  borderColor = "#edd6dc",
+  className = "",
+} = Astro.props;
+---
+
+<section
+  class={`event-crest-section px-4 sm:px-6 py-4 text-center select-none space-y-3 ${className}`}
+  aria-label={`Monograma de ${celebrant || monogramText}`}
+>
+  <!-- 1. Pensamiento / Dedicatoria Emotiva -->
+  {tagline && (
+    <p
+      class="quince-quote-text text-[11px] sm:text-xs leading-relaxed uppercase tracking-[0.14em] font-serif max-w-sm mx-auto"
+      style={`color: ${textColor};`}
+    >
+      "{tagline}"
+    </p>
+  )}
+
+  <!-- 2. Nombre del Celebrante en Caligrafía Script Grande -->
+  {celebrant && (
+    <div class="my-2 sm:my-3">
+      <span
+        class="quince-script-title text-4xl sm:text-5xl tracking-wide block drop-shadow-xs"
+        style={`color: ${primaryColor};`}
+      >
+        {celebrant}
+      </span>
+    </div>
+  )}
+
+  <!-- 3. Escudo Monograma XV con Marco Floral Plateado -->
+  {crestFrameUrl && (
+    <div class="quince-crest-container my-3 sm:my-4 flex justify-center">
+      <div
+        class="crest-frame relative w-60 sm:w-68 max-w-[92%] aspect-[1235/864] flex items-center justify-center"
+      >
+        <!-- Imagen de marco plateado con flores de fondo -->
+        <img
+          src={crestFrameUrl}
+          alt={`Monograma ${monogramText}`}
+          class="w-full h-full object-contain pointer-events-none select-none drop-shadow-xs"
+          loading="lazy"
+        />
+
+        <!-- Texto central del monograma (XV, iniciales, edad) -->
+        {monogramText && (
+          <div
+            class="absolute inset-0 flex items-center justify-center -translate-y-1 sm:-translate-y-1.5 pointer-events-none select-none"
+          >
+            <span
+              class="quince-serif-caps text-3xl sm:text-4xl font-bold tracking-[0.16em] leading-none"
+              style={`color: ${textColor};`}
+            >
+              {monogramText}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+
+  <!-- 4. Badge con Líneas Sutiles ("QUINCEAÑERA", "BODA", etc.) -->
+  {badgeText && (
+    <div class="mt-2 mb-2">
+      <span
+        class="quince-serif-caps text-xs tracking-[0.3em] uppercase font-bold border-y py-1.5 px-6 inline-block"
+        style={`color: ${textMutedColor}; border-color: ${borderColor};`}
+      >
+        {badgeText.toUpperCase()}
+      </span>
+    </div>
+  )}
+</section>
+
+<style>
+  .quince-script-title {
+    font-family: var(--font-quince-script, "Great Vibes", "Alex Brush", "Pinyon Script", cursive);
+  }
+
+  .quince-serif-caps {
+    font-family: var(--font-quince-serif, "Cinzel", "Playfair Display", serif);
+  }
+
+  .quince-quote-text {
+    font-family: var(--font-quince-quote, "Cormorant Garamond", "Cinzel", "Playfair Display", serif);
+  }
+</style>
