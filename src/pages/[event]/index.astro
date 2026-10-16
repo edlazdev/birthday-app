@@ -11,22 +11,24 @@ import { getTenantBySlug } from "@/services/tenants";
 
 const { event } = Astro.params;
 const eventKey = event ? event : DEFAULT_EVENT;
-const data = await getTenantBySlug(eventKey);
+const isPreview = Astro.url.searchParams.has("preview");
+const data = await getTenantBySlug(eventKey, isPreview);
 
 if (!data) {
   return Astro.redirect("/");
 }
 
-// Si está en borrador, mostrar pantalla de cortesía
+// Si está en borrador, mostrar pantalla de cortesía (a menos que se esté previsualizando)
 const isDraft = data.status === "draft";
-// Si la vista de invitación está deshabilitada pero el álbum está activo, redirigir al álbum (a menos que se previsualice)
-const forceInvitation = Astro.url.searchParams.get("view") === "invitation" || Astro.url.searchParams.has("preview");
+const forceInvitation = Astro.url.searchParams.get("view") === "invitation" || isPreview;
+const showDraftNotice = isDraft && !isPreview;
+
 if (!forceInvitation && data.showInvitation === false && data.showAlbum !== false) {
   return Astro.redirect(`/${data.slug}/album`);
 }
 ---
 
-{isDraft ? (
+{showDraftNotice ? (
   <html lang="es">
     <head>
       <meta charset="utf-8" />
@@ -78,5 +80,90 @@ if (!forceInvitation && data.showInvitation === false && data.showAlbum !== fals
     </main>
   </EventLayout>
 )}
+
+{isPreview && (
+  <script is:inline>
+    const scrollKey = "freeloader_preview_scroll_" + window.location.pathname;
+    const savedScroll = sessionStorage.getItem(scrollKey);
+    if (savedScroll !== null) {
+      const y = parseInt(savedScroll, 10);
+      if (!isNaN(y) && y > 0) {
+        window.scrollTo({ top: y, behavior: "instant" });
+        setTimeout(() => {
+          window.scrollTo({ top: y, behavior: "instant" });
+        }, 60);
+      }
+    }
+
+    window.addEventListener("scroll", () => {
+      sessionStorage.setItem(scrollKey, String(window.scrollY));
+    }, { passive: true });
+
+    window.addEventListener("message", (event) => {
+      if (event.data?.type === "FREELOADER_RELOAD_DRAFT") {
+        sessionStorage.setItem(scrollKey, String(window.scrollY));
+        window.location.reload();
+        return;
+      }
+      if (event.data?.type === "FREELOADER_PREVIEW_SYNC" && event.data.tenant) {
+        const t = event.data.tenant;
+        if (t.theme) {
+          if (t.theme.primary) {
+            document.documentElement.style.setProperty("--primary", t.theme.primary);
+            document.body.style.setProperty("--primary", t.theme.primary);
+          }
+          if (t.theme.secondary) {
+            document.documentElement.style.setProperty("--secondary", t.theme.secondary);
+            document.body.style.setProperty("--secondary", t.theme.secondary);
+          }
+          if (t.theme.tertiary) {
+            document.documentElement.style.setProperty("--tertiary", t.theme.tertiary);
+            document.body.style.setProperty("--tertiary", t.theme.tertiary);
+          }
+          if (t.theme.bg) {
+            document.documentElement.style.setProperty("--bg", t.theme.bg);
+            document.body.style.setProperty("--bg", t.theme.bg);
+            document.body.style.backgroundColor = t.theme.bg;
+          }
+        }
+        if (t.fonts) {
+          if (t.fonts.title?.family) {
+            document.documentElement.style.setProperty("--font-title", "'" + t.fonts.title.family + "', serif");
+          }
+          if (t.fonts.text?.family) {
+            document.documentElement.style.setProperty("--font-text", "'" + t.fonts.text.family + "', sans-serif");
+          }
+        }
+        if (t.celebrant) {
+          document.querySelectorAll(".quince-script-title, .celebrant-name, [data-celebrant]").forEach(el => {
+            el.textContent = t.celebrant;
+          });
+        }
+        if (t.tagline !== undefined) {
+          document.querySelectorAll(".quince-quote-text, .quince-tagline, [data-tagline]").forEach(el => {
+            el.textContent = t.tagline ? '"' + t.tagline + '"' : "";
+          });
+        }
+        if (t.age !== undefined) {
+          const ageStr = t.age.trim() === "15" ? "XV" : t.age.trim();
+          document.querySelectorAll(".quince-crest-letters, .monogram-text").forEach(el => {
+            el.textContent = ageStr;
+          });
+        }
+        if (t.title) {
+          document.querySelectorAll(".quince-serif-caps[data-badge]").forEach(el => {
+            el.textContent = t.title.toUpperCase();
+          });
+        }
+        if (t.musicConfig?.songTitle) {
+          document.querySelectorAll(".quince-song-title").forEach(el => {
+            el.textContent = t.musicConfig.songTitle;
+          });
+        }
+      }
+    });
+  </script>
+)}
+
 
 

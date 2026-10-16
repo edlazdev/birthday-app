@@ -139,7 +139,21 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
           if (!isSuper && data.ownerId && user && data.ownerId !== user.id) {
             setLoadError("No tienes permisos para editar esta invitación.");
           } else {
-            setTenant(data);
+            let finalData = data;
+            try {
+              const rawDraft = typeof window !== "undefined" ? localStorage.getItem(`freeloader_editor_draft_${initialSlug}`) : null;
+              if (rawDraft) {
+                const parsed = JSON.parse(rawDraft);
+                if (parsed?.tenant && parsed?.savedAt && Date.now() - parsed.savedAt < 48 * 60 * 60 * 1000) {
+                  finalData = { ...data, ...parsed.tenant };
+                  setFeedback({
+                    message: "Borrador con tus últimos cambios en edición recuperado.",
+                    type: "success",
+                  });
+                }
+              }
+            } catch {}
+            setTenant(finalData);
           }
         } else {
           setLoadError(`No se encontró ningún evento con el slug '${initialSlug}'.`);
@@ -153,6 +167,18 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
 
     init();
   }, [initialSlug, isNew, user]);
+
+  // Respaldo automático en localStorage del navegador para no perder avances
+  useEffect(() => {
+    if (tenant && tenant.slug && typeof window !== "undefined") {
+      try {
+        localStorage.setItem(
+          `freeloader_editor_draft_${tenant.slug}`,
+          JSON.stringify({ tenant, savedAt: Date.now() })
+        );
+      } catch {}
+    }
+  }, [tenant]);
 
   // Update helper with dirty tracking
   const updateTenant = (updater: (prev: EventData) => EventData, sectionId?: EditorSectionId) => {
@@ -189,6 +215,9 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
 
         if (res.data) {
           setTenant(res.data);
+          try {
+            localStorage.removeItem(`freeloader_editor_draft_${res.data.slug || tenant.slug}`);
+          } catch {}
           if (isNew && res.data.slug) {
             window.history.replaceState(null, "", `/admin/events/${res.data.slug}`);
           }

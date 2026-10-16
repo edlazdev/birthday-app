@@ -16,39 +16,8 @@ export function mapDbToEventData(row: any): EventData {
     ? (features as any).itinerary
     : local?.itinerary || [];
 
-  let theme = row.theme || local?.theme || undefined;
-  if (row.slug === "luana" && (!row.theme || row.theme.bg === "#fff5f7") && local?.theme) {
-    theme = local.theme;
-  }
+  const theme = (row.theme && Object.keys(row.theme).length > 0) ? row.theme : (local?.theme || undefined);
 
-  if (row.slug === "luana" && features.show_invitation === false) {
-    features.show_invitation = true;
-  }
-
-  if (row.slug === "luana") {
-    if (row.event_date === "Sábado 07 de Noviembre" && local?.date) {
-      row.event_date = local.date;
-      row.event_time = local.time;
-    }
-    if ((features as any)?.date_banner?.month === "NOVIEMBRE" && local?.dateBanner) {
-      (features as any).date_banner = local.dateBanner;
-    }
-    if ((features as any)?.ceremony?.place === "Parroquia San Miguel de Arcángel" && local?.ceremony) {
-      (features as any).ceremony = local.ceremony;
-    }
-    if ((features as any)?.reception?.place === "Campestre Villa" && local?.reception) {
-      (features as any).reception = local.reception;
-    }
-    if (features.show_sponsors === false || !row.sponsors || row.sponsors?.groom?.includes("Charly Amaya S.")) {
-      features.show_sponsors = true;
-      if (local?.sponsors) {
-        row.sponsors = local.sponsors;
-      }
-    }
-    if (!row.fonts || row.fonts?.title?.family === "Playfair Display" || row.fonts?.title?.family === "Poppins") {
-      row.fonts = local?.fonts;
-    }
-  }
 
   return {
     id: row.id,
@@ -280,11 +249,30 @@ export async function getTenantsByUser(userId: string): Promise<EventData[]> {
   return [];
 }
 
+// Almacén en memoria de borradores para previsualización en vivo (tiempo real en SSR/dev)
+const previewDrafts = new Map<string, EventData>();
+
+export function setPreviewDraft(slug: string, data: EventData) {
+  if (!slug) return;
+  previewDrafts.set(slug.toLowerCase().trim(), data);
+}
+
+export function getPreviewDraft(slug: string): EventData | null {
+  if (!slug) return null;
+  return previewDrafts.get(slug.toLowerCase().trim()) || null;
+}
+
 /**
  * Obtiene un tenant específico por su slug.
  */
-export async function getTenantBySlug(slug: string): Promise<EventData | null> {
+export async function getTenantBySlug(slug: string, isPreview = false): Promise<EventData | null> {
   const normalizedSlug = slug.toLowerCase().trim();
+
+  // Si estamos en modo preview o hay un borrador activo en memoria, priorizarlo
+  if (isPreview) {
+    const draft = getPreviewDraft(normalizedSlug);
+    if (draft) return draft;
+  }
 
   if (isSupabaseConfigured && supabase) {
     try {
