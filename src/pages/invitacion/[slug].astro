@@ -2,6 +2,7 @@
 import EventLayout from "@/layouts/EventLayout.astro";
 import EventNav from "@/components/EventNav.astro";
 import InvitationRenderer from "@/components/invitation/InvitationRenderer";
+import QuinceaneraInvitation from "@/components/quinceanera/QuinceaneraInvitation.astro";
 import Footer from "@/components/Footer.astro";
 
 import { getInvitationBySlug } from "@/services/invitations";
@@ -58,12 +59,16 @@ if (!forceInvitation && data.showInvitation === false && data.showAlbum !== fals
       </div>
     </body>
   </html>
+) : data.type === "quinceanero" ? (
+  <EventLayout eventData={data}>
+    <main class="quince-root-container m-0 p-0">
+      <EventNav slug={data.slug} showAlbum={data.showAlbum} showInvitation={data.showInvitation} />
+      <QuinceaneraInvitation eventData={data} />
+    </main>
+  </EventLayout>
 ) : (
   <EventLayout eventData={data}>
-    <main
-      class={data.type === "quinceanero" ? "w-full min-h-screen quince-page-wrapper flex flex-col items-center py-0 px-1 sm:px-4" : "w-full min-h-screen bg-stone-100 dark:bg-stone-950 flex flex-col items-center"}
-      style={data.type === "quinceanero" ? "background: linear-gradient(180deg, #aa596e 0%, #994c60 100%);" : ""}
-    >
+    <main class="w-full min-h-screen bg-stone-100 dark:bg-stone-950 flex flex-col items-center">
       <EventNav slug={data.slug} showAlbum={data.showAlbum} showInvitation={data.showInvitation} />
       <InvitationRenderer client:load config={invitationConfig} isPreview={isPreview} />
       <Footer

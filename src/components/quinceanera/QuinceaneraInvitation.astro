@@ -192,27 +192,38 @@ const sponsorsConfig = eventData.sponsorsConfig;
 
 // Fotos dinámicas desde Supabase Storage
 const slug = eventData.slug || "";
-const heroPhoto = eventData.coverUrl || "";
+const heroPhoto =
+  eventData.coverUrl ||
+  (eventData as any).media?.cover_url ||
+  (slug === "luana"
+    ? "https://gztorcrslhjeyobbykzn.supabase.co/storage/v1/object/public/freeloader-media/events/luana/hero.jpg"
+    : "");
 const middlePhoto =
   eventData.middlePhotoUrl ||
+  (eventData as any).media?.middle_photo_url ||
   (eventData.albumUrls && eventData.albumUrls.length > 0 ? eventData.albumUrls[0] : "") ||
-  "";
+  (slug === "luana"
+    ? "https://gztorcrslhjeyobbykzn.supabase.co/storage/v1/object/public/freeloader-media/events/luana/tea.jpg"
+    : "");
 const finalPhoto =
   eventData.finalPhotoUrl ||
+  (eventData as any).media?.final_photo_url ||
   (eventData.albumUrls && eventData.albumUrls.length > 1 ? eventData.albumUrls[1] : "") ||
-  "";
+  (slug === "luana"
+    ? "https://gztorcrslhjeyobbykzn.supabase.co/storage/v1/object/public/freeloader-media/events/luana/cup.jpg"
+    : "");
 const ribbonPhoto =
   (eventData as any).ribbonUrl ||
   (eventData.features as any)?.ribbon_url ||
   (eventData.features as any)?.ribbonUrl ||
   (eventData as any).media?.ribbon_url ||
-  "";
+  "https://gztorcrslhjeyobbykzn.supabase.co/storage/v1/object/public/freeloader-media/events/luana/lazo_plateado.png";
 const crestFramePhoto =
   (eventData as any).crestUrl ||
   (eventData.features as any)?.crest_url ||
   (eventData.features as any)?.crestUrl ||
   (eventData as any).media?.crest_url ||
-  "";
+  "https://gztorcrslhjeyobbykzn.supabase.co/storage/v1/object/public/freeloader-media/events/luana/marco_flores.jpg";
 const crestAge = eventData.age
   ? (eventData.age.trim() === "15" ? "XV" : eventData.age.trim())
   : "XV";

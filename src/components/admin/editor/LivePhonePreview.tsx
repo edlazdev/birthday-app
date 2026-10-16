@@ -165,7 +165,7 @@ export default function LivePhonePreview({ tenant, onSectionSelect }: LivePhoneP
                 : undefined
             }
           >
-            {useIframeFallback ? (
+            {(useIframeFallback || tenant.type === "quinceanero") ? (
               <iframe
                 src={previewUrl}
                 className="w-full h-full border-0 bg-transparent"
