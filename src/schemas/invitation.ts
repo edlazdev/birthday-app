@@ -419,6 +419,16 @@ export function eventDataToInvitationConfig(event: EventData): InvitationConfig 
       middlePhotoUrl: event.middlePhotoUrl,
       finalPhotoUrl: event.finalPhotoUrl,
       qrImageUrl: event.qrImageUrl,
+      ribbonUrl:
+        (event as any).ribbonUrl ||
+        (event.features as any)?.ribbon_url ||
+        (event.features as any)?.ribbonUrl ||
+        (event as any).media?.ribbon_url,
+      crestUrl:
+        (event as any).crestUrl ||
+        (event.features as any)?.crest_url ||
+        (event.features as any)?.crestUrl ||
+        (event as any).media?.crest_url,
     },
     theme: {
       primary: event.theme?.primary || "#f59e0b",

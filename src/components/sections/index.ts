@@ -39,3 +39,6 @@ export type { FarewellSectionProps } from "./FarewellSection";
 
 export { default as PhotoImageSection } from "./PhotoImageSection";
 export type { PhotoImageSectionData, PhotoImageSectionProps } from "./PhotoImageSection";
+
+export { default as EventRibbonDivider } from "./EventRibbonDivider";
+export type { EventRibbonDividerProps } from "./EventRibbonDivider";

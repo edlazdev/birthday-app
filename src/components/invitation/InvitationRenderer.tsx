@@ -17,6 +17,7 @@ import {
   GallerySection,
   FarewellSection,
   PhotoImageSection,
+  EventRibbonDivider,
 } from "@/components/sections";
 
 export interface InvitationRendererProps {
@@ -382,6 +383,76 @@ export default function InvitationRenderer({
     );
   };
 
+  // 6. Detección de Quinceañera para aplicar marco metálico plateado y lazos ornamentales
+  const isQuinceanera = useMemo(() => {
+    const rawType = (invitation as any).type || metadata.type || (config as any)?.type;
+    const age = metadata.age?.trim() || "";
+    return rawType === "quinceanero" || age === "15" || (theme as any)?.frameStyle === "silver-quinceanera";
+  }, [invitation, metadata, config, theme]);
+
+  const shouldRenderRibbonDivider = (section: SectionItem, index: number) => {
+    if (!isQuinceanera) return false;
+    // No colocar divisor inmediatamente después del hero (HeroSection ya incluye el lazo grande superior)
+    if (section.kind === "hero") return false;
+    // No colocar divisor después de la última sección o en mensaje de cierre
+    if (index >= activeSections.length - 1 || section.kind === "farewell") return false;
+    // Secciones que llevan lazo divisor inferior de gala
+    const ribbonSections = [
+      "crest",
+      "music",
+      "countdown",
+      "dateBanner",
+      "itinerary",
+      "dressCode",
+      "gift",
+      "location",
+      "ceremony",
+      "reception",
+      "sponsors",
+      "middlePhoto",
+      "gallery",
+    ];
+    return ribbonSections.includes(section.kind);
+  };
+
+  if (isQuinceanera) {
+    return (
+      <div
+        className={`invitation-renderer-root w-full flex justify-center py-0 select-none font-invitation-body text-invitation-text ${className}`}
+        style={rootStyle}
+      >
+        {/* Carga reactiva de Google Fonts (SSR) */}
+        <link rel="stylesheet" href={googleFontsUrl} />
+
+        {/* Marco Metálico Plateado en Degradado (quince-silver-container) */}
+        <div
+          className="quince-silver-container w-full max-w-[440px] flex flex-col relative py-0 px-2.5 sm:px-3.5 shadow-2xl transition-all duration-300"
+          style={{
+            background:
+              "linear-gradient(90deg, #b0b7bf 0%, #dbe0e6 12%, #f4f6f8 24%, #c5cbd3 50%, #f4f6f8 76%, #dbe0e6 88%, #b0b7bf 100%)",
+            boxShadow:
+              "0 25px 60px rgba(70, 15, 30, 0.45), 0 10px 30px rgba(0, 0, 0, 0.3)",
+          }}
+        >
+          {/* Tarjeta Central Móvil en Blanco Puro */}
+          <main
+            className="quince-mobile-card w-full flex flex-col relative text-center bg-white shadow-xs overflow-hidden"
+            style={{ backgroundColor: "var(--color-bg, #ffffff)" }}
+          >
+            {activeSections.map((section, idx) => (
+              <React.Fragment key={section.id || `${section.kind}-${idx}`}>
+                {renderSection(section)}
+                {shouldRenderRibbonDivider(section, idx) && (
+                  <EventRibbonDivider color="#9fa6b0" />
+                )}
+              </React.Fragment>
+            ))}
+          </main>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`invitation-renderer-root w-full max-w-md mx-auto min-h-screen shadow-2xl relative select-none font-invitation-body bg-invitation-bg text-invitation-text overflow-x-hidden ${className}`}
@@ -395,3 +466,4 @@ export default function InvitationRenderer({
     </div>
   );
 }
+

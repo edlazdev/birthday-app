@@ -153,7 +153,18 @@ export default function LivePhonePreview({ tenant, onSectionSelect }: LivePhoneP
           </div>
 
           {/* Contenedor con scroll del renderizador reactivo */}
-          <div className="h-[calc(100vh-14rem)] min-h-[580px] w-full bg-stone-50 relative overflow-y-auto overflow-x-hidden scrollbar-thin">
+          <div
+            className={`h-[calc(100vh-14rem)] min-h-[580px] w-full relative overflow-y-auto overflow-x-hidden scrollbar-thin ${
+              tenant.type === "quinceanero"
+                ? "quince-phone-scroll py-2"
+                : "bg-stone-50"
+            }`}
+            style={
+              tenant.type === "quinceanero"
+                ? { background: "linear-gradient(180deg, #aa596e 0%, #994c60 100%)" }
+                : undefined
+            }
+          >
             {useIframeFallback ? (
               <iframe
                 src={previewUrl}
