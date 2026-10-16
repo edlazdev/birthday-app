@@ -225,6 +225,8 @@ export type EventFeatures = {
   rsvpConfig?: RsvpConfig;
   music_config?: MusicConfig;
   musicConfig?: MusicConfig;
+  sectionOrder?: string[];
+  section_order?: string[];
 };
 
 export type EventData = {
@@ -233,6 +235,7 @@ export type EventData = {
   type: EventType;
   status?: "published" | "draft" | "pending_approval" | "archived";
   slug: string;
+  sectionOrder?: string[];
   recommendationsTitle?: string;
   recommendationsDescription?: string;
   beforeCelebrant?: string;

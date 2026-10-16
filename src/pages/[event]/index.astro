@@ -18,10 +18,10 @@ if (!data) {
   return Astro.redirect("/");
 }
 
-// Si está en borrador, mostrar pantalla de cortesía (a menos que se esté previsualizando)
-const isDraft = data.status === "draft";
+// Si no está publicado (draft o pending_approval), mostrar pantalla de cortesía a visitantes
+const isNotPublished = data.status !== "published";
 const forceInvitation = Astro.url.searchParams.get("view") === "invitation" || isPreview;
-const showDraftNotice = isDraft && !isPreview;
+const showDraftNotice = isNotPublished && !isPreview;
 
 if (!forceInvitation && data.showInvitation === false && data.showAlbum !== false) {
   return Astro.redirect(`/${data.slug}/album`);

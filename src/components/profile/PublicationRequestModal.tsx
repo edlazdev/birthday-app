@@ -9,6 +9,7 @@ import {
 import { uploadMediaFile } from "@/services/tenants";
 
 interface PublicationRequestModalProps {
+  isOpen?: boolean;
   tenant: EventData;
   user: { id: string; email?: string; user_metadata?: any };
   onClose: () => void;
@@ -16,11 +17,13 @@ interface PublicationRequestModalProps {
 }
 
 export default function PublicationRequestModal({
+  isOpen = true,
   tenant,
   user,
   onClose,
   onSuccess,
 }: PublicationRequestModalProps) {
+  if (isOpen === false) return null;
   const [paymentMethod, setPaymentMethod] = useState<"yape" | "plin">("yape");
   const [operationCode, setOperationCode] = useState("");
   const [userPhone, setUserPhone] = useState(
@@ -61,10 +64,15 @@ export default function PublicationRequestModal({
       if (voucherFile) {
         const uploadRes = await uploadMediaFile(
           voucherFile,
-          `vouchers/${tenant.slug}`
+          `vouchers/${tenant.slug}`,
+          { maxDimension: 1600, quality: 0.8 }
         );
         if (uploadRes.url) {
           voucherUrl = uploadRes.url;
+        } else if (uploadRes.error) {
+          setErrorMsg(`Error al subir comprobante: ${uploadRes.error}`);
+          setSubmitting(false);
+          return;
         }
       }
 
@@ -102,6 +110,7 @@ export default function PublicationRequestModal({
     userPhone,
     paymentMethod,
     operationCode,
+    voucherUrl: completedRequest?.voucherUrl,
     origin: typeof window !== "undefined" ? window.location.origin : undefined,
   });
 
@@ -238,6 +247,20 @@ export default function PublicationRequestModal({
                 <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
                   {ADMIN_PAYMENT_CONFIG.amountFormatted}
                 </span>
+              </div>
+
+              <div className="pt-2 text-center border-t border-amber-900/[0.06] dark:border-slate-800/80">
+                <a
+                  href={`https://wa.me/${ADMIN_PAYMENT_CONFIG.adminWhatsApp}?text=${encodeURIComponent(
+                    `[Freeloader] Hola Edgar, deseo activar mi invitación '${tenant.celebrant}' (freeloader.artizaro.com/${tenant.slug}). ¿Me puedes orientar con mi abono?`
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+                >
+                  <span>💬</span>
+                  <span>¿Deseas coordinar tu abono directo por WhatsApp? Toca aquí</span>
+                </a>
               </div>
             </div>
 

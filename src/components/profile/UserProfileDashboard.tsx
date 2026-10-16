@@ -3,6 +3,7 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { getTenantsByUser, saveTenant } from "@/services/tenants";
 import {
   getPublicationRequestsByUser,
+  ADMIN_PAYMENT_CONFIG,
   type PublicationRequest,
 } from "@/services/payments";
 import type { EventData } from "@/types";
@@ -154,7 +155,10 @@ export default function UserProfileDashboard() {
     user.user_metadata?.picture ||
     null;
 
-  const isSuperAdmin = profile?.role === "super_admin";
+  const isSuperAdmin =
+    user?.email?.toLowerCase().trim() === "edgar.lazaro23@gmail.com" ||
+    profile?.role === "super_admin" ||
+    profile?.role === "admin";
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300">
@@ -435,14 +439,56 @@ export default function UserProfileDashboard() {
 
                       {/* Botón de Publicación / Pago */}
                       {!isPublished && (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedTenantForPayment(event)}
-                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white font-bold text-xs shadow-md shadow-amber-500/20 transition active:scale-95 cursor-pointer flex items-center gap-1.5"
-                        >
-                          <span>💳</span>
-                          <span>{isPending ? "Reenviar Comprobante" : "Publicar (S/ 50)"}</span>
-                        </button>
+                        <div className="flex items-center gap-2">
+                          {isSuperAdmin ? (
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                const updated = { ...event, status: "published" as const };
+                                const res = await saveTenant(updated);
+                                if (res.success) {
+                                  setTenants((prev) =>
+                                    prev.map((t) => (t.slug === event.slug ? { ...t, status: "published" } : t))
+                                  );
+                                  setFeedback({
+                                    message: `¡Evento '${event.celebrant}' publicado directamente con éxito!`,
+                                    type: "success",
+                                  });
+                                } else {
+                                  setFeedback({ message: `Error: ${res.error}`, type: "error" });
+                                }
+                              }}
+                              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/20 transition active:scale-95 cursor-pointer flex items-center gap-1.5"
+                            >
+                              <span>🚀</span>
+                              <span>Publicar (Admin)</span>
+                            </button>
+                          ) : (
+                            <>
+                              {isPending && (
+                                <a
+                                  href={`https://wa.me/${ADMIN_PAYMENT_CONFIG.adminWhatsApp}?text=${encodeURIComponent(
+                                    `[Freeloader] Hola Edgar, deseo consultar sobre el estado de activación de mi invitación '${event.celebrant}' (freeloader.artizaro.com/${event.slug}).`
+                                  )}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="p-2 rounded-xl bg-emerald-600/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-600/25 transition flex items-center justify-center text-xs"
+                                  title="Consultar activación por WhatsApp"
+                                >
+                                  <span>💬</span>
+                                </a>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setSelectedTenantForPayment(event)}
+                                className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white font-bold text-xs shadow-md shadow-amber-500/20 transition active:scale-95 cursor-pointer flex items-center gap-1.5"
+                              >
+                                <span>💳</span>
+                                <span>{isPending ? "Reenviar Comprobante" : "Publicar (S/ 50)"}</span>
+                              </button>
+                            </>
+                          )}
+                        </div>
                       )}
 
                       {isPublished && (
@@ -464,8 +510,8 @@ export default function UserProfileDashboard() {
         </div>
       </main>
 
-      {/* MODAL DE SOLICITUD DE PUBLICACIÓN Y PAGO */}
-      {selectedTenantForPayment && (
+      {/* MODAL DE SOLICITUD DE PUBLICACIÓN Y PAGO - Solo para clientes (no admin) */}
+      {!isSuperAdmin && selectedTenantForPayment && (
         <PublicationRequestModal
           tenant={selectedTenantForPayment}
           user={user}

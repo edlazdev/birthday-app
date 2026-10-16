@@ -9,6 +9,8 @@ import {
   getAllPublicationRequests,
   approvePublicationRequest,
   rejectPublicationRequest,
+  formatWhatsAppUrl,
+  buildApprovalWhatsAppUrl,
   type PublicationRequest,
 } from "@/services/payments";
 import type { EventData } from "@/types";
@@ -706,20 +708,40 @@ export default function AdminDashboard() {
                       </div>
 
                       {/* Footer Actions */}
-                      <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                      <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
                         {req.userPhone ? (
-                          <a
-                            href={`https://wa.me/${req.userPhone.replace(/\D/g, "")}?text=${encodeURIComponent(
-                              `[Freeloader] Hola ${req.userName || ""}, te contactamos respecto a tu solicitud de publicación para ${req.tenantSlug}.`
-                            )}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-3.5 py-1.5 rounded-xl bg-emerald-600/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-600/25 text-xs font-semibold flex items-center gap-1.5 transition"
-                            title="Conversar por WhatsApp"
-                          >
-                            <span>💬</span>
-                            <span>WhatsApp</span>
-                          </a>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <a
+                              href={formatWhatsAppUrl(
+                                req.userPhone,
+                                `[Freeloader] Hola ${req.userName || ""}, te contactamos respecto a tu solicitud de publicación para ${req.tenantSlug}.`
+                              )}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="px-3 py-1.5 rounded-xl bg-emerald-600/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-600/25 text-xs font-semibold flex items-center gap-1.5 transition"
+                              title="Conversar por WhatsApp"
+                            >
+                              <span>💬</span>
+                              <span>Chat WhatsApp</span>
+                            </a>
+                            {isApproved && (
+                              <a
+                                href={buildApprovalWhatsAppUrl({
+                                  userPhone: req.userPhone,
+                                  userName: req.userName,
+                                  celebrant: req.eventCelebrant || req.tenantSlug,
+                                  slug: req.tenantSlug,
+                                })}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5"
+                                title="Enviar confirmación de activación por WhatsApp al cliente"
+                              >
+                                <span>📲</span>
+                                <span>Avisar Activación</span>
+                              </a>
+                            )}
+                          </div>
                         ) : (
                           <div />
                         )}

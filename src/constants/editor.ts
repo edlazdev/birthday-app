@@ -29,36 +29,28 @@ export const EDITOR_SECTIONS: EditorSectionConfig[] = [
     step: 1,
   },
   {
-    id: "datetime",
-    label: "Fecha & Ubicación",
-    shortLabel: "Ubicación",
-    icon: "📍",
-    description: "Día, hora, dirección física y mapa GPS",
-    step: 2,
-  },
-  {
-    id: "rsvp",
-    label: "RSVP & WhatsApp",
-    shortLabel: "RSVP",
-    icon: "💬",
-    description: "Confirmación de invitados y contacto directo",
-    step: 3,
-  },
-  {
-    id: "modules",
-    label: "Módulos Visibles",
-    shortLabel: "Módulos",
-    icon: "🎛️",
-    description: "Control de visibilidad de secciones para el invitado",
-    step: 4,
-  },
-  {
     id: "theme",
     label: "Tema & Colores",
     shortLabel: "Colores",
     icon: "🎨",
     description: "Paleta de colores, contrastes y estilos visuales",
-    step: 5,
+    step: 2,
+  },
+  {
+    id: "media",
+    label: "Medios & Fotos",
+    shortLabel: "Fotos",
+    icon: "🖼️",
+    description: "Portada, fotos de sesión, video y galería",
+    step: 3,
+  },
+  {
+    id: "datetime",
+    label: "Fecha & Ubicación",
+    shortLabel: "Ubicación",
+    icon: "📍",
+    description: "Día, hora, ceremonia religiosa y salón de fiesta",
+    step: 4,
   },
   {
     id: "itinerary",
@@ -66,25 +58,61 @@ export const EDITOR_SECTIONS: EditorSectionConfig[] = [
     shortLabel: "Itinerario",
     icon: "⏱️",
     description: "Cronograma de la fiesta (Entrada, Cena, Vals, Baile)",
-    step: 6,
-  },
-  {
-    id: "media",
-    label: "Medios & Fotos",
-    shortLabel: "Fotos",
-    icon: "🖼️",
-    description: "Portada, foto de perfil, video y álbum de fotos",
-    step: 7,
+    step: 5,
   },
   {
     id: "extras",
     label: "Regalos & Padrinos",
-    shortLabel: "Regalos",
+    shortLabel: "Detalles",
     icon: "🎁",
-    description: "Mesa de regalos, cuentas bancarias y cortejo de honor",
+    description: "Mesa de regalos, cuentas bancarias, cortejo y dress code",
+    step: 6,
+  },
+  {
+    id: "rsvp",
+    label: "RSVP & WhatsApp",
+    shortLabel: "RSVP",
+    icon: "💬",
+    description: "Confirmación de invitados y contacto directo",
+    step: 7,
+  },
+  {
+    id: "modules",
+    label: "Módulos & Orden",
+    shortLabel: "Módulos",
+    icon: "🎛️",
+    description: "Control de visibilidad y orden de las secciones en el diseño",
     step: 8,
   },
 ];
+
+export interface QuinceSectionInfo {
+  key: string;
+  name: string;
+  icon: string;
+  description: string;
+  toggleKey?: keyof EventData;
+}
+
+export const QUINCE_SECTION_ITEMS: QuinceSectionInfo[] = [
+  { key: "hero", name: "Portada & Hero con Cortinas", icon: "👑", description: "Foto de portada, cortinas y lazo divisor" },
+  { key: "crest", name: "Escudo Monograma & Pensamiento", icon: "🛡️", description: "Monograma XV con iniciales y frase emotiva" },
+  { key: "music", name: "Reproductor Musical 'Dale Play'", icon: "🎵", description: "Música de fondo y barra flotante de reproducción" },
+  { key: "sponsors", name: "Cortejo de Honor (Padres y Padrinos)", icon: "👨‍👩‍👧", description: "Nombres de padres, padrinos y acompañantes", toggleKey: "showSponsors" },
+  { key: "date_calendar", name: "Fecha & Calendario Mensual", icon: "📅", description: "Día de la fiesta, mes en cuadrícula y guardado en calendario" },
+  { key: "middle_photo", name: "Foto Intermedia de Sesión", icon: "🖼️", description: "Fotografía vertical destacada de la quinceañera" },
+  { key: "ceremony", name: "Ceremonia Religiosa (Misa)", icon: "⛪", description: "Templo, hora y mapa de la misa religiosa", toggleKey: "showCeremony" },
+  { key: "reception", name: "Recepción & Salón de Fiesta", icon: "🏰", description: "Salón de recepciones, hora y mapa del salón" },
+  { key: "itinerary", name: "Itinerario de Actividades", icon: "⏱️", description: "Cronograma de la noche (Recepción, Vals, Brindis, etc.)", toggleKey: "showItinerary" },
+  { key: "dress_code", name: "Código de Vestimenta (Dress Code)", icon: "👗", description: "Estilo de gala y colores reservados", toggleKey: "showDressCode" },
+  { key: "countdown", name: "Cuenta Regresiva", icon: "⏳", description: "Contador regresivo de días, horas y minutos" },
+  { key: "gifts", name: "Sugerencia de Regalos & QR", icon: "🎁", description: "Lluvia de sobres, cuentas bancarias o regalo personal", toggleKey: "showGifts" },
+  { key: "final_photo", name: "Foto Final de Sesión", icon: "📸", description: "Fotografía de despedida de la quinceañera" },
+  { key: "rsvp", name: "Confirmación de Asistencia (RSVP)", icon: "💬", description: "Botones para confirmar asistencia por WhatsApp", toggleKey: "showRsvp" },
+  { key: "farewell", name: "Mensaje de Despedida & Cierre", icon: "✨", description: "Agradecimiento final y bendición" },
+];
+
+export const DEFAULT_QUINCE_SECTION_ORDER = QUINCE_SECTION_ITEMS.map((item) => item.key);
 
 export const EVENT_TYPE_OPTIONS: { value: EventType; label: string; icon: string; defaultTagline: string }[] = [
   { value: "birthday", label: "Cumpleaños", icon: "🎂", defaultTagline: "¡Acompáñanos a celebrar!" },

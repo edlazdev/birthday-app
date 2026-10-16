@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { validatePublicationRequest } from "@/schemas/payment";
 
 export interface PublicationRequest {
   id: string;
@@ -72,6 +73,11 @@ export async function createPublicationRequest(data: {
   operationCode?: string;
   voucherUrl?: string;
 }): Promise<{ success: boolean; data?: PublicationRequest; error?: string }> {
+  const validation = validatePublicationRequest(data);
+  if (!validation.success) {
+    return { success: false, error: validation.error };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return { success: false, error: "Supabase no está disponible." };
   }
@@ -250,6 +256,21 @@ export async function rejectPublicationRequest(
 }
 
 /**
+ * Normaliza un número telefónico (agregando el prefijo 51 de Perú si son 9 dígitos)
+ * y genera una URL directa a wa.me
+ */
+export function formatWhatsAppUrl(rawPhone: string, messageText?: string): string {
+  let clean = rawPhone.replace(/\D/g, "");
+  if (!clean) return "";
+  // Si ingresó número local de Perú (9 dígitos empezando en 9), anteponer '51'
+  if (clean.length === 9 && clean.startsWith("9")) {
+    clean = `51${clean}`;
+  }
+  const baseUrl = `https://wa.me/${clean}`;
+  return messageText ? `${baseUrl}?text=${encodeURIComponent(messageText)}` : baseUrl;
+}
+
+/**
  * Genera el enlace de WhatsApp con el formato y el identificador [Freeloader]
  */
 export function buildWhatsAppPaymentUrl(params: {
@@ -261,6 +282,7 @@ export function buildWhatsAppPaymentUrl(params: {
   userPhone?: string;
   paymentMethod: string;
   operationCode?: string;
+  voucherUrl?: string;
   origin?: string;
 }): string {
   const origin = params.origin || "https://freeloader.artizaro.com";
@@ -274,10 +296,39 @@ export function buildWhatsAppPaymentUrl(params: {
     `• Método de Abono: ${params.paymentMethod.toUpperCase()}`,
     params.operationCode ? `• Nro. de Operación: ${params.operationCode}` : null,
     `• Monto Abonado: ${ADMIN_PAYMENT_CONFIG.amountFormatted}`,
+    params.voucherUrl ? `• Comprobante cargado: ${params.voucherUrl}` : null,
     `-----------------------------------`,
     `Adjunto la captura de mi comprobante para que puedan verificar el abono y publicar mi invitación. ¡Muchas gracias!`,
   ].filter(Boolean);
 
   const text = lines.join("\n");
-  return `https://wa.me/${ADMIN_PAYMENT_CONFIG.adminWhatsApp}?text=${encodeURIComponent(text)}`;
+  return formatWhatsAppUrl(ADMIN_PAYMENT_CONFIG.adminWhatsApp, text);
 }
+
+/**
+ * Genera el enlace de WhatsApp para que el administrador notifique al cliente
+ * que su invitación ya está aprobada y publicada.
+ */
+export function buildApprovalWhatsAppUrl(params: {
+  userPhone: string;
+  userName?: string;
+  celebrant: string;
+  slug: string;
+  origin?: string;
+}): string {
+  const origin = params.origin || "https://freeloader.artizaro.com";
+  const name = params.userName ? `¡Hola ${params.userName}!` : "¡Hola!";
+  const lines = [
+    `${ADMIN_PAYMENT_CONFIG.identifier} 🎉 ¡Tu invitación ya está activa!`,
+    `-----------------------------------`,
+    `${name} Confirmamos que tu abono de S/ 50 ha sido verificado con éxito.`,
+    ``,
+    `✨ Tu invitación para *${params.celebrant}* ya está publicada y lista para compartir:`,
+    `👉 ${origin}/${params.slug}`,
+    ``,
+    `¡Gracias por confiar en Freeloader para tu celebración! Que tengas un evento inolvidable. 🥂`,
+  ];
+
+  return formatWhatsAppUrl(params.userPhone, lines.join("\n"));
+}
+

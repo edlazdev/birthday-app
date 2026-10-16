@@ -15,6 +15,7 @@ import EventRibbonDivider from "@/components/EventRibbonDivider.astro";
 import EventFarewellSection from "@/components/EventFarewellSection.astro";
 import EventGiftSection from "@/components/EventGiftSection.astro";
 import EventRsvpModalSection from "@/components/EventRsvpModalSection.astro";
+import { DEFAULT_QUINCE_SECTION_ORDER } from "@/constants/editor";
 
 interface Props {
   eventData: EventData;
@@ -284,6 +285,23 @@ const isCustomSans = Boolean(
 const sansFontFamily = isCustomSans
   ? `'${eventData.fonts!.text.family}', 'Montserrat', sans-serif`
   : `'Montserrat', sans-serif`;
+
+// ========================================================
+// ORDEN SECUENCIAL Y MODULAR DEL DISEÑO DE QUINCEAÑERA:
+// Permite ordenar o reubicar dinámicamente cualquier sección
+// ========================================================
+const customSectionOrder =
+  eventData.sectionOrder ||
+  (eventData.features as any)?.section_order ||
+  (eventData.features as any)?.sectionOrder;
+
+const activeOrder: string[] =
+  Array.isArray(customSectionOrder) && customSectionOrder.length > 0
+    ? [
+        ...customSectionOrder.filter((k: string) => DEFAULT_QUINCE_SECTION_ORDER.includes(k)),
+        ...DEFAULT_QUINCE_SECTION_ORDER.filter((k) => !customSectionOrder.includes(k)),
+      ]
+    : [...DEFAULT_QUINCE_SECTION_ORDER];
 ---
 
 <!-- Importación de Google Fonts para caligrafía de gala, serif imperial y quote -->
@@ -321,311 +339,362 @@ const sansFontFamily = isCustomSans
       class="quince-mobile-card w-full flex flex-col relative text-center bg-white shadow-xs"
       style={`background-color: ${cardBg};`}
     >
-    <!-- ==========================================
-         PANEL 1: HERO & PRESENTACIÓN
-    =========================================== -->
+      {activeOrder.map((secKey) => {
+        switch (secKey) {
+          case "hero":
+            return (
+              <>
+                {/* ==============================================================
+                     COMPONENTE 1: PORTADA & HERO CON CORTINAS
+                     ============================================================== */}
+                <header class="relative w-full overflow-hidden bg-slate-100">
+                  <div
+                    class={`hero-image-container relative w-full ${heroPhoto ? "aspect-[2/3]" : "py-16"} overflow-hidden flex flex-col justify-center`}
+                  >
+                    {heroPhoto && (
+                      <img
+                        src={heroPhoto}
+                        alt={`Mis XV Años${celebrant ? ` - ${celebrant}` : ""}`}
+                        class="w-full h-full object-cover object-top"
+                        loading="eager"
+                      />
+                    )}
+                    <div
+                      class="absolute inset-0 pointer-events-none"
+                      style="background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 25%, transparent 45%, rgba(255,255,255,0.7) 92%, #ffffff 100%);"
+                    />
 
-    <!-- 1. Hero Photo con Cortinas y Título -->
-    <header class="relative w-full overflow-hidden bg-slate-100">
-      <div
-        class={`hero-image-container relative w-full ${heroPhoto ? "aspect-[2/3]" : "py-16"} overflow-hidden flex flex-col justify-center`}
-      >
-        {heroPhoto && (
-          <img
-            src={heroPhoto}
-            alt={`Mis XV Años${celebrant ? ` - ${celebrant}` : ""}`}
-            class="w-full h-full object-cover object-top"
-            loading="eager"
-          />
-        )}
-        <!-- Overlay superior con degradado dinámico hacia la base blanca -->
-        <div
-          class="absolute inset-0 pointer-events-none"
-          style="background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 25%, transparent 45%, rgba(255,255,255,0.7) 92%, #ffffff 100%);"
-        >
-        </div>
+                    <div class={`${heroPhoto ? "absolute top-3.5 sm:top-4 left-0 right-0" : "relative"} px-4 text-center z-10`}>
+                      {celebrant && (
+                        <h1
+                          class="quince-script-title text-4xl sm:text-5xl text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] leading-none font-normal"
+                        >
+                          {celebrant}
+                        </h1>
+                      )}
+                      <p
+                        class="quince-serif-caps text-[11px] sm:text-xs tracking-[0.3em] uppercase font-semibold mt-1 text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]"
+                      >
+                        {eventData.beforeCelebrant || (eventData.title ? eventData.title.toUpperCase() : "MIS XV AÑOS")}
+                      </p>
+                    </div>
+                  </div>
+                </header>
+                {ribbonPhoto && (
+                  /* ==============================================================
+                       COMPONENTE 2: LAZO DIVISOR SUPERIOR
+                       ============================================================== */
+                  <div class="quince-ribbon-divider-full relative w-full flex items-center justify-center -mt-8 sm:-mt-10 mb-0 z-10 pointer-events-none select-none">
+                    <img
+                      src={ribbonPhoto}
+                      alt="Lazo plateado"
+                      class="w-full h-auto object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.12)]"
+                      loading="eager"
+                    />
+                  </div>
+                )}
+              </>
+            );
 
-        <!-- Título Caligráfico Superior en Blanco Elegante con amplio margen -->
-        <div class={`${heroPhoto ? "absolute top-3.5 sm:top-4 left-0 right-0" : "relative"} px-4 text-center z-10`}>
-          {celebrant && (
-            <h1
-              class="quince-script-title text-4xl sm:text-5xl text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] leading-none font-normal"
-            >
-              {celebrant}
-            </h1>
-          )}
-          <p
-            class="quince-serif-caps text-[11px] sm:text-xs tracking-[0.3em] uppercase font-semibold mt-1 text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]"
-          >
-            {eventData.beforeCelebrant || (eventData.title ? eventData.title.toUpperCase() : "MIS XV AÑOS")}
-          </p>
-        </div>
-      </div>
-    </header>
+          case "crest":
+            return (
+              /* ==============================================================
+                   COMPONENTE 3: ESCUDO MONOGRAMA & PENSAMIENTO
+                   ============================================================== */
+              <EventCrestSection
+                tagline={tagline}
+                celebrant={celebrant}
+                crestFrameUrl={crestFramePhoto}
+                monogramText={crestAge}
+                badgeText={eventData.title || "QUINCEAÑERA"}
+                primaryColor={primaryRose}
+                textColor={textDark}
+                textMutedColor={textMuted}
+                borderColor={borderSoft}
+              />
+            );
 
-    <!-- 2. Lazo / Moño Divisor Plateado debajo de la imagen -->
-    {ribbonPhoto && (
-      <div class="quince-ribbon-divider-full relative w-full flex items-center justify-center -mt-8 sm:-mt-10 mb-0 z-10 pointer-events-none select-none">
-        <img
-          src={ribbonPhoto}
-          alt="Lazo plateado"
-          class="w-full h-auto object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.12)]"
-          loading="eager"
-        />
-      </div>
-    )}
+          case "music":
+            return (
+              <>
+                {/* ==============================================================
+                     COMPONENTE 4: REPRODUCTOR MUSICAL "DALE PLAY"
+                     ============================================================== */}
+                <EventMusicPlayer
+                  title="DALE PLAY"
+                  youtubeUrl={eventData.musicConfig?.youtubeUrl}
+                  startSecond={eventData.musicConfig?.startSecond}
+                  songTitle={eventData.musicConfig?.songTitle}
+                  autoplay={eventData.musicConfig?.autoplay ?? true}
+                  primaryColor={primaryRose}
+                  accentColor={accentPink}
+                  bgColor={playerBg}
+                  borderColor={borderSoft}
+                />
+                <EventRibbonDivider color={silver} />
+              </>
+            );
 
-    <!-- 3 & 4. Componente Reutilizable: Escudo Monograma, Pensamiento y Badge -->
-    <EventCrestSection
-      tagline={tagline}
-      celebrant={celebrant}
-      crestFrameUrl={crestFramePhoto}
-      monogramText={crestAge}
-      badgeText={eventData.title || "QUINCEAÑERA"}
-      primaryColor={primaryRose}
-      textColor={textDark}
-      textMutedColor={textMuted}
-      borderColor={borderSoft}
-    />
+          case "sponsors":
+            return hasSponsors ? (
+              /* ==============================================================
+                   COMPONENTE 5: CORTEJO DE HONOR (PADRES & PADRINOS)
+                   ============================================================== */
+              <section class="px-6 py-1">
+                <EventSponsorsSection
+                  introText={sponsorsConfig?.introText}
+                  parentsLabel={sponsorsConfig?.parentsLabel}
+                  parents={parentsList}
+                  godparentsLabel={sponsorsConfig?.godparentsLabel}
+                  godparents={godparentsList}
+                  primaryColor={primaryRose}
+                  textColor={textDark}
+                />
+              </section>
+            ) : null;
 
-    <!-- 5. Componente Reutilizable: Reproductor Musical "DALE PLAY" -->
-    <EventMusicPlayer
-      title="DALE PLAY"
-      youtubeUrl={eventData.musicConfig?.youtubeUrl}
-      startSecond={eventData.musicConfig?.startSecond}
-      songTitle={eventData.musicConfig?.songTitle}
-      autoplay={eventData.musicConfig?.autoplay ?? true}
-      primaryColor={primaryRose}
-      accentColor={accentPink}
-      bgColor={playerBg}
-      borderColor={borderSoft}
-    />
+          case "date_calendar":
+            return hasDate && parsedDate ? (
+              /* ==============================================================
+                   COMPONENTE 6: BANNER DE FECHA & CALENDARIO MENSUAL
+                   ============================================================== */
+              <div class="px-5 py-3 space-y-5">
+                <EventDateBanner
+                  date={eventData.date}
+                  time={eventData.time}
+                  month={eventData.dateBanner?.month}
+                  dayOfWeek={eventData.dateBanner?.dayOfWeek}
+                  day={eventData.dateBanner?.day}
+                  year={eventData.dateBanner?.year}
+                  primaryColor={primaryRose}
+                  dayColor={silver}
+                  lineColor={silver}
+                />
+                <EventCalendarSection
+                  title="El gran día"
+                  monthName={parsedDate.monthName}
+                  year={parsedDate.year}
+                  day={parsedDate.day}
+                  daysInMonth={parsedDate.daysInMonth}
+                  startOffsetMonday={parsedDate.startOffsetMonday}
+                  highlightIcon="🤍"
+                  primaryColor={primaryRose}
+                  accentColor={accentPink}
+                  textColor={textBody}
+                  subtleColor={textSubtle}
+                />
+              </div>
+            ) : null;
 
-    <EventRibbonDivider color={silver} />
+          case "middle_photo":
+            return middlePhoto ? (
+              /* ==============================================================
+                   COMPONENTE 7: FOTO INTERMEDIA DE SESIÓN
+                   ============================================================== */
+              <div class="px-5 py-3">
+                <QuinceSectionImage
+                  src={middlePhoto}
+                  alt={`Sesión de fotos${celebrant ? ` de ${celebrant}` : ""}`}
+                  aspectRatio="square"
+                />
+                <EventRibbonDivider color={silver} />
+              </div>
+            ) : null;
 
-    <section class="px-6 py-1">
-      <!-- 6. Sección Reutilizable de Padres y Padrinos de Honor -->
-      {hasSponsors && (
-        <EventSponsorsSection
-          introText={sponsorsConfig?.introText}
-          parentsLabel={sponsorsConfig?.parentsLabel}
-          parents={parentsList}
-          godparentsLabel={sponsorsConfig?.godparentsLabel}
-          godparents={godparentsList}
-          primaryColor={primaryRose}
-          textColor={textDark}
-        />
-      )}
-    </section>
+          case "ceremony":
+            return hasMisa ? (
+              /* ==============================================================
+                   COMPONENTE 8: CEREMONIA RELIGIOSA (MISA)
+                   ============================================================== */
+              <div class="px-5 py-3">
+                <EventLocationSection
+                  type="ceremony"
+                  icon="church"
+                  iconColor={silver}
+                  title={misaTitle}
+                  date={misaDate}
+                  time={misaTime}
+                  place={misaPlace}
+                  address={misaAddress}
+                  mapUrl={misaMapUrl}
+                  showMap={showMisaMap}
+                  primaryColor={primaryRose}
+                  accentColor={primaryRose}
+                  textColor={textDark}
+                  textMutedColor={textMuted}
+                />
+              </div>
+            ) : null;
 
-    <!-- ==========================================
-         PANEL 2: CALENDARIO & CEREMONIA
-    =========================================== -->
-    <div class="px-5 py-3 space-y-5">
-      <!-- 7 & 8. Banner de Fecha y Tarjeta del Calendario: solo si hay fecha -->
-      {hasDate && parsedDate && (
-        <>
-          <!-- 7. Banner de Fecha Elegante con Doble Línea y Día Caligráfico -->
-          <EventDateBanner
-            date={eventData.date}
-            time={eventData.time}
-            month={eventData.dateBanner?.month}
-            dayOfWeek={eventData.dateBanner?.dayOfWeek}
-            day={eventData.dateBanner?.day}
-            year={eventData.dateBanner?.year}
-            primaryColor={primaryRose}
-            dayColor={silver}
-            lineColor={silver}
-          />
+          case "reception":
+            return hasReception ? (
+              /* ==============================================================
+                   COMPONENTE 9: RECEPCIÓN & SALÓN DE FIESTA
+                   ============================================================== */
+              <div class="px-5 py-3">
+                <EventLocationSection
+                  type="reception"
+                  icon="reception"
+                  iconColor={silver}
+                  title={receptionTitle}
+                  date={receptionDate}
+                  time={receptionTime}
+                  place={receptionPlace}
+                  address={receptionAddress}
+                  mapUrl={receptionMapUrl}
+                  showMap={showReceptionMap}
+                  primaryColor={primaryRose}
+                  accentColor={primaryRose}
+                  textColor={textDark}
+                  textMutedColor={textMuted}
+                />
+              </div>
+            ) : null;
 
-          <!-- 8. Componente Reutilizable: Calendario Mensual "El Gran Día" -->
-          <EventCalendarSection
-            title="El gran día"
-            monthName={parsedDate.monthName}
-            year={parsedDate.year}
-            day={parsedDate.day}
-            daysInMonth={parsedDate.daysInMonth}
-            startOffsetMonday={parsedDate.startOffsetMonday}
-            highlightIcon="🤍"
-            primaryColor={primaryRose}
-            accentColor={accentPink}
-            textColor={textBody}
-            subtleColor={textSubtle}
-          />
-        </>
-      )}
+          case "itinerary":
+            return hasItinerary ? (
+              /* ==============================================================
+                   COMPONENTE 10: ITINERARIO DE ACTIVIDADES (TARJETA EN ARCO)
+                   ============================================================== */
+              <div class="px-5 py-3">
+                <EventRibbonDivider color={silver} />
+                <EventItineraryArcSection
+                  itinerary={itineraryItems}
+                  title={itineraryTitle}
+                  subtitle={itinerarySubtitle}
+                  archBg={archBg}
+                  textColor="#ffffff"
+                />
+              </div>
+            ) : null;
 
-      <!-- 9. Foto Intermedia de Sesión: componente reutilizable -->
-      {middlePhoto && (
-        <QuinceSectionImage
-          src={middlePhoto}
-          alt={`Sesión de fotos${celebrant ? ` de ${celebrant}` : ""}`}
-          aspectRatio="square"
-        />
-      )}
+          case "dress_code":
+            return showDressCode ? (
+              /* ==============================================================
+                   COMPONENTE 11: CÓDIGO DE VESTIMENTA (DRESS CODE)
+                   ============================================================== */
+              <div class="px-5 py-3">
+                <EventRibbonDivider color={silver} />
+                <EventDressCodeSection
+                  title={dressCodeTitle}
+                  category={dressCodeCategory}
+                  message={dressCodeMessage}
+                  showColors={dressCodeShowColors}
+                  reservedColors={dressCodeColors}
+                  primaryColor={primaryRose}
+                  textColor={textDark}
+                  textMutedColor={textMuted}
+                />
+              </div>
+            ) : null;
 
-      <!-- Separador de Lazo Plateado antes de Ceremonia: componente reutilizable -->
-      <EventRibbonDivider color={silver} />
+          case "countdown":
+            return hasDate && parsedDate && initialCountdown ? (
+              /* ==============================================================
+                   COMPONENTE 12: CUENTA REGRESIVA ("SOLO FALTAN")
+                   ============================================================== */
+              <div class="px-5 py-3">
+                <EventCountdownSection
+                  title="Solo faltan"
+                  targetIso={parsedDate.targetIso}
+                  initialDays={initialCountdown.days}
+                  initialHours={initialCountdown.hours}
+                  initialMinutes={initialCountdown.minutes}
+                  initialSeconds={initialCountdown.seconds}
+                  hasPassed={parsedDate.hasPassed}
+                  celebrationText="🎉 ¡Llegó el gran día!"
+                  primaryColor={primaryRose}
+                  textColor={textDark}
+                  subtleColor={textSubtle}
+                  accentColor={accentPink}
+                />
+              </div>
+            ) : null;
 
-      <!-- 10. Ceremonia Religiosa (Misa) -->
-      {hasMisa && (
-        <EventLocationSection
-          type="ceremony"
-          icon="church"
-          iconColor={silver}
-          title={misaTitle}
-          date={misaDate}
-          time={misaTime}
-          place={misaPlace}
-          address={misaAddress}
-          mapUrl={misaMapUrl}
-          showMap={showMisaMap}
-          primaryColor={primaryRose}
-          accentColor={primaryRose}
-          textColor={textDark}
-          textMutedColor={textMuted}
-        />
-      )}
+          case "gifts":
+            return showGifts ? (
+              /* ==============================================================
+                   COMPONENTE 13: SUGERENCIA DE REGALOS (LLUVIA DE SOBRES & QR)
+                   ============================================================== */
+              <div class="px-5 py-3">
+                <EventRibbonDivider color={silver} />
+                <EventGiftSection
+                  title={giftTitle}
+                  message={giftMessage}
+                  buttonText={giftButtonText}
+                  accountHolder={giftAccountHolder}
+                  bank={giftBank}
+                  phone={giftPhone}
+                  accountNumber={giftAccountNumber}
+                  qrImageUrl={giftQrImageUrl}
+                  note={giftNote}
+                  primaryColor={primaryRose}
+                  accentColor={accentPink}
+                  textColor={textDark}
+                />
+              </div>
+            ) : null;
 
-      <!-- ==========================================
-           PANEL 3: RECEPCIÓN, ITINERARIO & CUENTA REGRESIVA
-      =========================================== -->
+          case "final_photo":
+            return finalPhoto ? (
+              /* ==============================================================
+                   COMPONENTE 14: FOTO FINAL DE SESIÓN
+                   ============================================================== */
+              <div class="px-5 py-3">
+                <QuinceSectionImage
+                  src={finalPhoto}
+                  alt={`Recuerdo${celebrant ? ` de ${celebrant}` : ""}`}
+                  aspectRatio="portrait"
+                />
+              </div>
+            ) : null;
 
-      <!-- 11. Recepción (Fiesta) -->
-      {hasReception && (
-        <EventLocationSection
-          type="reception"
-          icon="reception"
-          iconColor={silver}
-          title={receptionTitle}
-          date={receptionDate}
-          time={receptionTime}
-          place={receptionPlace}
-          address={receptionAddress}
-          mapUrl={receptionMapUrl}
-          showMap={showReceptionMap}
-          primaryColor={primaryRose}
-          accentColor={primaryRose}
-          textColor={textDark}
-          textMutedColor={textMuted}
-        />
-      )}
+          case "rsvp":
+            return showRsvp ? (
+              /* ==============================================================
+                   COMPONENTE 15: CONFIRMACIÓN DE ASISTENCIA (RSVP & WHATSAPP)
+                   ============================================================== */
+              <div class="px-5 py-3">
+                <EventRsvpModalSection
+                  whatsapp={whatsappDigits}
+                  whatsappName={whatsappName}
+                  celebrant={celebrant}
+                  eventName={eventData.title || (celebrant ? `Mis XV Años - ${celebrant}` : "Mis XV Años")}
+                  title={rsvpTitle}
+                  subtitle={rsvpSubtitle}
+                  buttonText={rsvpButtonText}
+                  maxGuests={rsvpMaxGuests}
+                  slug={slug}
+                  primaryColor={primaryRose}
+                  accentColor={accentPink}
+                  textColor={textDark}
+                />
+              </div>
+            ) : null;
 
-      <!-- 12. LA ICÓNICA TARJETA EN ARCO: ITINERARIO DE ACTIVIDADES (Rosa Empolvado #c78596 con Texto Blanco) -->
-      {hasItinerary && (
-        <>
-          <!-- Moño Divisor entre Recepción e Itinerario: componente reutilizable -->
-          <EventRibbonDivider color={silver} />
+          case "farewell":
+            return showFarewell ? (
+              /* ==============================================================
+                   COMPONENTE 16: MENSAJE DE DESPEDIDA & CIERRE ELEGANTE
+                   ============================================================== */
+              <div class="px-5 py-3">
+                <EventFarewellSection
+                  message={farewellMessage}
+                  signature={farewellSignature}
+                  primaryColor={primaryRose}
+                  textColor={textDark}
+                />
+              </div>
+            ) : null;
 
-          <!-- 12. Componente Reutilizable: Tarjeta en Arco con Línea de Tiempo Alternada -->
-          <EventItineraryArcSection
-            itinerary={itineraryItems}
-            title={itineraryTitle}
-            subtitle={itinerarySubtitle}
-            archBg={archBg}
-            textColor="#ffffff"
-          />
+          default:
+            return null;
+        }
+      })}
 
-        </>
-      )}
-
-      <!-- 13. Componente Reutilizable: Código de Vestimenta (Dress Code) -->
-      {showDressCode && (
-        <>
-          <!-- Moño Divisor Plateado antes de Código de Vestimenta: componente reutilizable -->
-          <EventRibbonDivider color={silver} />
-
-          <EventDressCodeSection
-            title={dressCodeTitle}
-            category={dressCodeCategory}
-            message={dressCodeMessage}
-            showColors={dressCodeShowColors}
-            reservedColors={dressCodeColors}
-            primaryColor={primaryRose}
-            textColor={textDark}
-            textMutedColor={textMuted}
-          />
-        </>
-      )}
-
-      <!-- 14. Componente Reutilizable: Cuenta Regresiva ("Solo faltan") -->
-      {hasDate && parsedDate && initialCountdown && (
-        <EventCountdownSection
-          title="Solo faltan"
-          targetIso={parsedDate.targetIso}
-          initialDays={initialCountdown.days}
-          initialHours={initialCountdown.hours}
-          initialMinutes={initialCountdown.minutes}
-          initialSeconds={initialCountdown.seconds}
-          hasPassed={parsedDate.hasPassed}
-          celebrationText="🎉 ¡Llegó el gran día!"
-          primaryColor={primaryRose}
-          textColor={textDark}
-          subtleColor={textSubtle}
-          accentColor={accentPink}
-        />
-      )}
-
-      <!-- 14. Componente Reutilizable: Sugerencia de Regalos / Lluvia de Sobres -->
-      {showGifts && (
-        <>
-          <EventRibbonDivider color={silver} />
-
-          <EventGiftSection
-            title={giftTitle}
-            message={giftMessage}
-            buttonText={giftButtonText}
-            accountHolder={giftAccountHolder}
-            bank={giftBank}
-            phone={giftPhone}
-            accountNumber={giftAccountNumber}
-            qrImageUrl={giftQrImageUrl}
-            note={giftNote}
-            primaryColor={primaryRose}
-            accentColor={accentPink}
-            textColor={textDark}
-          />
-        </>
-      )}
-
-      <!-- 15. Foto Final de Sesión: componente reutilizable -->
-      {finalPhoto && (
-        <QuinceSectionImage
-          src={finalPhoto}
-          alt={`Recuerdo${celebrant ? ` de ${celebrant}` : ""}`}
-          aspectRatio="portrait"
-        />
-      )}
-
-      <!-- 15. Componente Reutilizable: Confirmar Asistencia con Modal y WhatsApp -->
-      {showRsvp && (
-        <EventRsvpModalSection
-          whatsapp={whatsappDigits}
-          whatsappName={whatsappName}
-          celebrant={celebrant}
-          eventName={eventData.title || (celebrant ? `Mis XV Años - ${celebrant}` : "Mis XV Años")}
-          title={rsvpTitle}
-          subtitle={rsvpSubtitle}
-          buttonText={rsvpButtonText}
-          maxGuests={rsvpMaxGuests}
-          slug={slug}
-          primaryColor={primaryRose}
-          accentColor={accentPink}
-          textColor={textDark}
-        />
-      )}
-
-      <!-- 16. Componente Reutilizable: Mensaje de Despedida y Cierre Elegante -->
-      {showFarewell && (
-        <EventFarewellSection
-          message={farewellMessage}
-          signature={farewellSignature}
-          primaryColor={primaryRose}
-          textColor={textDark}
-        />
-      )}
-
-      <!-- Footer elegante -->
+      <!-- ==============================================================
+           COMPONENTE 17: PIE DE PÁGINA (FOOTER)
+           ============================================================== -->
       <footer
         class="py-4 border-t text-[11px] text-center"
         style={`border-color: ${borderSoft}; color: ${textMuted};`}
@@ -640,8 +709,7 @@ const sansFontFamily = isCustomSans
           © {new Date().getFullYear()} · Todos los derechos reservados
         </p>
       </footer>
-    </div>
-  </main>
+    </main>
   </div>
 </div>
 

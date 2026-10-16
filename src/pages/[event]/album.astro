@@ -7,11 +7,16 @@ import ImageGallery from "@/components/ImageGallery.tsx";
 import { getTenantBySlug } from "@/services/tenants";
 
 const { event } = Astro.params;
-const eventKey = event ? event : DEFAULT_EVENT;
-const data = await getTenantBySlug(eventKey);
+const isPreview = Astro.url.searchParams.has("preview");
+const data = await getTenantBySlug(eventKey, isPreview);
 
 if (!data) {
   return Astro.redirect("/");
+}
+
+// Si no está publicado y no es preview, redirigir a la portada que muestra el aviso
+if (data.status !== "published" && !isPreview) {
+  return Astro.redirect(`/${data.slug}`);
 }
 
 // Si el evento tiene el álbum deshabilitado, redirigir a la invitación

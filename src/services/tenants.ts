@@ -1,6 +1,9 @@
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import type { EventData, EventFeatures } from "@/types";
 import { events as localEvents } from "@/data/events";
+import { validateEventData } from "@/schemas/event";
+import { validateRsvpSubmission } from "@/schemas/rsvp";
+import { prepareImageForUpload } from "@/lib/mediaUpload";
 
 /**
  * Convierte un registro de la base de datos `event_tenants` al tipo `EventData` de la aplicación
@@ -97,6 +100,7 @@ export function mapDbToEventData(row: any): EventData {
       : undefined,
     rsvpConfig: (features as any)?.rsvp_config || (features as any)?.rsvpConfig || local?.rsvpConfig || undefined,
     musicConfig: (features as any)?.music_config || (features as any)?.musicConfig || local?.musicConfig || undefined,
+    sectionOrder: (features as any)?.section_order || (features as any)?.sectionOrder || local?.sectionOrder || undefined,
   };
 }
 
@@ -131,6 +135,7 @@ export function mapEventDataToDb(data: EventData): Record<string, any> {
     gift_config: data.giftConfig || null,
     rsvp_config: data.rsvpConfig || null,
     music_config: data.musicConfig || null,
+    section_order: data.sectionOrder || (data.features as any)?.sectionOrder || null,
   };
 
   const media = {
@@ -299,13 +304,22 @@ export async function getTenantBySlug(slug: string, isPreview = false): Promise<
 }
 
 /**
- * Guarda o actualiza un tenant en Supabase.
+ * Guarda o actualiza un tenant en Supabase con validación de esquemas Zod.
  */
 export async function saveTenant(tenantData: EventData): Promise<{ success: boolean; data?: EventData; error?: string }> {
   if (!isSupabaseConfigured || !supabase) {
     return {
       success: false,
       error: "Supabase no está configurado en las variables de entorno (.env).",
+    };
+  }
+
+  // Validación de integridad y formato con Zod
+  const validation = validateEventData(tenantData);
+  if (!validation.success) {
+    return {
+      success: false,
+      error: validation.errorMessage || "Datos del evento incompletos o inválidos.",
     };
   }
 
@@ -363,7 +377,7 @@ export async function deleteTenant(id: string): Promise<{ success: boolean; erro
 }
 
 /**
- * Registra una confirmación de asistencia (RSVP) en Supabase.
+ * Registra una confirmación de asistencia (RSVP) en Supabase con validación Zod.
  */
 export async function submitRsvp(payload: {
   tenantId?: string;
@@ -375,6 +389,12 @@ export async function submitRsvp(payload: {
   phone?: string;
   notes?: string;
 }): Promise<{ success: boolean; error?: string }> {
+  // Validación de esquema Zod
+  const validation = validateRsvpSubmission(payload);
+  if (!validation.success) {
+    return { success: false, error: validation.error };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     // Si no está configurado Supabase, no bloqueamos el flujo hacia WhatsApp
     return { success: true };
@@ -426,25 +446,46 @@ export async function getRsvpsByTenant(tenantSlug: string): Promise<any[]> {
 
 /**
  * Sube un archivo al bucket 'freeloader-media' en Supabase Storage
+ * con validación de tipo MIME y optimización/compresión canvas automática.
  */
 export async function uploadMediaFile(
   file: File,
-  folder: string = "general"
+  folder: string = "general",
+  options?: {
+    maxRawSizeMb?: number;
+    maxDimension?: number;
+    quality?: number;
+    skipOptimization?: boolean;
+  }
 ): Promise<{ url?: string; error?: string }> {
   if (!isSupabaseConfigured || !supabase) {
     return { error: "Supabase no está configurado." };
   }
 
   try {
-    const ext = file.name.split(".").pop();
+    let fileToUpload = file;
+
+    // Validación y compresión previa en navegador
+    if (!options?.skipOptimization) {
+      const prepared = await prepareImageForUpload(file, options);
+      if (prepared.error) {
+        return { error: prepared.error };
+      }
+      if (prepared.file) {
+        fileToUpload = prepared.file;
+      }
+    }
+
+    const ext = fileToUpload.name.split(".").pop();
     const cleanFileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
     const filePath = `${folder}/${cleanFileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from("freeloader-media")
-      .upload(filePath, file, {
+      .upload(filePath, fileToUpload, {
         cacheControl: "3600",
         upsert: true,
+        contentType: fileToUpload.type || "image/jpeg",
       });
 
     if (uploadError) {
@@ -460,3 +501,4 @@ export async function uploadMediaFile(
     return { error: err.message || "Error al subir archivo" };
   }
 }
+
