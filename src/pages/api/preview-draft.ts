@@ -4,6 +4,16 @@ import type { EventData } from "@/types";
 
 export const prerender = false;
 
+export const GET: APIRoute = async ({ url }) => {
+  const slug = url.searchParams.get("slug") || "luana";
+  const { getPreviewDraft } = await import("@/services/tenants");
+  const draft = getPreviewDraft(slug);
+  return new Response(JSON.stringify({ slug, draft }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();

@@ -87,6 +87,18 @@ export const invitationMetadataSchema = z.object({
   qrImageUrl: z.string().optional().nullable(),
   showInvitation: z.boolean().optional().default(true),
   showAlbum: z.boolean().optional().default(true),
+  showAvatar: z.boolean().optional().default(true),
+  showVideoBackground: z.boolean().optional().default(false),
+  showMap: z.boolean().optional().default(true),
+  showSocialLinks: z.boolean().optional().default(true),
+  ribbonUrl: z.string().optional().nullable(),
+  crestUrl: z.string().optional().nullable(),
+  msgRedirectAlbum: z.string().optional().nullable(),
+  msgTooltip: z.string().optional().nullable(),
+  giftRecommendations: z.array(z.string()).optional(),
+  recommendationsTitle: z.string().optional().nullable(),
+  recommendationsDescription: z.string().optional().nullable(),
+  features: z.any().optional(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
 });
@@ -423,6 +435,15 @@ export function eventDataToInvitationConfig(event: EventData): InvitationConfig 
       qrImageUrl: event.qrImageUrl,
       showInvitation: event.showInvitation !== false,
       showAlbum: event.showAlbum !== false,
+      showAvatar: event.showAvatar !== false,
+      showVideoBackground: event.showVideoBackground === true,
+      showMap: event.showMap !== false,
+      showSocialLinks: event.showSocialLinks !== false,
+      msgRedirectAlbum: event.msgRedirectAlbum,
+      msgTooltip: event.msgTooltip,
+      giftRecommendations: event.giftRecommendations || [],
+      recommendationsTitle: event.recommendationsTitle,
+      recommendationsDescription: event.recommendationsDescription,
       ribbonUrl:
         (event as any).ribbonUrl ||
         (event.features as any)?.ribbon_url ||
@@ -433,6 +454,7 @@ export function eventDataToInvitationConfig(event: EventData): InvitationConfig 
         (event.features as any)?.crest_url ||
         (event.features as any)?.crestUrl ||
         (event as any).media?.crest_url,
+      features: event.features || {},
     },
     theme: {
       primary: event.theme?.primary || "#f59e0b",
@@ -469,8 +491,8 @@ export function invitationConfigToEventData(config: InvitationConfig): EventData
   const theme = config.theme;
   const social = config.social || {};
 
-  // Extraer datos de secciones individuales
-  const getSection = (kind: SectionKind) => config.sections.find((s) => s.kind === kind && s.enabled);
+  // Extraer datos de secciones individuales (sin s.enabled para no perder la configuración si se desactiva temporalmente)
+  const getSection = (kind: SectionKind) => config.sections.find((s) => s.kind === kind);
 
   const heroSec = getSection("hero");
   const dateBannerSec = getSection("dateBanner");
@@ -485,6 +507,49 @@ export function invitationConfigToEventData(config: InvitationConfig): EventData
   const musicSec = getSection("music");
   const gallerySec = getSection("gallery");
   const farewellSec = getSection("farewell");
+  const middlePhotoSec = getSection("middlePhoto");
+  const finalPhotoSec = getSection("finalPhoto");
+
+  const ribbonUrl =
+    meta.ribbonUrl ||
+    (meta.features as any)?.ribbon_url ||
+    (meta.features as any)?.ribbonUrl;
+
+  const crestUrl =
+    meta.crestUrl ||
+    (meta.features as any)?.crest_url ||
+    (meta.features as any)?.crestUrl;
+
+  const features: Record<string, any> = {
+    ...(meta.features || {}),
+    ...(ribbonUrl ? { ribbon_url: ribbonUrl, ribbonUrl } : {}),
+    ...(crestUrl ? { crest_url: crestUrl, crestUrl } : {}),
+    show_invitation: meta.showInvitation !== false && (heroSec ? heroSec.enabled !== false : true),
+    show_album: meta.showAlbum !== false && (gallerySec ? gallerySec.enabled !== false : true),
+    show_avatar: meta.showAvatar !== false && (heroSec?.data?.showAvatar !== false),
+    show_video_background: meta.showVideoBackground === true,
+    show_map: meta.showMap !== false,
+    show_social_links: meta.showSocialLinks !== false,
+    show_rsvp: rsvpSec ? rsvpSec.enabled : (meta.features as any)?.show_rsvp !== false,
+    show_gifts: giftsSec ? giftsSec.enabled : (meta.features as any)?.show_gifts !== false,
+    show_sponsors: sponsorsSec ? sponsorsSec.enabled : (meta.features as any)?.show_sponsors !== false,
+    show_witnesses: witnessesSec ? witnessesSec.enabled : (meta.features as any)?.show_witnesses !== false,
+    show_itinerary: itinerarySec ? itinerarySec.enabled : (meta.features as any)?.show_itinerary !== false,
+    show_ceremony: ceremonySec ? ceremonySec.enabled : (meta.features as any)?.show_ceremony !== false,
+    show_dress_code: dressCodeSec ? dressCodeSec.enabled : (meta.features as any)?.show_dress_code !== false,
+    show_farewell: farewellSec ? farewellSec.enabled : (meta.features as any)?.show_farewell !== false,
+    ceremony: ceremonySec?.data || (meta.features as any)?.ceremony,
+    reception: receptionSec?.data || (meta.features as any)?.reception,
+    date_banner: dateBannerSec?.data || (meta.features as any)?.date_banner || (meta.features as any)?.dateBanner,
+    sponsors_config: sponsorsSec?.data?.config || (meta.features as any)?.sponsors_config || (meta.features as any)?.sponsorsConfig,
+    itinerary_config: itinerarySec?.data?.config || (meta.features as any)?.itinerary_config || (meta.features as any)?.itineraryConfig,
+    dress_code_config: dressCodeSec?.data || (meta.features as any)?.dress_code_config || (meta.features as any)?.dressCodeConfig,
+    farewell_config: farewellSec?.data || (meta.features as any)?.farewell_config || (meta.features as any)?.farewellConfig,
+    gift_config: giftsSec?.data || (meta.features as any)?.gift_config || (meta.features as any)?.giftConfig,
+    rsvp_config: rsvpSec?.data || (meta.features as any)?.rsvp_config || (meta.features as any)?.rsvpConfig,
+    music_config: musicSec?.data || (meta.features as any)?.music_config || (meta.features as any)?.musicConfig,
+    section_order: config.sections.map((s) => s.id),
+  };
 
   return {
     id: meta.id,
@@ -503,13 +568,15 @@ export function invitationConfigToEventData(config: InvitationConfig): EventData
     address: meta.address,
     whatsapp: meta.whatsapp,
     whatsappName: meta.whatsappName,
+    msgRedirectAlbum: meta.msgRedirectAlbum,
+    msgTooltip: meta.msgTooltip,
     map: meta.map || { lat: -12.046374, lng: -77.042793 },
     coverUrl: meta.coverUrl,
     avatarUrl: meta.avatarUrl,
     albumUrls: meta.albumUrls || gallerySec?.data?.albumUrls || [],
     albumCount: meta.albumUrls?.length || gallerySec?.data?.albumCount || 0,
-    middlePhotoUrl: meta.middlePhotoUrl || gallerySec?.data?.middlePhotoUrl || getSection("middlePhoto")?.data?.src,
-    finalPhotoUrl: meta.finalPhotoUrl || gallerySec?.data?.finalPhotoUrl || getSection("finalPhoto")?.data?.src,
+    middlePhotoUrl: meta.middlePhotoUrl || gallerySec?.data?.middlePhotoUrl || middlePhotoSec?.data?.src,
+    finalPhotoUrl: meta.finalPhotoUrl || gallerySec?.data?.finalPhotoUrl || finalPhotoSec?.data?.src,
     qrImageUrl: meta.qrImageUrl,
     fonts: theme.fonts,
     theme: {
@@ -524,42 +591,47 @@ export function invitationConfigToEventData(config: InvitationConfig): EventData
       instagram: social.socialLinks?.instagram !== false,
     },
     showInvitation:
-      (meta as any).showInvitation !== false &&
-      (config.sections.find((s) => s.kind === "hero")
-        ? config.sections.find((s) => s.kind === "hero")!.enabled !== false
-        : true),
+      meta.showInvitation !== false &&
+      (heroSec ? heroSec.enabled !== false : true),
     showAlbum:
-      (meta as any).showAlbum !== false &&
-      (config.sections.find((s) => s.kind === "gallery")
-        ? config.sections.find((s) => s.kind === "gallery")!.enabled !== false
-        : true),
-    showAvatar: heroSec?.data?.showAvatar !== false,
-    showCeremony: ceremonySec ? ceremonySec.enabled : false,
-    ceremony: ceremonySec?.data,
-    reception: receptionSec?.data,
-    dateBanner: dateBannerSec?.data,
-    showItinerary: itinerarySec ? itinerarySec.enabled : false,
-    itinerary: itinerarySec?.data?.items || [],
-    itineraryConfig: itinerarySec?.data?.config,
-    showDressCode: dressCodeSec ? dressCodeSec.enabled : false,
-    dressCodeConfig: dressCodeSec?.data,
-    showSponsors: sponsorsSec ? sponsorsSec.enabled : false,
-    sponsors: sponsorsSec?.data?.sponsors,
-    sponsorsConfig: sponsorsSec?.data?.config,
-    showWitnesses: witnessesSec ? witnessesSec.enabled : false,
-    witnesses: witnessesSec?.data,
-    showGifts: giftsSec ? giftsSec.enabled : false,
-    giftConfig: giftsSec?.data,
+      meta.showAlbum !== false &&
+      (gallerySec ? gallerySec.enabled !== false : true),
+    showAvatar: meta.showAvatar !== false && (heroSec?.data?.showAvatar !== false),
+    showVideoBackground: meta.showVideoBackground === true,
+    showMap: meta.showMap !== false,
+    showSocialLinks: meta.showSocialLinks !== false,
+    features,
+    showCeremony: ceremonySec ? ceremonySec.enabled : (meta.features as any)?.show_ceremony !== false,
+    ceremony: ceremonySec?.data || (meta.features as any)?.ceremony,
+    reception: receptionSec?.data || (meta.features as any)?.reception,
+    dateBanner: dateBannerSec?.data || (meta.features as any)?.date_banner || (meta.features as any)?.dateBanner,
+    showItinerary: itinerarySec ? itinerarySec.enabled : (meta.features as any)?.show_itinerary !== false,
+    itinerary: itinerarySec?.data?.items || (meta.features as any)?.itinerary || [],
+    itineraryConfig: itinerarySec?.data?.config || (meta.features as any)?.itinerary_config || (meta.features as any)?.itineraryConfig,
+    showDressCode: dressCodeSec ? dressCodeSec.enabled : (meta.features as any)?.show_dress_code !== false,
+    dressCodeConfig: dressCodeSec?.data || (meta.features as any)?.dress_code_config || (meta.features as any)?.dressCodeConfig,
+    showSponsors: sponsorsSec ? sponsorsSec.enabled : (meta.features as any)?.show_sponsors !== false,
+    sponsors: sponsorsSec?.data?.sponsors || (meta.features as any)?.sponsors,
+    sponsorsConfig: sponsorsSec?.data?.config || (meta.features as any)?.sponsors_config || (meta.features as any)?.sponsorsConfig,
+    showWitnesses: witnessesSec ? witnessesSec.enabled : (meta.features as any)?.show_witnesses !== false,
+    witnesses: witnessesSec?.data || (meta.features as any)?.witnesses,
+    showGifts: giftsSec ? giftsSec.enabled : (meta.features as any)?.show_gifts !== false,
+    giftConfig: giftsSec?.data || (meta.features as any)?.gift_config || (meta.features as any)?.giftConfig,
     showRsvp: rsvpSec ? rsvpSec.enabled : true,
-    rsvpConfig: rsvpSec?.data,
-    musicConfig: musicSec?.data,
-    showFarewell: farewellSec ? farewellSec.enabled : false,
-    farewellConfig: farewellSec?.data,
+    rsvpConfig: rsvpSec?.data || (meta.features as any)?.rsvp_config || (meta.features as any)?.rsvpConfig,
+    musicConfig: musicSec?.data || (meta.features as any)?.music_config || (meta.features as any)?.musicConfig,
+    showFarewell: farewellSec ? farewellSec.enabled : (meta.features as any)?.show_farewell !== false,
+    farewellConfig: farewellSec?.data || (meta.features as any)?.farewell_config || (meta.features as any)?.farewellConfig,
     ogTitle: social.ogTitle,
     ogDescription: social.ogDescription,
     ogImageUrl: social.ogImageUrl,
     ogImageSource: social.ogImageSource,
     ogSiteName: social.ogSiteName,
+    giftRecommendations: meta.giftRecommendations || (meta.features as any)?.gift_recommendations || [],
+    recommendationsTitle: meta.recommendationsTitle || (meta.features as any)?.recommendations_title,
+    recommendationsDescription: meta.recommendationsDescription || (meta.features as any)?.recommendations_description,
     sectionOrder: config.sections.map((s) => s.id),
+    ...(ribbonUrl ? { ribbonUrl } : {}),
+    ...(crestUrl ? { crestUrl } : {}),
   };
 }

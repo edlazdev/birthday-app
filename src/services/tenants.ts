@@ -47,6 +47,8 @@ export function mapDbToEventData(row: any): EventData {
     albumCount: media.album_count ?? (media.album_urls?.length || 0),
     coverUrl: media.cover_url || undefined,
     avatarUrl: media.avatar_url || undefined,
+    ribbonUrl: media.ribbon_url || (features as any)?.ribbon_url || (features as any)?.ribbonUrl || undefined,
+    crestUrl: media.crest_url || (features as any)?.crest_url || (features as any)?.crestUrl || undefined,
     albumUrls: media.album_urls || [],
     middlePhotoUrl: media.middle_photo_url || undefined,
     finalPhotoUrl: media.final_photo_url || undefined,

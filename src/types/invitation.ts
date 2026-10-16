@@ -107,6 +107,20 @@ export interface InvitationMetadata {
   middlePhotoUrl?: string;
   finalPhotoUrl?: string;
   qrImageUrl?: string;
+  showInvitation?: boolean;
+  showAlbum?: boolean;
+  showAvatar?: boolean;
+  showVideoBackground?: boolean;
+  showMap?: boolean;
+  showSocialLinks?: boolean;
+  ribbonUrl?: string;
+  crestUrl?: string;
+  msgRedirectAlbum?: string;
+  msgTooltip?: string;
+  giftRecommendations?: string[];
+  recommendationsTitle?: string;
+  recommendationsDescription?: string;
+  features?: any;
   createdAt?: string;
   updatedAt?: string;
 }

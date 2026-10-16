@@ -97,14 +97,26 @@ export default function AdminDashboard() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [tenantsData, requestsData] = await Promise.all([
+      const [tenantsRes, requestsRes] = await Promise.allSettled([
         getAllTenants(),
         getAllPublicationRequests(),
       ]);
-      setTenants(tenantsData);
-      setRequests(requestsData);
-    } catch (err) {
+
+      if (tenantsRes.status === "fulfilled") {
+        setTenants(tenantsRes.value);
+      } else {
+        console.error("Error loading tenants:", tenantsRes.reason);
+        setFeedback({ message: "No se pudieron obtener todos los eventos desde Supabase.", type: "error" });
+      }
+
+      if (requestsRes.status === "fulfilled") {
+        setRequests(requestsRes.value);
+      } else {
+        console.error("Error loading requests:", requestsRes.reason);
+      }
+    } catch (err: any) {
       console.error("Error loading admin data:", err);
+      setFeedback({ message: `Error al cargar datos: ${err.message}`, type: "error" });
     } finally {
       setLoading(false);
     }
@@ -397,12 +409,24 @@ export default function AdminDashboard() {
                 <h2 className="text-xl font-bold text-slate-950 dark:text-white">Eventos / Tenants</h2>
                 <p className="text-xs text-slate-600 dark:text-slate-400">Administra cada tenant, sus módulos visibles, diseño y asistentes.</p>
               </div>
-              <a
-                href="/admin/events/new"
-                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-bold text-xs rounded-2xl shadow-md shadow-amber-500/20 transition active:scale-95"
-              >
-                <span>+</span> Nuevo Tenant / Evento
-              </a>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={loadData}
+                  disabled={loading}
+                  className="flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-slate-800 hover:bg-stone-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-amber-900/[0.08] dark:border-slate-700 font-semibold text-xs rounded-2xl shadow-xs transition active:scale-95 disabled:opacity-50 cursor-pointer"
+                  title="Recargar lista de eventos desde Supabase"
+                >
+                  <span className={loading ? "animate-spin" : ""}>🔄</span>
+                  <span>Recargar</span>
+                </button>
+                <a
+                  href="/admin/events/new"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-bold text-xs rounded-2xl shadow-md shadow-amber-500/20 transition active:scale-95"
+                >
+                  <span>+</span> Nuevo Tenant / Evento
+                </a>
+              </div>
             </div>
 
             {/* Tenant Cards List */}

@@ -154,59 +154,125 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
     }
   }, []);
 
-  // Fetch or init tenant (only when authenticated or local)
-  useEffect(() => {
-    if (!user && isSupabaseConfigured) return;
+  // State for uncommitted local draft
+  const [pendingDraft, setPendingDraft] = useState<{ tenant: EventData; savedAt: number } | null>(null);
+  const [isReloading, setIsReloading] = useState(false);
 
-    async function init() {
-      setLoading(true);
-      setLoadError(null);
+  // Load tenant from Supabase
+  const loadTenantData = async (forceClearDraft = false) => {
+    setLoading(true);
+    setLoadError(null);
 
-      if (isNew) {
-        setTenant(createDefaultTenant());
-        setLoading(false);
-        return;
+    if (isNew) {
+      setTenant(createDefaultTenant());
+      setLoading(false);
+      return;
+    }
+
+    try {
+      if (forceClearDraft) {
+        try {
+          localStorage.removeItem(`freeloader_editor_draft_${initialSlug}`);
+        } catch {}
+        setPendingDraft(null);
       }
 
-      try {
-        const data = await getTenantBySlug(initialSlug);
-        if (data) {
-          const isSuper = user?.email === "edgar.lazaro23@gmail.com" || profile?.role === "super_admin";
-          if (!isSuper && data.ownerId && user && data.ownerId !== user.id) {
-            setLoadError("No tienes permisos para editar esta invitación.");
-          } else {
-            let finalData = data;
+      const data = await getTenantBySlug(initialSlug);
+      if (data) {
+        const isSuper = user?.email === "edgar.lazaro23@gmail.com" || profile?.role === "super_admin";
+        if (!isSuper && data.ownerId && user && data.ownerId !== user.id) {
+          setLoadError("No tienes permisos para editar esta invitación.");
+        } else {
+          // Supabase is ALWAYS the base state
+          setTenant(data);
+
+          if (!forceClearDraft) {
             try {
               const rawDraft = typeof window !== "undefined" ? localStorage.getItem(`freeloader_editor_draft_${initialSlug}`) : null;
               if (rawDraft) {
                 const parsed = JSON.parse(rawDraft);
-                if (parsed?.tenant && parsed?.savedAt && Date.now() - parsed.savedAt < 48 * 60 * 60 * 1000) {
-                  finalData = { ...data, ...parsed.tenant };
-                  setFeedback({
-                    message: "Borrador con tus últimos cambios en edición recuperado.",
-                    type: "success",
-                  });
+                if (parsed?.tenant && parsed?.savedAt) {
+                  setPendingDraft({ tenant: parsed.tenant, savedAt: parsed.savedAt });
                 }
               }
             } catch {}
-            setTenant(finalData);
           }
-        } else {
-          setLoadError(`No se encontró ningún evento con el slug '${initialSlug}'.`);
         }
-      } catch (err: any) {
-        setLoadError(err.message || "Error al cargar el evento.");
-      } finally {
-        setLoading(false);
+      } else {
+        setLoadError(`No se encontró ningún evento con el slug '${initialSlug}'.`);
       }
+    } catch (err: any) {
+      setLoadError(err.message || "Error al cargar el evento.");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    init();
+  useEffect(() => {
+    if (!user && isSupabaseConfigured) return;
+    loadTenantData();
   }, [initialSlug, isNew, user]);
 
-  // Respaldo automático en localStorage del navegador para no perder avances
+  // Restore local uncommitted draft
+  const handleRestoreDraft = () => {
+    if (pendingDraft?.tenant) {
+      setTenant(pendingDraft.tenant);
+      setDirtySections({ general: true });
+      setPendingDraft(null);
+      setFeedback({
+        message: "Borrador local recuperado. Recuerda guardar los cambios cuando termines.",
+        type: "success",
+      });
+    }
+  };
+
+  // Discard local draft
+  const handleDiscardDraft = () => {
+    try {
+      localStorage.removeItem(`freeloader_editor_draft_${initialSlug}`);
+      if (tenant?.slug) {
+        localStorage.removeItem(`freeloader_editor_draft_${tenant.slug}`);
+      }
+    } catch {}
+    setPendingDraft(null);
+    setFeedback({
+      message: "Borrador local descartado. Se muestran los datos oficiales de Supabase.",
+      type: "success",
+    });
+  };
+
+  // Reload fresh data from Supabase
+  const handleReloadFromSupabase = async () => {
+    setIsReloading(true);
+    setFeedback(null);
+    try {
+      try {
+        localStorage.removeItem(`freeloader_editor_draft_${initialSlug}`);
+        if (tenant?.slug) {
+          localStorage.removeItem(`freeloader_editor_draft_${tenant.slug}`);
+        }
+      } catch {}
+      setPendingDraft(null);
+      setDirtySections({});
+      await loadTenantData(true);
+      setFeedback({
+        message: "¡Datos recargados exitosamente desde Supabase!",
+        type: "success",
+      });
+    } catch (err: any) {
+      setFeedback({
+        message: `Error al recargar: ${err.message}`,
+        type: "error",
+      });
+    } finally {
+      setIsReloading(false);
+    }
+  };
+
+  // Respaldo automático en localStorage SOLO cuando haya cambios no guardados
   useEffect(() => {
-    if (tenant && tenant.slug && typeof window !== "undefined") {
+    const hasUnsavedChanges = Object.values(dirtySections).some(Boolean);
+    if (hasUnsavedChanges && tenant && tenant.slug && typeof window !== "undefined") {
       try {
         localStorage.setItem(
           `freeloader_editor_draft_${tenant.slug}`,
@@ -214,7 +280,7 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
         );
       } catch {}
     }
-  }, [tenant]);
+  }, [tenant, dirtySections]);
 
   // Update helper with dirty tracking
   const updateTenant = (updater: (prev: EventData) => EventData, sectionId?: EditorSectionId) => {
@@ -594,6 +660,18 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
               )
             )}
 
+            {/* Recargar desde Supabase */}
+            <button
+              type="button"
+              onClick={handleReloadFromSupabase}
+              disabled={isReloading || savingSection !== null}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 dark:bg-slate-800 hover:bg-stone-50 dark:hover:bg-slate-700 text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white font-semibold text-xs border border-amber-900/[0.08] dark:border-slate-700/80 shadow-xs active:scale-95 transition disabled:opacity-50 cursor-pointer"
+              title="Descartar cambios locales no guardados y traer datos frescos de Supabase"
+            >
+              <span className={isReloading ? "animate-spin" : ""}>🔄</span>
+              <span className="hidden md:inline">{isReloading ? "Recargando..." : "Recargar de Supabase"}</span>
+            </button>
+
             <button
               type="button"
               onClick={() => handleSaveSection("General (Completo)")}
@@ -631,6 +709,38 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
           </div>
         </div>
       </header>
+
+      {/* Banner de Borrador Local no guardado */}
+      {pendingDraft && (
+        <div className="bg-amber-500/10 dark:bg-amber-500/20 border-b border-amber-500/30 px-4 py-3 text-xs sm:text-sm text-amber-950 dark:text-amber-200">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-base">⚠️</span>
+              <span>
+                Se detectó un borrador previo no guardado en tu navegador
+                {pendingDraft.savedAt ? ` (del ${new Date(pendingDraft.savedAt).toLocaleDateString()} a las ${new Date(pendingDraft.savedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })})` : ""}.
+                ¿Deseas recuperarlo o descartarlo para usar la información oficial de Supabase?
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleRestoreDraft}
+                className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-xs cursor-pointer active:scale-95 transition"
+              >
+                Restaurar Borrador
+              </button>
+              <button
+                type="button"
+                onClick={handleDiscardDraft}
+                className="px-3.5 py-1.5 rounded-xl bg-white/90 dark:bg-slate-800 hover:bg-stone-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs border border-amber-900/15 dark:border-slate-700 cursor-pointer active:scale-95 transition"
+              >
+                Descartar y Usar Supabase
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast Feedback */}
       {feedback && (

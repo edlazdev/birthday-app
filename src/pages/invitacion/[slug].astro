@@ -5,8 +5,8 @@ import InvitationRenderer from "@/components/invitation/InvitationRenderer";
 import QuinceaneraInvitation from "@/components/quinceanera/QuinceaneraInvitation.astro";
 import Footer from "@/components/Footer.astro";
 
-import { getInvitationBySlug } from "@/services/invitations";
-import { invitationConfigToEventData } from "@/schemas/invitation";
+import { getTenantBySlug } from "@/services/tenants";
+import { eventDataToInvitationConfig } from "@/schemas/invitation";
 
 // 1. Extracción del parámetro dinámico de ruta SSR
 const { slug } = Astro.params;
@@ -18,15 +18,15 @@ if (!slug) {
 // 2. Parámetros de consulta en tiempo de solicitud
 const isPreview = Astro.url.searchParams.has("preview");
 
-// 3. Carga dinámica SSR desde la capa de servicio SaaS
-const invitationConfig = await getInvitationBySlug(slug, isPreview);
+// 3. Carga directa de los datos completos del evento desde la capa de servicio
+const data = await getTenantBySlug(slug, isPreview);
 
-if (!invitationConfig) {
+if (!data) {
   return Astro.redirect("/");
 }
 
-// 4. Adaptación del modelo canónico al modelo de vista
-const data = invitationConfigToEventData(invitationConfig);
+// 4. Adaptación declarativa al modelo canónico SaaS
+const invitationConfig = eventDataToInvitationConfig(data);
 
 // 5. Verificación de publicación (seguridad SaaS)
 const isNotPublished = data.status !== "published";
