@@ -66,6 +66,33 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const handleSectionSelectFromPreview = (sectionId: string) => {
+    let targetSection: EditorSectionId = "general";
+    if (sectionId.includes("hero") || sectionId.includes("crest")) {
+      targetSection = "general";
+    } else if (sectionId.includes("date") || sectionId.includes("ceremony") || sectionId.includes("reception")) {
+      targetSection = "datetime";
+    } else if (sectionId.includes("itinerary")) {
+      targetSection = "itinerary";
+    } else if (sectionId.includes("dress") || sectionId.includes("gift") || sectionId.includes("sponsor") || sectionId.includes("witness")) {
+      targetSection = "extras";
+    } else if (sectionId.includes("rsvp")) {
+      targetSection = "rsvp";
+    } else if (sectionId.includes("music") || sectionId.includes("countdown")) {
+      targetSection = "modules";
+    } else if (sectionId.includes("gallery") || sectionId.includes("photo") || sectionId.includes("media")) {
+      targetSection = "media";
+    }
+
+    setActiveSection(targetSection);
+    setOpenSections((prev) => ({ ...prev, [targetSection]: true }));
+
+    const el = document.getElementById(`section-${targetSection}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   // Save states per section & dirty tracking
   const [savingSection, setSavingSection] = useState<string | null>(null);
   const [savedSectionTime, setSavedSectionTime] = useState<Record<string, string>>({});
@@ -956,7 +983,10 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                 : "col-span-12 lg:col-span-5 lg:sticky lg:top-16 lg:self-start z-20"
             }`}
           >
-            <LivePhonePreview tenant={tenant} />
+            <LivePhonePreview
+              tenant={tenant}
+              onSectionSelect={handleSectionSelectFromPreview}
+            />
           </aside>
         )}
       </div>

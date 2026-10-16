@@ -1,9 +1,7 @@
 ---
 import EventLayout from "@/layouts/EventLayout.astro";
 import EventNav from "@/components/EventNav.astro";
-import EventHeader from "@/components/EventHeader.astro";
-import EventDetails from "@/components/EventDetails.astro";
-import QuinceaneraInvitation from "@/components/quinceanera/QuinceaneraInvitation.astro";
+import InvitationRenderer from "@/components/invitation/InvitationRenderer";
 import Footer from "@/components/Footer.astro";
 
 import { getInvitationBySlug } from "@/services/invitations";
@@ -60,22 +58,11 @@ if (!forceInvitation && data.showInvitation === false && data.showAlbum !== fals
       </div>
     </body>
   </html>
-) : data.type === "quinceanero" ? (
-  <EventLayout eventData={data}>
-    <main class="quince-root-container m-0 p-0">
-      <EventNav slug={data.slug} showAlbum={data.showAlbum} showInvitation={data.showInvitation} />
-      <QuinceaneraInvitation eventData={data} />
-    </main>
-  </EventLayout>
 ) : (
   <EventLayout eventData={data}>
-    <main class="event-container">
+    <main class="w-full min-h-screen bg-stone-100 dark:bg-stone-950 flex flex-col items-center">
       <EventNav slug={data.slug} showAlbum={data.showAlbum} showInvitation={data.showInvitation} />
-
-      <EventHeader eventData={data} />
-
-      <EventDetails eventData={data} />
-
+      <InvitationRenderer client:load config={invitationConfig} isPreview={isPreview} />
       <Footer
         year={new Date().getFullYear()}
         socialLinks={{

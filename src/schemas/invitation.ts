@@ -17,6 +17,8 @@ import {
 
 export const sectionKindEnum = z.enum([
   "hero",
+  "crest",
+  "countdown",
   "ceremony",
   "reception",
   "dateBanner",
@@ -28,6 +30,8 @@ export const sectionKindEnum = z.enum([
   "witnesses",
   "music",
   "gallery",
+  "middlePhoto",
+  "finalPhoto",
   "farewell",
 ]);
 
@@ -110,168 +114,215 @@ export const invitationConfigSchema = z.object({
  * al esquema declarativo SaaS InvitationConfig.
  */
 export function eventDataToInvitationConfig(event: EventData): InvitationConfig {
-  const sections: SectionItem[] = [];
-  let orderCounter = 1;
-
-  // 1. Hero
-  sections.push({
-    id: "section-hero",
-    kind: "hero",
-    enabled: event.showInvitation !== false,
-    order: orderCounter++,
-    title: "Portada & Bienvenida",
-    data: {
-      celebrant: event.celebrant,
-      beforeCelebrant: event.beforeCelebrant,
-      title: event.title,
-      age: event.age,
-      afterAge: event.afterAge,
-      tagline: event.tagline,
-      date: event.date,
-      time: event.time,
-      avatarUrl: event.avatarUrl,
-      coverUrl: event.coverUrl,
-      showAvatar: event.showAvatar !== false,
-    },
-  });
-
-  // 2. Date Banner
-  if (event.dateBanner) {
-    sections.push({
-      id: "section-date-banner",
-      kind: "dateBanner",
-      enabled: true,
-      order: orderCounter++,
-      title: "Fecha Destacada",
-      data: event.dateBanner,
-    });
-  }
-
-  // 3. Ceremony
-  if (event.ceremony && event.showCeremony !== false) {
-    sections.push({
-      id: "section-ceremony",
-      kind: "ceremony",
-      enabled: true,
-      order: orderCounter++,
-      title: event.ceremony.title || "Ceremonia",
-      data: event.ceremony,
-    });
-  }
-
-  // 4. Reception
-  if (event.reception) {
-    sections.push({
-      id: "section-reception",
-      kind: "reception",
-      enabled: true,
-      order: orderCounter++,
-      title: event.reception.title || "Recepción",
-      data: event.reception,
-    });
-  }
-
-  // 5. Itinerary
-  if (event.itinerary && event.itinerary.length > 0 && event.showItinerary !== false) {
-    sections.push({
-      id: "section-itinerary",
-      kind: "itinerary",
-      enabled: true,
-      order: orderCounter++,
-      title: "Cronograma de Actividades",
+  // 1. Construir catálogo de todas las secciones disponibles a partir de EventData
+  const availableSections: Record<string, SectionItem> = {
+    hero: {
+      id: "section-hero",
+      kind: "hero",
+      enabled: event.showInvitation !== false,
+      order: 1,
+      title: "Portada & Bienvenida",
       data: {
-        items: event.itinerary,
-        config: event.itineraryConfig,
+        celebrant: event.celebrant,
+        beforeCelebrant: event.beforeCelebrant,
+        title: event.title,
+        age: event.age,
+        afterAge: event.afterAge,
+        tagline: event.tagline,
+        date: event.date,
+        time: event.time,
+        avatarUrl: event.avatarUrl,
+        coverUrl: event.coverUrl,
+        showAvatar: event.showAvatar !== false,
       },
-    });
-  }
-
-  // 6. Dress Code
-  if (event.dressCodeConfig && event.showDressCode !== false) {
-    sections.push({
-      id: "section-dress-code",
-      kind: "dressCode",
-      enabled: true,
-      order: orderCounter++,
-      title: event.dressCodeConfig.title || "Código de Vestimenta",
-      data: event.dressCodeConfig,
-    });
-  }
-
-  // 7. Sponsors / Padrinos
-  if (event.sponsorsConfig && event.showSponsors !== false) {
-    sections.push({
+    },
+    crest: {
+      id: "section-crest",
+      kind: "crest",
+      enabled: Boolean(event.tagline || event.age || event.type === "quinceanero"),
+      order: 2,
+      title: "Escudo Monograma",
+      data: {
+        tagline: event.tagline,
+        monogramText: event.age === "15" ? "XV" : event.age || "XV",
+        badgeText: event.title || "QUINCEAÑERA",
+      },
+    },
+    music: {
+      id: "section-music",
+      kind: "music",
+      enabled: Boolean(event.musicConfig?.youtubeUrl),
+      order: 3,
+      title: "Música de Fondo",
+      data: event.musicConfig || {},
+    },
+    sponsors: {
       id: "section-sponsors",
       kind: "sponsors",
-      enabled: true,
-      order: orderCounter++,
+      enabled: event.showSponsors !== false && Boolean(event.sponsorsConfig || event.sponsors),
+      order: 4,
       title: "Padrinos y Padres",
       data: {
         config: event.sponsorsConfig,
         sponsors: event.sponsors,
       },
-    });
-  }
-
-  // 8. Witnesses
-  if (event.witnesses && event.witnesses.length > 0 && event.showWitnesses !== false) {
-    sections.push({
+    },
+    witnesses: {
       id: "section-witnesses",
       kind: "witnesses",
-      enabled: true,
-      order: orderCounter++,
+      enabled: event.showWitnesses !== false && Boolean(event.witnesses?.length),
+      order: 5,
       title: "Testigos de Honor",
-      data: event.witnesses,
-    });
-  }
-
-  // 9. Gifts
-  if (event.giftConfig && event.showGifts !== false) {
-    sections.push({
+      data: event.witnesses || [],
+    },
+    date_calendar: {
+      id: "section-date-banner",
+      kind: "dateBanner",
+      enabled: Boolean(event.date || event.dateBanner),
+      order: 6,
+      title: "Fecha Destacada & Calendario",
+      data: event.dateBanner || {},
+    },
+    dateBanner: {
+      id: "section-date-banner",
+      kind: "dateBanner",
+      enabled: Boolean(event.date || event.dateBanner),
+      order: 6,
+      title: "Fecha Destacada & Calendario",
+      data: event.dateBanner || {},
+    },
+    middle_photo: {
+      id: "section-middle-photo",
+      kind: "middlePhoto",
+      enabled: Boolean(event.middlePhotoUrl),
+      order: 7,
+      title: "Foto Intermedia",
+      data: {
+        src: event.middlePhotoUrl,
+        alt: event.celebrant,
+        aspectRatio: "portrait",
+      },
+    },
+    middlePhoto: {
+      id: "section-middle-photo",
+      kind: "middlePhoto",
+      enabled: Boolean(event.middlePhotoUrl),
+      order: 7,
+      title: "Foto Intermedia",
+      data: {
+        src: event.middlePhotoUrl,
+        alt: event.celebrant,
+        aspectRatio: "portrait",
+      },
+    },
+    ceremony: {
+      id: "section-ceremony",
+      kind: "ceremony",
+      enabled: event.showCeremony !== false && Boolean(event.ceremony?.place || event.ceremony?.address || event.ceremony?.title),
+      order: 8,
+      title: event.ceremony?.title || "Ceremonia Religiosa",
+      data: {
+        ...event.ceremony,
+        type: "ceremony",
+      },
+    },
+    reception: {
+      id: "section-reception",
+      kind: "reception",
+      enabled: Boolean(event.reception?.place || event.reception?.address || event.reception?.title),
+      order: 9,
+      title: event.reception?.title || "Recepción",
+      data: {
+        ...event.reception,
+        type: "reception",
+      },
+    },
+    itinerary: {
+      id: "section-itinerary",
+      kind: "itinerary",
+      enabled: event.showItinerary !== false && Boolean(event.itinerary?.length),
+      order: 10,
+      title: "Cronograma de Actividades",
+      data: {
+        items: event.itinerary || [],
+        config: event.itineraryConfig,
+      },
+    },
+    dress_code: {
+      id: "section-dress-code",
+      kind: "dressCode",
+      enabled: event.showDressCode !== false && Boolean(event.dressCodeConfig),
+      order: 11,
+      title: event.dressCodeConfig?.title || "Código de Vestimenta",
+      data: event.dressCodeConfig || {},
+    },
+    dressCode: {
+      id: "section-dress-code",
+      kind: "dressCode",
+      enabled: event.showDressCode !== false && Boolean(event.dressCodeConfig),
+      order: 11,
+      title: event.dressCodeConfig?.title || "Código de Vestimenta",
+      data: event.dressCodeConfig || {},
+    },
+    countdown: {
+      id: "section-countdown",
+      kind: "countdown",
+      enabled: Boolean(event.date),
+      order: 12,
+      title: "Cuenta Regresiva",
+      data: {
+        title: "Solo faltan",
+      },
+    },
+    gifts: {
       id: "section-gifts",
       kind: "gifts",
-      enabled: true,
-      order: orderCounter++,
-      title: event.giftConfig.title || "Sugerencia de Regalos",
-      data: event.giftConfig,
-    });
-  }
-
-  // 10. RSVP
-  if (event.showRsvp !== false) {
-    sections.push({
+      enabled: event.showGifts !== false && Boolean(event.giftConfig),
+      order: 13,
+      title: event.giftConfig?.title || "Sugerencia de Regalos",
+      data: event.giftConfig || {},
+    },
+    final_photo: {
+      id: "section-final-photo",
+      kind: "finalPhoto",
+      enabled: Boolean(event.finalPhotoUrl),
+      order: 14,
+      title: "Foto Final",
+      data: {
+        src: event.finalPhotoUrl,
+        alt: event.celebrant,
+        aspectRatio: "portrait",
+      },
+    },
+    finalPhoto: {
+      id: "section-final-photo",
+      kind: "finalPhoto",
+      enabled: Boolean(event.finalPhotoUrl),
+      order: 14,
+      title: "Foto Final",
+      data: {
+        src: event.finalPhotoUrl,
+        alt: event.celebrant,
+        aspectRatio: "portrait",
+      },
+    },
+    rsvp: {
       id: "section-rsvp",
       kind: "rsvp",
-      enabled: true,
-      order: orderCounter++,
+      enabled: event.showRsvp !== false,
+      order: 15,
       title: event.rsvpConfig?.title || "Confirmación de Asistencia",
       data: event.rsvpConfig || {
         title: "Confirmar Asistencia",
         subtitle: "Por favor confirma tu presencia",
         maxGuests: 5,
       },
-    });
-  }
-
-  // 11. Music
-  if (event.musicConfig?.youtubeUrl) {
-    sections.push({
-      id: "section-music",
-      kind: "music",
-      enabled: true,
-      order: orderCounter++,
-      title: "Música de Fondo",
-      data: event.musicConfig,
-    });
-  }
-
-  // 12. Gallery / Album
-  if (event.showAlbum !== false) {
-    sections.push({
+    },
+    gallery: {
       id: "section-gallery",
       kind: "gallery",
-      enabled: true,
-      order: orderCounter++,
+      enabled: event.showAlbum !== false && Boolean(event.albumUrls?.length),
+      order: 16,
       title: "Galería de Fotos",
       data: {
         albumUrls: event.albumUrls || [],
@@ -279,19 +330,67 @@ export function eventDataToInvitationConfig(event: EventData): InvitationConfig 
         middlePhotoUrl: event.middlePhotoUrl,
         finalPhotoUrl: event.finalPhotoUrl,
       },
-    });
-  }
-
-  // 13. Farewell
-  if (event.showFarewell !== false && event.farewellConfig) {
-    sections.push({
+    },
+    farewell: {
       id: "section-farewell",
       kind: "farewell",
-      enabled: true,
-      order: orderCounter++,
+      enabled: event.showFarewell !== false,
+      order: 17,
       title: "Mensaje de Cierre",
-      data: event.farewellConfig,
-    });
+      data: event.farewellConfig || {
+        message: "TU PRESENCIA HARÁ DE ESTE DÍA ALGO ESPECIAL, ÚNICO E INOLVIDABLE",
+        signature: "¡Te esperamos!",
+      },
+    },
+  };
+
+  // 2. Ordenar las secciones según event.sectionOrder si existe
+  const orderList = Array.isArray(event.sectionOrder) && event.sectionOrder.length > 0
+    ? event.sectionOrder
+    : [
+        "hero",
+        "crest",
+        "music",
+        "sponsors",
+        "witnesses",
+        "date_calendar",
+        "middle_photo",
+        "ceremony",
+        "reception",
+        "itinerary",
+        "dress_code",
+        "countdown",
+        "gifts",
+        "final_photo",
+        "rsvp",
+        "gallery",
+        "farewell",
+      ];
+
+  const sections: SectionItem[] = [];
+  const addedIds = new Set<string>();
+  let currentOrder = 1;
+
+  for (const key of orderList) {
+    const sec = availableSections[key];
+    if (sec && !addedIds.has(sec.id)) {
+      addedIds.add(sec.id);
+      sections.push({
+        ...sec,
+        order: currentOrder++,
+      });
+    }
+  }
+
+  // Agregar cualquier sección que no estuviera en orderList
+  for (const sec of Object.values(availableSections)) {
+    if (!addedIds.has(sec.id)) {
+      addedIds.add(sec.id);
+      sections.push({
+        ...sec,
+        order: currentOrder++,
+      });
+    }
   }
 
   return {
@@ -395,8 +494,8 @@ export function invitationConfigToEventData(config: InvitationConfig): EventData
     avatarUrl: meta.avatarUrl,
     albumUrls: meta.albumUrls || gallerySec?.data?.albumUrls || [],
     albumCount: meta.albumUrls?.length || gallerySec?.data?.albumCount || 0,
-    middlePhotoUrl: meta.middlePhotoUrl || gallerySec?.data?.middlePhotoUrl,
-    finalPhotoUrl: meta.finalPhotoUrl || gallerySec?.data?.finalPhotoUrl,
+    middlePhotoUrl: meta.middlePhotoUrl || gallerySec?.data?.middlePhotoUrl || getSection("middlePhoto")?.data?.src,
+    finalPhotoUrl: meta.finalPhotoUrl || gallerySec?.data?.finalPhotoUrl || getSection("finalPhoto")?.data?.src,
     qrImageUrl: meta.qrImageUrl,
     fonts: theme.fonts,
     theme: {

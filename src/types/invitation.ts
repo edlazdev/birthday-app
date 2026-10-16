@@ -18,6 +18,8 @@ import type {
  */
 export type SectionKind =
   | "hero"
+  | "crest"
+  | "countdown"
   | "ceremony"
   | "reception"
   | "dateBanner"
@@ -29,6 +31,8 @@ export type SectionKind =
   | "witnesses"
   | "music"
   | "gallery"
+  | "middlePhoto"
+  | "finalPhoto"
   | "farewell";
 
 /**
