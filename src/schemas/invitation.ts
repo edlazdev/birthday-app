@@ -85,6 +85,8 @@ export const invitationMetadataSchema = z.object({
   middlePhotoUrl: z.string().optional().nullable(),
   finalPhotoUrl: z.string().optional().nullable(),
   qrImageUrl: z.string().optional().nullable(),
+  showInvitation: z.boolean().optional().default(true),
+  showAlbum: z.boolean().optional().default(true),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
 });
@@ -419,6 +421,8 @@ export function eventDataToInvitationConfig(event: EventData): InvitationConfig 
       middlePhotoUrl: event.middlePhotoUrl,
       finalPhotoUrl: event.finalPhotoUrl,
       qrImageUrl: event.qrImageUrl,
+      showInvitation: event.showInvitation !== false,
+      showAlbum: event.showAlbum !== false,
       ribbonUrl:
         (event as any).ribbonUrl ||
         (event.features as any)?.ribbon_url ||
@@ -519,8 +523,16 @@ export function invitationConfigToEventData(config: InvitationConfig): EventData
       facebook: social.socialLinks?.facebook !== false,
       instagram: social.socialLinks?.instagram !== false,
     },
-    showInvitation: heroSec ? heroSec.enabled : true,
-    showAlbum: gallerySec ? gallerySec.enabled : true,
+    showInvitation:
+      (meta as any).showInvitation !== false &&
+      (config.sections.find((s) => s.kind === "hero")
+        ? config.sections.find((s) => s.kind === "hero")!.enabled !== false
+        : true),
+    showAlbum:
+      (meta as any).showAlbum !== false &&
+      (config.sections.find((s) => s.kind === "gallery")
+        ? config.sections.find((s) => s.kind === "gallery")!.enabled !== false
+        : true),
     showAvatar: heroSec?.data?.showAvatar !== false,
     showCeremony: ceremonySec ? ceremonySec.enabled : false,
     ceremony: ceremonySec?.data,

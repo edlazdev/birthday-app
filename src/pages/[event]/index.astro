@@ -19,12 +19,17 @@ if (!data) {
 
 // Si no está publicado (draft o pending_approval), mostrar pantalla de cortesía a visitantes
 const isNotPublished = data.status !== "published";
-const forceInvitation = Astro.url.searchParams.get("view") === "invitation" || isPreview;
+const forceInvitation = Astro.url.searchParams.get("view") === "invitation";
 const showDraftNotice = isNotPublished && !isPreview;
 
-if (!forceInvitation && data.showInvitation === false && data.showAlbum !== false) {
+// Si el evento tiene la invitación desactivada y el álbum activo, redirigir al álbum
+if (!forceInvitation && !isPreview && data.showInvitation === false && data.showAlbum !== false) {
   return Astro.redirect(`/${data.slug}/album`);
 }
+
+// Si ambas vistas están desactivadas para visitantes públicos
+const isBothViewsDisabled = data.showInvitation === false && data.showAlbum === false;
+const showDisabledNotice = isBothViewsDisabled && !isPreview;
 ---
 
 {showDraftNotice ? (
@@ -45,6 +50,24 @@ if (!forceInvitation && data.showInvitation === false && data.showAlbum !== fals
         <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30">
           Próximamente disponible
         </span>
+      </div>
+    </body>
+  </html>
+) : showDisabledNotice ? (
+  <html lang="es">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>{data.celebrant} - Evento no disponible</title>
+      <link rel="stylesheet" href="/styles/global.css" />
+    </head>
+    <body class="min-h-screen bg-slate-900 flex items-center justify-center text-white px-4">
+      <div class="max-w-md text-center p-8 bg-slate-800/80 backdrop-blur rounded-2xl border border-slate-700 shadow-xl">
+        <div class="text-5xl mb-4">🔒</div>
+        <h1 class="text-2xl font-bold mb-2">Evento no disponible</h1>
+        <p class="text-slate-300 text-sm mb-6">
+          Las vistas de invitación y fotos para <span class="text-amber-400 font-semibold">{data.celebrant}</span> se encuentran temporalmente desactivadas.
+        </p>
       </div>
     </body>
   </html>
@@ -154,6 +177,13 @@ if (!forceInvitation && data.showInvitation === false && data.showAlbum !== fals
           document.querySelectorAll(".quince-song-title").forEach(el => {
             el.textContent = t.musicConfig.songTitle;
           });
+        }
+        if (t.showInvitation !== undefined || t.showAlbum !== undefined) {
+          const hasBoth = Boolean(t.showInvitation !== false && t.showAlbum !== false);
+          const navEl = document.querySelector(".event-nav-sticky");
+          if (navEl) {
+            navEl.style.display = hasBoth ? "" : "none";
+          }
         }
       }
     });
