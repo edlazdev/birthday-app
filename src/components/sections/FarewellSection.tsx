@@ -32,10 +32,10 @@ export default function FarewellSection({
       {/* 2. Firma en Cursiva Caligráfica */}
       {signature && (
         <div
-          className="text-4xl sm:text-5xl font-normal leading-tight drop-shadow-xs"
+          className="text-4xl sm:text-5xl font-normal leading-tight drop-shadow-xs font-invitation-heading text-invitation-primary"
           style={{
-            color: primaryColor,
-            fontFamily: "var(--font-title, 'Great Vibes', cursive)",
+            color: "var(--color-primary, var(--primary, #a85d72))",
+            fontFamily: "var(--font-heading, var(--font-title, 'Great Vibes', cursive))",
           }}
         >
           {signature}

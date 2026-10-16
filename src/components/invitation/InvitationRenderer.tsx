@@ -62,35 +62,88 @@ export default function InvitationRenderer({
   const secondaryColor = theme.secondary || "#c78596";
   const tertiaryColor = theme.tertiary || "#7a2940";
   const bgColor = theme.bg || "#ffffff";
-  const titleFont = theme.fonts?.title?.family || "Great Vibes";
-  const textFont = theme.fonts?.text?.family || "Montserrat";
+  const textColor = theme.text || (theme.isDark ? "#f8fafc" : "#1e293b");
+  const headingFont = theme.fonts?.title?.family || "Great Vibes";
+  const bodyFont = theme.fonts?.text?.family || "Montserrat";
 
   const rootStyle: React.CSSProperties = {
+    // Custom Properties requeridas por la especificación
+    "--color-primary": primaryColor,
+    "--color-secondary": secondaryColor,
+    "--color-tertiary": tertiaryColor,
+    "--color-bg": bgColor,
+    "--color-text": textColor,
+    "--font-heading": `'${headingFont}', cursive, serif`,
+    "--font-body": `'${bodyFont}', sans-serif`,
+
+    // Compatibilidad hacia atrás con variables previas
     "--primary": primaryColor,
     "--secondary": secondaryColor,
     "--tertiary": tertiaryColor,
     "--bg": bgColor,
-    "--font-title": `'${titleFont}', cursive`,
-    "--font-text": `'${textFont}', sans-serif`,
-    backgroundColor: bgColor,
-    fontFamily: `'${textFont}', sans-serif`,
+    "--font-title": `'${headingFont}', cursive, serif`,
+    "--font-text": `'${bodyFont}', sans-serif`,
+
+    backgroundColor: "var(--color-bg)",
+    color: "var(--color-text)",
+    fontFamily: "var(--font-body)",
   } as React.CSSProperties;
 
-  // 4. URL de fuentes Google
+  // 4. URL canónica de fuentes Google
   const googleFontsUrl = useMemo(() => {
-    const families: string[] = [];
-    if (theme.fonts?.title?.family) {
-      families.push(encodeURIComponent(theme.fonts.title.family) + ":wght@400;600;700");
-    } else {
-      families.push("Great+Vibes");
+    const families = new Set<string>();
+    const hFont = theme.fonts?.title?.family?.trim();
+    const bFont = theme.fonts?.text?.family?.trim();
+
+    if (hFont) families.add(hFont);
+    if (bFont) families.add(bFont);
+
+    if (families.size === 0) {
+      families.add("Great Vibes");
+      families.add("Montserrat");
     }
-    if (theme.fonts?.text?.family) {
-      families.push(encodeURIComponent(theme.fonts.text.family) + ":wght@300;400;500;600;700");
-    } else {
-      families.push("Montserrat:wght@300;400;500;600;700");
+
+    const queryParts = Array.from(families).map((fam) => {
+      const encodedName = fam.replace(/\s+/g, "+");
+      return `family=${encodedName}:wght@300;400;500;600;700`;
+    });
+
+    return `https://fonts.googleapis.com/css2?${queryParts.join("&")}&display=swap`;
+  }, [theme.fonts?.title?.family, theme.fonts?.text?.family]);
+
+  // 5. Cargador dinámico reactivo en el DOM (<head>) para reflejo instantáneo en el preview
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // A. Preconnect a los servidores de Google Fonts para descarga ultrarrápida
+    if (!document.querySelector('link[data-gf-preconnect="1"]')) {
+      const preconnectGapis = document.createElement("link");
+      preconnectGapis.rel = "preconnect";
+      preconnectGapis.href = "https://fonts.googleapis.com";
+      preconnectGapis.setAttribute("data-gf-preconnect", "1");
+      document.head.appendChild(preconnectGapis);
+
+      const preconnectGstatic = document.createElement("link");
+      preconnectGstatic.rel = "preconnect";
+      preconnectGstatic.href = "https://fonts.gstatic.com";
+      preconnectGstatic.crossOrigin = "anonymous";
+      preconnectGstatic.setAttribute("data-gf-preconnect", "1");
+      document.head.appendChild(preconnectGstatic);
     }
-    return `https://fonts.googleapis.com/css2?${families.map((f) => `family=${f}`).join("&")}&display=swap`;
-  }, [theme.fonts]);
+
+    // B. Crear o actualizar la etiqueta link dinámica con el set exacto de fuentes activas
+    let linkTag = document.getElementById("invitation-dynamic-google-fonts") as HTMLLinkElement | null;
+    if (!linkTag) {
+      linkTag = document.createElement("link");
+      linkTag.id = "invitation-dynamic-google-fonts";
+      linkTag.rel = "stylesheet";
+      document.head.appendChild(linkTag);
+    }
+
+    if (linkTag.href !== googleFontsUrl) {
+      linkTag.href = googleFontsUrl;
+    }
+  }, [googleFontsUrl]);
 
   // 5. Renderizado polimórfico de cada sección
   const renderSection = (section: SectionItem) => {
@@ -331,10 +384,10 @@ export default function InvitationRenderer({
 
   return (
     <div
-      className={`invitation-renderer-root w-full max-w-md mx-auto min-h-screen shadow-2xl relative select-none font-sans overflow-x-hidden ${className}`}
+      className={`invitation-renderer-root w-full max-w-md mx-auto min-h-screen shadow-2xl relative select-none font-invitation-body bg-invitation-bg text-invitation-text overflow-x-hidden ${className}`}
       style={rootStyle}
     >
-      {/* Carga reactiva de Google Fonts */}
+      {/* Carga reactiva de Google Fonts (SSR) */}
       <link rel="stylesheet" href={googleFontsUrl} />
 
       {/* Renderizado secuencial de las secciones activas */}

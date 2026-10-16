@@ -100,10 +100,10 @@ export default function RsvpSection({
       {/* 1. Título Cursivo */}
       {title && (
         <h3
-          className="text-3xl sm:text-4xl font-normal leading-tight drop-shadow-xs"
+          className="text-3xl sm:text-4xl font-normal leading-tight drop-shadow-xs font-invitation-heading text-invitation-primary"
           style={{
-            color: primaryColor,
-            fontFamily: "var(--font-title, 'Great Vibes', cursive)",
+            color: "var(--color-primary, var(--primary, #a85d72))",
+            fontFamily: "var(--font-heading, var(--font-title, 'Great Vibes', cursive))",
           }}
         >
           {title}
@@ -227,8 +227,8 @@ export default function RsvpSection({
             <button
               type="submit"
               disabled={status === "submitting"}
-              className="w-full py-2.5 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-md hover:opacity-95 active:scale-98 transition cursor-pointer flex items-center justify-center gap-2"
-              style={{ backgroundColor: primaryColor }}
+              className="w-full py-2.5 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-md hover:opacity-95 active:scale-98 transition cursor-pointer flex items-center justify-center gap-2 bg-invitation-primary"
+              style={{ backgroundColor: "var(--color-primary, var(--primary, #a85d72))" }}
             >
               <span>{status === "submitting" ? "Guardando..." : "Confirmar Asistencia"}</span>
             </button>

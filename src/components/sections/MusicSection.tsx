@@ -36,8 +36,8 @@ export default function MusicSection({
         {/* Encabezado */}
         <div className="flex items-center justify-between px-1">
           <span
-            className="text-[10px] font-bold tracking-[0.25em] uppercase"
-            style={{ color: primaryColor }}
+            className="text-[10px] font-bold tracking-[0.25em] uppercase text-invitation-primary"
+            style={{ color: "var(--color-primary, var(--primary, #a85d72))" }}
           >
             🎵 DALE PLAY
           </span>
@@ -56,7 +56,7 @@ export default function MusicSection({
         </div>
 
         {/* Título de la Canción */}
-        <div className="text-xs sm:text-sm font-bold text-stone-800 truncate px-2">
+        <div className="text-xs sm:text-sm font-bold text-stone-800 truncate px-2 font-body">
           {songTitle}
         </div>
 
@@ -73,8 +73,8 @@ export default function MusicSection({
           <button
             type="button"
             onClick={togglePlay}
-            className="w-11 h-11 rounded-full text-white flex items-center justify-center shadow-md font-bold text-base hover:scale-105 active:scale-95 transition cursor-pointer"
-            style={{ backgroundColor: primaryColor }}
+            className="w-11 h-11 rounded-full text-white flex items-center justify-center shadow-md font-bold text-base hover:scale-105 active:scale-95 transition cursor-pointer bg-invitation-primary"
+            style={{ backgroundColor: "var(--color-primary, var(--primary, #a85d72))" }}
             aria-label={isPlaying ? "Pausar" : "Reproducir"}
           >
             {isPlaying ? "⏸" : "▶"}

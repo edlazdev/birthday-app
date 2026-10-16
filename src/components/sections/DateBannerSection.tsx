@@ -56,8 +56,8 @@ export default function DateBannerSection({
     <section className="event-date-banner py-6 px-4 text-center select-none bg-white">
       {/* 1. Mes Centrado Arriba */}
       <span
-        className="uppercase tracking-[0.3em] text-sm sm:text-base font-semibold block mb-2 font-serif"
-        style={{ color: primaryColor }}
+        className="uppercase tracking-[0.3em] text-sm sm:text-base font-semibold block mb-2 font-serif text-invitation-primary"
+        style={{ color: "var(--color-primary, var(--primary, #a85d72))" }}
       >
         {month}
       </span>
@@ -71,8 +71,8 @@ export default function DateBannerSection({
             style={{ backgroundColor: lineColor }}
           />
           <span
-            className="uppercase text-xs sm:text-sm tracking-[0.2em] py-1 font-semibold block text-center font-serif"
-            style={{ color: primaryColor }}
+            className="uppercase text-xs sm:text-sm tracking-[0.2em] py-1 font-semibold block text-center font-serif text-invitation-primary"
+            style={{ color: "var(--color-primary, var(--primary, #a85d72))" }}
           >
             {dayOfWeek}
           </span>
@@ -85,10 +85,10 @@ export default function DateBannerSection({
         {/* Centro: Número del Día en Cursiva Caligráfica */}
         <div className="px-2 flex items-center justify-center -my-2">
           <span
-            className="text-5xl sm:text-6xl leading-none italic font-normal"
+            className="text-5xl sm:text-6xl leading-none italic font-normal font-invitation-heading"
             style={{
               color: dayColor,
-              fontFamily: "var(--font-title, 'Great Vibes', cursive)",
+              fontFamily: "var(--font-heading, var(--font-title, 'Great Vibes', cursive))",
             }}
           >
             {day}
@@ -139,10 +139,10 @@ export default function DateBannerSection({
                   key={`day-${cellDay}`}
                   className={`h-7 w-7 mx-auto flex items-center justify-center text-xs rounded-full font-medium transition ${
                     isEventDay
-                      ? "text-white font-bold shadow-xs scale-105"
+                      ? "text-white font-bold shadow-xs scale-105 bg-invitation-primary"
                       : "text-stone-700 hover:bg-stone-200/60"
                   }`}
-                  style={isEventDay ? { backgroundColor: primaryColor } : undefined}
+                  style={isEventDay ? { backgroundColor: "var(--color-primary, var(--primary, #a85d72))" } : undefined}
                 >
                   {cellDay}
                 </div>

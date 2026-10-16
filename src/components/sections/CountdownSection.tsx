@@ -59,10 +59,10 @@ export default function CountdownSection({
       {/* 1. Título Cursivo */}
       {title && (
         <span
-          className="text-4xl sm:text-5xl block mb-2 drop-shadow-xs font-normal"
+          className="text-4xl sm:text-5xl block mb-2 drop-shadow-xs font-normal font-invitation-heading text-invitation-primary"
           style={{
-            color: primaryColor,
-            fontFamily: "var(--font-title, 'Great Vibes', cursive)",
+            color: "var(--color-primary, var(--primary, #a85d72))",
+            fontFamily: "var(--font-heading, var(--font-title, 'Great Vibes', cursive))",
           }}
         >
           {title}
@@ -126,10 +126,10 @@ export default function CountdownSection({
           {/* SEGUNDOS */}
           <div className="flex flex-col items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-stone-50 border border-stone-200 shadow-xs">
             <span
-              className="text-2xl sm:text-3xl font-extrabold leading-none text-stone-800"
+              className="text-2xl sm:text-3xl font-extrabold leading-none text-invitation-primary font-body"
               style={{
-                color: primaryColor,
-                fontFamily: "var(--font-text, 'Montserrat', sans-serif)",
+                color: "var(--color-primary, var(--primary, #a85d72))",
+                fontFamily: "var(--font-body, var(--font-text, 'Montserrat', sans-serif))",
               }}
             >
               {String(countdown.seconds).padStart(2, "0")}

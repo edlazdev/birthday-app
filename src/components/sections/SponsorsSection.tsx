@@ -36,10 +36,10 @@ export default function SponsorsSection({
     return (
       <section className="event-sponsors-section py-6 px-4 text-center select-none bg-white space-y-3">
         <h3
-          className="text-3xl sm:text-4xl font-normal leading-tight drop-shadow-xs"
+          className="text-3xl sm:text-4xl font-normal leading-tight drop-shadow-xs font-invitation-heading text-invitation-primary"
           style={{
-            color: primaryColor,
-            fontFamily: "var(--font-title, 'Great Vibes', cursive)",
+            color: "var(--color-primary, var(--primary, #a85d72))",
+            fontFamily: "var(--font-heading, var(--font-title, 'Great Vibes', cursive))",
           }}
         >
           Testigos de Honor
@@ -88,8 +88,8 @@ export default function SponsorsSection({
         {parents.length > 0 && (
           <div className="space-y-1">
             <span
-              className="text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase block font-serif"
-              style={{ color: primaryColor }}
+              className="text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase block font-serif text-invitation-primary"
+              style={{ color: "var(--color-primary, var(--primary, #a85d72))" }}
             >
               {parentsLabel}
             </span>
@@ -108,8 +108,8 @@ export default function SponsorsSection({
         {godparents.length > 0 && (
           <div className="space-y-1 pt-1">
             <span
-              className="text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase block font-serif"
-              style={{ color: primaryColor }}
+              className="text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase block font-serif text-invitation-primary"
+              style={{ color: "var(--color-primary, var(--primary, #a85d72))" }}
             >
               {godparentsLabel}
             </span>

@@ -79,10 +79,10 @@ export default function HeroSection({
 
           {celebrant && (
             <h1
-              className="text-4xl sm:text-5xl md:text-6xl text-white font-normal leading-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]"
+              className="text-4xl sm:text-5xl md:text-6xl text-white font-normal leading-tight font-invitation-heading drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]"
               style={{
                 fontFamily:
-                  "var(--font-title, 'Great Vibes', 'Alex Brush', cursive)",
+                  "var(--font-heading, var(--font-title, 'Great Vibes', cursive))",
               }}
             >
               {celebrant}
@@ -92,8 +92,8 @@ export default function HeroSection({
           {showAvatar && avatarUrl && (
             <div className="mt-4 flex justify-center">
               <div
-                className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2 p-0.5 shadow-xl bg-white/20 backdrop-blur-xs"
-                style={{ borderColor: primaryColor }}
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2 p-0.5 shadow-xl bg-white/20 backdrop-blur-xs border-invitation-primary"
+                style={{ borderColor: "var(--color-primary, var(--primary, #a85d72))" }}
               >
                 <img
                   src={avatarUrl}

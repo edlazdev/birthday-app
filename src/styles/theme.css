@@ -1,9 +1,18 @@
 /* Valores por defecto cuando el evento no define theme. Por slug, las variables se inyectan desde EventLayout con eventData.theme (body.theme-${slug}). */
 :root {
-  --primary: #ff9800;
-  --secondary: #ffe0b2;
-  --tertiary: #ea5c4a;
-  --bg: #fff8ee;
+  --color-primary: #ff9800;
+  --color-secondary: #ffe0b2;
+  --color-tertiary: #ea5c4a;
+  --color-bg: #fff8ee;
+  --color-text: #1e293b;
+  --font-heading: 'Great Vibes', cursive;
+  --font-body: 'Montserrat', sans-serif;
+  --primary: var(--color-primary);
+  --secondary: var(--color-secondary);
+  --tertiary: var(--color-tertiary);
+  --bg: var(--color-bg);
+  --font-title: var(--font-heading);
+  --font-text: var(--font-body);
 }
 
 /* Mobile-first: Estilos base para móviles */

@@ -5,4 +5,63 @@
 
 @theme {
   --font-sans: "Poppins", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: var(--font-heading, var(--font-title, "Great Vibes", cursive));
+  --font-body: var(--font-body, var(--font-text, "Montserrat", sans-serif));
+
+  --color-primary: var(--color-primary, var(--primary, #a85d72));
+  --color-secondary: var(--color-secondary, var(--secondary, #c78596));
+  --color-tertiary: var(--color-tertiary, var(--tertiary, #7a2940));
+  --color-invitation-bg: var(--color-bg, var(--bg, #ffffff));
+  --color-invitation-text: var(--color-text, #1e293b);
+}
+
+/* ==========================================================================
+   Utilidades Semánticas del Constructor de Invitaciones (Tokens Nativos)
+   Asegura que los estilos funcionen en tiempo real y no se rompan al compilar
+   ========================================================================== */
+
+.font-heading,
+.font-invitation-heading {
+  font-family: var(--font-heading, var(--font-title, "Great Vibes", cursive));
+}
+
+.font-body,
+.font-invitation-body {
+  font-family: var(--font-body, var(--font-text, "Montserrat", sans-serif));
+}
+
+.text-invitation-primary {
+  color: var(--color-primary, var(--primary, #a85d72));
+}
+
+.text-invitation-secondary {
+  color: var(--color-secondary, var(--secondary, #c78596));
+}
+
+.text-invitation-tertiary {
+  color: var(--color-tertiary, var(--tertiary, #7a2940));
+}
+
+.text-invitation-text {
+  color: var(--color-text, #1e293b);
+}
+
+.bg-invitation-primary {
+  background-color: var(--color-primary, var(--primary, #a85d72));
+}
+
+.bg-invitation-secondary {
+  background-color: var(--color-secondary, var(--secondary, #c78596));
+}
+
+.bg-invitation-bg {
+  background-color: var(--color-bg, var(--bg, #ffffff));
+}
+
+.border-invitation-primary {
+  border-color: var(--color-primary, var(--primary, #a85d72));
+}
+
+.border-invitation-secondary {
+  border-color: var(--color-secondary, var(--secondary, #c78596));
 }

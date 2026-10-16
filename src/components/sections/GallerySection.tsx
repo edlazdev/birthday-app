@@ -46,10 +46,10 @@ export default function GallerySection({
       {/* 1. Título Cursivo */}
       {title && (
         <h3
-          className="text-3xl sm:text-4xl font-normal leading-tight drop-shadow-xs mb-4"
+          className="text-3xl sm:text-4xl font-normal leading-tight drop-shadow-xs mb-4 font-invitation-heading text-invitation-primary"
           style={{
-            color: primaryColor,
-            fontFamily: "var(--font-title, 'Great Vibes', cursive)",
+            color: "var(--color-primary, var(--primary, #a85d72))",
+            fontFamily: "var(--font-heading, var(--font-title, 'Great Vibes', cursive))",
           }}
         >
           {title}

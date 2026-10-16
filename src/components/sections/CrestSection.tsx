@@ -52,10 +52,10 @@ export default function CrestSection({
       {/* 2. Nombre Caligráfico / Título Central */}
       {celebrant && (
         <h2
-          className="text-4xl sm:text-5xl font-normal leading-tight drop-shadow-xs"
+          className="text-4xl sm:text-5xl font-normal leading-tight drop-shadow-xs font-invitation-heading text-invitation-primary"
           style={{
-            color: primaryColor,
-            fontFamily: "var(--font-title, 'Great Vibes', cursive)",
+            color: "var(--color-primary, var(--primary, #a85d72))",
+            fontFamily: "var(--font-heading, var(--font-title, 'Great Vibes', cursive))",
           }}
         >
           {celebrant}
@@ -80,8 +80,8 @@ export default function CrestSection({
             👑
           </span>
           <span
-            className="text-3xl sm:text-4xl font-extrabold tracking-wider leading-none font-serif drop-shadow-xs"
-            style={{ color: primaryColor }}
+            className="text-3xl sm:text-4xl font-extrabold tracking-wider leading-none font-serif drop-shadow-xs text-invitation-primary"
+            style={{ color: "var(--color-primary, var(--primary, #a85d72))" }}
           >
             {monogramText}
           </span>

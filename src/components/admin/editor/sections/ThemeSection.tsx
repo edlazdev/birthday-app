@@ -74,12 +74,13 @@ export default function ThemeSection({
 
       {isOpen && (
         <div className="p-5 sm:p-6 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
             {[
-              { key: "primary", label: "Primario (Botones)", def: "#ff9800" },
-              { key: "secondary", label: "Secundario (Bordes)", def: "#2196f3" },
-              { key: "tertiary", label: "Terciario (Tagline)", def: "#e91e63" },
-              { key: "bg", label: "Fondo", def: "#ffffff" },
+              { key: "primary", label: "Primario (Botones / Títulos)", def: "#ff9800" },
+              { key: "secondary", label: "Secundario (Detalles)", def: "#2196f3" },
+              { key: "tertiary", label: "Terciario (Acentos)", def: "#e91e63" },
+              { key: "bg", label: "Fondo de Invitación", def: "#ffffff" },
+              { key: "text", label: "Color de Texto", def: "#1e293b" },
             ].map((col) => {
               const currentVal = (tenant.theme as any)?.[col.key] || col.def;
               return (

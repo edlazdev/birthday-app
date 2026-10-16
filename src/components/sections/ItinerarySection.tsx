@@ -37,10 +37,10 @@ export default function ItinerarySection({
       {/* 1. Título Caligráfico */}
       {title && (
         <h3
-          className="text-3xl sm:text-4xl font-normal leading-tight drop-shadow-xs"
+          className="text-3xl sm:text-4xl font-normal leading-tight drop-shadow-xs font-invitation-heading text-invitation-primary"
           style={{
-            color: primaryColor,
-            fontFamily: "var(--font-title, 'Great Vibes', cursive)",
+            color: "var(--color-primary, var(--primary, #a85d72))",
+            fontFamily: "var(--font-heading, var(--font-title, 'Great Vibes', cursive))",
           }}
         >
           {title}
@@ -57,7 +57,8 @@ export default function ItinerarySection({
       <div
         className="rounded-t-[80px] rounded-b-3xl p-6 sm:p-8 text-white shadow-lg mx-auto max-w-sm"
         style={{
-          background: `linear-gradient(180deg, ${secondaryColor} 0%, ${primaryColor} 100%)`,
+          background:
+            "linear-gradient(180deg, var(--color-secondary, var(--secondary, #c78596)) 0%, var(--color-primary, var(--primary, #a85d72)) 100%)",
         }}
       >
         <div className="space-y-6 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-white/30">

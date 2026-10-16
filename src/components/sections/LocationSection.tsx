@@ -60,8 +60,8 @@ export default function LocationSection({
       {/* 1. Icono Superior */}
       {icon !== "none" && (
         <div
-          className="w-12 h-12 mx-auto flex items-center justify-center transition-transform hover:scale-105 drop-shadow-xs"
-          style={{ color: primaryColor }}
+          className="w-12 h-12 mx-auto flex items-center justify-center transition-transform hover:scale-105 drop-shadow-xs text-invitation-primary"
+          style={{ color: "var(--color-primary, var(--primary, #a85d72))" }}
         >
           {icon === "church" ? (
             <svg
@@ -111,10 +111,10 @@ export default function LocationSection({
       {/* 2. Título de Sección */}
       {title && (
         <h3
-          className="text-3xl sm:text-4xl font-normal leading-tight drop-shadow-xs"
+          className="text-3xl sm:text-4xl font-normal leading-tight drop-shadow-xs font-invitation-heading text-invitation-primary"
           style={{
-            color: primaryColor,
-            fontFamily: "var(--font-title, 'Great Vibes', cursive)",
+            color: "var(--color-primary, var(--primary, #a85d72))",
+            fontFamily: "var(--font-heading, var(--font-title, 'Great Vibes', cursive))",
           }}
         >
           {title}
@@ -159,8 +159,8 @@ export default function LocationSection({
                 alert(`[Vista Previa] Abriría Google Maps: ${mapUrl}`);
               }
             }}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            style={{ backgroundColor: primaryColor }}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer bg-invitation-primary"
+            style={{ backgroundColor: "var(--color-primary, var(--primary, #a85d72))" }}
           >
             <svg
               className="w-4 h-4"
