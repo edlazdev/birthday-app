@@ -16,16 +16,19 @@ export default defineConfig({
   adapter: vercel(),
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: ["@supabase/ssr", "@supabase/supabase-js", "react", "react-dom"],
+    },
     resolve: {
       alias: [
         { find: "@", replacement: srcPath },
-        { find: "@/data", replacement: resolve(srcPath, "data") },
         { find: "@/types", replacement: resolve(srcPath, "types") },
         { find: "@/layouts", replacement: resolve(srcPath, "layouts") },
         { find: "@/components", replacement: resolve(srcPath, "components") },
         { find: "@/utils", replacement: resolve(srcPath, "utils") },
         { find: "@/lib", replacement: resolve(srcPath, "lib") },
         { find: "@/services", replacement: resolve(srcPath, "services") },
+        { find: "@/schemas", replacement: resolve(srcPath, "schemas") },
       ],
     },
   },

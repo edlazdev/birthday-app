@@ -33,4 +33,14 @@ export type {
 export type { EventData, ThemeVariables, EventFeatures, EventType, ItineraryItem, FarewellConfig, GiftConfig, RsvpConfig, MusicConfig } from "./components";
 export type { PublicationRequest } from "@/services/payments";
 
+// SaaS Canonical Types
+export type {
+  InvitationConfig,
+  InvitationMetadata,
+  InvitationTheme,
+  InvitationSocialConfig,
+  SectionItem,
+  SectionKind,
+} from "./invitation";
+
 

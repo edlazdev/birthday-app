@@ -5,8 +5,8 @@ export function getEventImagePath(slug: string, filename: string): string {
   if (filename.startsWith("http://") || filename.startsWith("https://") || filename.startsWith("//")) {
     return filename;
   }
-  const base = import.meta.env.BASE_URL || "";
-  const basePath = base ? (base.endsWith("/") ? base : `${base}/`) : "/";
-  return `${basePath}assets/events/${slug}/${filename}`.replace(/\/+/g, "/");
+  return `https://gztorcrslhjeyobbykzn.supabase.co/storage/v1/object/public/freeloader-media/events/${slug}/${filename}`
+    .replace(/\/+/g, "/")
+    .replace(":/", "://");
 }
 

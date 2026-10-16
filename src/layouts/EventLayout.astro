@@ -30,13 +30,31 @@ const youtubeUrl = videoConfig ? getYoutubeEmbedUrl(videoConfig) : "";
 
 // URLs y meta
 const fullUrl = getFullUrl(currentPath);
-const ogImageUrl = getOgImageUrl(eventData.slug, eventData.coverUrl);
+
+// Imagen para Open Graph / WhatsApp
+let rawOgImage = eventData.ogImageUrl;
+if (!rawOgImage) {
+  if (eventData.ogImageSource === "avatar") {
+    rawOgImage = eventData.avatarUrl || eventData.coverUrl;
+  } else if (eventData.ogImageSource === "cover") {
+    rawOgImage = eventData.coverUrl || eventData.avatarUrl;
+  } else {
+    // Fallback: cover o avatar si existe
+    rawOgImage = eventData.coverUrl || eventData.avatarUrl;
+  }
+}
+const ogImageUrl = getOgImageUrl(eventData.slug, rawOgImage);
+
+const defaultTitle = `${eventData.celebrant} - ${eventData.title} ${eventData.age} ${eventData.afterAge ?? ""}`.trim();
 const pageTitle = isAlbumPage
   ? `Álbum - ${eventData.celebrant}`
-  : `${eventData.celebrant} - ${eventData.title} ${eventData.age} ${eventData.afterAge ?? ""}`;
+  : (eventData.ogTitle?.trim() || defaultTitle);
+
+const defaultDesc = eventData.tagline?.trim() ||
+  `Invitación para celebrar ${eventData.title.toLowerCase()} ${eventData.age} ${eventData.afterAge ?? ""} de ${eventData.celebrant}. ${eventData.date} a las ${eventData.time}. ${eventData.address}`.trim();
 const pageDescription = isAlbumPage
   ? `Mira las fotos del álbum de ${eventData.celebrant}`
-  : `${eventData.tagline ?? `Invitación para celebrar ${eventData.title.toLowerCase()} ${eventData.age} ${eventData.afterAge ?? ""} de ${eventData.celebrant}`}. ${eventData.date} a las ${eventData.time}. ${eventData.address}`;
+  : (eventData.ogDescription?.trim() || defaultDesc);
 
 // Tema
 const themeColor = getThemeColor(eventData);

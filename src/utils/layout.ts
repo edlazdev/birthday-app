@@ -115,10 +115,17 @@ export function getSiteBase(): string {
   return `${SITE}${b}`.replace(/\/+/g, "/").replace(":/", "://");
 }
 
-/** URL absoluta de la imagen OG para un slug. */
-export function getOgImageUrl(slug: string, customCoverUrl?: string): string {
-  if (customCoverUrl && customCoverUrl.trim()) return customCoverUrl;
-  return `${getSiteBase()}assets/events/${slug}/cover.jpg`;
+/** URL absoluta de la imagen OG para un slug (requerido con https:// para WhatsApp, Facebook y Twitter). */
+export function getOgImageUrl(slug: string, customImageUrl?: string): string {
+  if (customImageUrl && customImageUrl.trim()) {
+    const trimmed = customImageUrl.trim();
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      return trimmed;
+    }
+    const clean = trimmed.replace(/^\/+/, "");
+    return `${getSiteBase()}${clean}`;
+  }
+  return `https://gztorcrslhjeyobbykzn.supabase.co/storage/v1/object/public/freeloader-media/events/${slug}/cover.jpg`;
 }
 
 /** URL completa de la página actual (para canonical y meta og:url). */

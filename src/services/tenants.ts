@@ -1,6 +1,5 @@
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import type { EventData, EventFeatures } from "@/types";
-import { events as localEvents } from "@/data/events";
 import { validateEventData } from "@/schemas/event";
 import { validateRsvpSubmission } from "@/schemas/rsvp";
 import { prepareImageForUpload } from "@/lib/mediaUpload";
@@ -11,15 +10,14 @@ import { prepareImageForUpload } from "@/lib/mediaUpload";
 export function mapDbToEventData(row: any): EventData {
   const features: EventFeatures = row.features || {};
   const media = row.media || {};
-  const local = localEvents[row.slug as keyof typeof localEvents];
 
   const itinerary = (row.itinerary && Array.isArray(row.itinerary) && row.itinerary.length > 0)
     ? row.itinerary
     : ((features as any)?.itinerary && Array.isArray((features as any).itinerary) && (features as any).itinerary.length > 0)
     ? (features as any).itinerary
-    : local?.itinerary || [];
+    : [];
 
-  const theme = (row.theme && Object.keys(row.theme).length > 0) ? row.theme : (local?.theme || undefined);
+  const theme = (row.theme && Object.keys(row.theme).length > 0) ? row.theme : undefined;
 
 
   return {
@@ -29,7 +27,7 @@ export function mapDbToEventData(row: any): EventData {
     type: row.type || "birthday",
     status: row.status || "published",
     celebrant: row.celebrant,
-    beforeCelebrant: row.before_celebrant || local?.beforeCelebrant || undefined,
+    beforeCelebrant: row.before_celebrant || undefined,
     title: row.title || "Cumple",
     age: row.age || "",
     afterAge: row.after_age || undefined,
@@ -54,7 +52,7 @@ export function mapDbToEventData(row: any): EventData {
     finalPhotoUrl: media.final_photo_url || undefined,
     qrImageUrl: media.qr_image_url || (features as any)?.gift_config?.qrImageUrl || undefined,
     backgroundVideo: media.background_video || undefined,
-    fonts: row.fonts || local?.fonts || {
+    fonts: row.fonts || {
       title: { type: "google", family: "Cinzel", weights: ["600"] },
       text: { type: "google", family: "Montserrat", weights: ["400"] },
     },
@@ -63,7 +61,7 @@ export function mapDbToEventData(row: any): EventData {
     giftRecommendations: row.gift_recommendations || [],
     recommendationsTitle: row.recommendations_title || undefined,
     recommendationsDescription: row.recommendations_description || undefined,
-    sponsors: row.sponsors || local?.sponsors || undefined,
+    sponsors: row.sponsors || undefined,
     witnesses: row.witnesses || undefined,
     itinerary,
     // Feature flags
@@ -81,26 +79,30 @@ export function mapDbToEventData(row: any): EventData {
     showItinerary: features.show_itinerary !== false,
     showCeremony: features.show_ceremony !== false && (features as any)?.showCeremony !== false,
     showDressCode: features.show_dress_code !== false && (features as any)?.showDressCode !== false,
-    ceremony: row.ceremony || (features as any)?.ceremony || local?.ceremony || undefined,
-    reception: row.reception || (features as any)?.reception || local?.reception || undefined,
-    dateBanner: (features as any)?.date_banner || (features as any)?.dateBanner || local?.dateBanner || undefined,
-    sponsorsConfig: (features as any)?.sponsors_config || (features as any)?.sponsorsConfig || local?.sponsorsConfig || undefined,
-    itineraryConfig: (features as any)?.itinerary_config || (features as any)?.itineraryConfig || local?.itineraryConfig || undefined,
-    dressCodeConfig: (features as any)?.dress_code_config || (features as any)?.dressCodeConfig || local?.dressCodeConfig || undefined,
+    ceremony: row.ceremony || (features as any)?.ceremony || undefined,
+    reception: row.reception || (features as any)?.reception || undefined,
+    dateBanner: (features as any)?.date_banner || (features as any)?.dateBanner || undefined,
+    sponsorsConfig: (features as any)?.sponsors_config || (features as any)?.sponsorsConfig || undefined,
+    itineraryConfig: (features as any)?.itinerary_config || (features as any)?.itineraryConfig || undefined,
+    dressCodeConfig: (features as any)?.dress_code_config || (features as any)?.dressCodeConfig || undefined,
     showFarewell: features.show_farewell !== false && (features as any)?.showFarewell !== false,
-    farewellConfig: (features as any)?.farewell_config || (features as any)?.farewellConfig || local?.farewellConfig || undefined,
-    giftConfig: ((features as any)?.gift_config || (features as any)?.giftConfig || local?.giftConfig)
+    farewellConfig: (features as any)?.farewell_config || (features as any)?.farewellConfig || undefined,
+    giftConfig: ((features as any)?.gift_config || (features as any)?.giftConfig)
       ? {
-          ...((features as any)?.gift_config || (features as any)?.giftConfig || local?.giftConfig),
+          ...((features as any)?.gift_config || (features as any)?.giftConfig),
           qrImageUrl:
-            ((features as any)?.gift_config || (features as any)?.giftConfig || local?.giftConfig)?.qrImageUrl ||
+            ((features as any)?.gift_config || (features as any)?.giftConfig)?.qrImageUrl ||
             media.qr_image_url ||
             undefined,
         }
       : undefined,
-    rsvpConfig: (features as any)?.rsvp_config || (features as any)?.rsvpConfig || local?.rsvpConfig || undefined,
-    musicConfig: (features as any)?.music_config || (features as any)?.musicConfig || local?.musicConfig || undefined,
-    sectionOrder: (features as any)?.section_order || (features as any)?.sectionOrder || local?.sectionOrder || undefined,
+    rsvpConfig: (features as any)?.rsvp_config || (features as any)?.rsvpConfig || undefined,
+    musicConfig: (features as any)?.music_config || (features as any)?.musicConfig || undefined,
+    sectionOrder: (features as any)?.section_order || (features as any)?.sectionOrder || undefined,
+    ogTitle: (features as any)?.og_title || (features as any)?.ogTitle || undefined,
+    ogDescription: (features as any)?.og_description || (features as any)?.ogDescription || undefined,
+    ogImageUrl: media.og_image_url || (features as any)?.og_image_url || (features as any)?.ogImageUrl || undefined,
+    ogImageSource: (features as any)?.og_image_source || (features as any)?.ogImageSource || undefined,
   };
 }
 
@@ -136,11 +138,17 @@ export function mapEventDataToDb(data: EventData): Record<string, any> {
     rsvp_config: data.rsvpConfig || null,
     music_config: data.musicConfig || null,
     section_order: data.sectionOrder || (data.features as any)?.sectionOrder || null,
+    og_title: data.ogTitle || null,
+    og_description: data.ogDescription || null,
+    og_image_url: data.ogImageUrl || null,
+    og_image_source: data.ogImageSource || null,
+    og_site_name: data.ogSiteName || null,
   };
 
   const media = {
     cover_url: data.coverUrl || "",
     avatar_url: data.avatarUrl || "",
+    og_image_url: data.ogImageUrl || "",
     album_urls: data.albumUrls || [],
     album_count: data.albumCount || (data.albumUrls?.length || 0),
     background_video: data.backgroundVideo || null,
@@ -200,12 +208,11 @@ export async function getAllTenants(): Promise<EventData[]> {
         return data.map(mapDbToEventData);
       }
     } catch (err) {
-      console.warn("[getAllTenants] Error al conectar con Supabase, usando respaldo local:", err);
+      console.warn("[getAllTenants] Error al conectar con Supabase:", err);
     }
   }
 
-  // Respaldo local
-  return Object.values(localEvents);
+  return [];
 }
 
 /**
@@ -228,8 +235,7 @@ export async function getPublishedTenants(): Promise<EventData[]> {
     }
   }
 
-  // Respaldo local: filtrar aquellos con status === 'published'
-  return Object.values(localEvents).filter((e) => e.status === "published");
+  return [];
 }
 
 /**
@@ -268,7 +274,7 @@ export function getPreviewDraft(slug: string): EventData | null {
 }
 
 /**
- * Obtiene un tenant específico por su slug.
+ * Obtiene un tenant específico por su slug desde la base de datos (o memoria si es preview).
  */
 export async function getTenantBySlug(slug: string, isPreview = false): Promise<EventData | null> {
   const normalizedSlug = slug.toLowerCase().trim();
@@ -293,11 +299,6 @@ export async function getTenantBySlug(slug: string, isPreview = false): Promise<
     } catch (err) {
       console.warn(`[getTenantBySlug] Error al buscar slug '${slug}' en Supabase:`, err);
     }
-  }
-
-  // Respaldo en eventos locales
-  if (normalizedSlug in localEvents) {
-    return localEvents[normalizedSlug as keyof typeof localEvents];
   }
 
   return null;

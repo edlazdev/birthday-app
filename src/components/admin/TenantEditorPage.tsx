@@ -254,10 +254,10 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
     }
   };
 
-  // Upload handler for cover, avatar, album, middlePhoto, finalPhoto, qrImage
+  // Upload handler for cover, avatar, album, middlePhoto, finalPhoto, qrImage, ogImage
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "cover" | "avatar" | "album" | "middlePhoto" | "finalPhoto" | "qrImage"
+    type: "cover" | "avatar" | "album" | "middlePhoto" | "finalPhoto" | "qrImage" | "ogImage"
   ) => {
     if (!tenant || !e.target.files || e.target.files.length === 0) return;
     setUploading(type);
@@ -305,8 +305,8 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
       } else {
         const file = e.target.files[0];
         if (!file) return;
-        const folderPath = type === "qrImage" ? `${tenant.slug}/qr` : `${tenant.slug}/${type}`;
-        const maxDim = type === "avatar" ? 800 : type === "qrImage" ? 1000 : 1920;
+        const folderPath = type === "qrImage" ? `${tenant.slug}/qr` : type === "ogImage" ? `${tenant.slug}/ogImage` : `${tenant.slug}/${type}`;
+        const maxDim = type === "avatar" || type === "ogImage" ? 1200 : type === "qrImage" ? 1000 : 1920;
         const res = await uploadMediaFile(file, folderPath, {
           maxDimension: maxDim,
           quality: 0.85,
@@ -317,6 +317,9 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
             updateTenant((t) => ({ ...t, coverUrl: res.url }), "media");
           } else if (type === "avatar") {
             updateTenant((t) => ({ ...t, avatarUrl: res.url }), "media");
+          } else if (type === "ogImage") {
+            updateTenant((t) => ({ ...t, ogImageUrl: res.url, ogImageSource: "custom" }), "general");
+            setDirtySections((prev) => ({ ...prev, general: true }));
           } else if (type === "middlePhoto") {
             updateTenant((t) => ({ ...t, middlePhotoUrl: res.url }), "media");
           } else if (type === "finalPhoto") {
@@ -668,6 +671,8 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                     lastSavedTime={savedSectionTime["General & Festejado"]}
                     isSuperAdmin={isSuperAdmin}
                     onRequestPayment={() => setShowPaymentModal(true)}
+                    onFileUpload={handleFileUpload}
+                    uploading={uploading}
                   />
                 )}
 
@@ -844,6 +849,8 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
                   lastSavedTime={savedSectionTime["General & Festejado"]}
                   isSuperAdmin={isSuperAdmin}
                   onRequestPayment={() => setShowPaymentModal(true)}
+                  onFileUpload={handleFileUpload}
+                  uploading={uploading}
                 />
 
                 {/* Section 2: Tema & Colores */}

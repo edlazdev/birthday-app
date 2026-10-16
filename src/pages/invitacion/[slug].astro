@@ -1,0 +1,177 @@
+---
+import EventLayout from "@/layouts/EventLayout.astro";
+import EventNav from "@/components/EventNav.astro";
+import EventHeader from "@/components/EventHeader.astro";
+import EventDetails from "@/components/EventDetails.astro";
+import QuinceaneraInvitation from "@/components/quinceanera/QuinceaneraInvitation.astro";
+import Footer from "@/components/Footer.astro";
+
+import { getInvitationBySlug } from "@/services/invitations";
+import { invitationConfigToEventData } from "@/schemas/invitation";
+
+// 1. Extracción del parámetro dinámico de ruta SSR
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect("/");
+}
+
+// 2. Parámetros de consulta en tiempo de solicitud
+const isPreview = Astro.url.searchParams.has("preview");
+
+// 3. Carga dinámica SSR desde la capa de servicio SaaS
+const invitationConfig = await getInvitationBySlug(slug, isPreview);
+
+if (!invitationConfig) {
+  return Astro.redirect("/");
+}
+
+// 4. Adaptación del modelo canónico al modelo de vista
+const data = invitationConfigToEventData(invitationConfig);
+
+// 5. Verificación de publicación (seguridad SaaS)
+const isNotPublished = data.status !== "published";
+const forceInvitation = Astro.url.searchParams.get("view") === "invitation" || isPreview;
+const showDraftNotice = isNotPublished && !isPreview;
+
+if (!forceInvitation && data.showInvitation === false && data.showAlbum !== false) {
+  return Astro.redirect(`/${data.slug}/album`);
+}
+---
+
+{showDraftNotice ? (
+  <html lang="es">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>{data.celebrant} - Próximamente</title>
+      <link rel="stylesheet" href="/styles/global.css" />
+    </head>
+    <body class="min-h-screen bg-slate-900 flex items-center justify-center text-white px-4">
+      <div class="max-w-md text-center p-8 bg-slate-800/80 backdrop-blur rounded-2xl border border-slate-700 shadow-xl">
+        <div class="text-5xl mb-4">✨</div>
+        <h1 class="text-2xl font-bold mb-2">Evento en Preparación</h1>
+        <p class="text-slate-300 text-sm mb-6">
+          La invitación para <span class="text-amber-400 font-semibold">{data.celebrant}</span> aún no ha sido publicada.
+        </p>
+        <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30">
+          Próximamente disponible
+        </span>
+      </div>
+    </body>
+  </html>
+) : data.type === "quinceanero" ? (
+  <EventLayout eventData={data}>
+    <main class="quince-root-container m-0 p-0">
+      <EventNav slug={data.slug} showAlbum={data.showAlbum} showInvitation={data.showInvitation} />
+      <QuinceaneraInvitation eventData={data} />
+    </main>
+  </EventLayout>
+) : (
+  <EventLayout eventData={data}>
+    <main class="event-container">
+      <EventNav slug={data.slug} showAlbum={data.showAlbum} showInvitation={data.showInvitation} />
+
+      <EventHeader eventData={data} />
+
+      <EventDetails eventData={data} />
+
+      <Footer
+        year={new Date().getFullYear()}
+        socialLinks={{
+          facebook: data.socialLinks?.facebook
+            ? "https://www.facebook.com/elr28"
+            : undefined,
+          instagram: data.socialLinks?.instagram
+            ? "https://www.instagram.com/_edgar.lazaro/"
+            : undefined,
+        }}
+        celebrant={data.celebrant}
+      />
+    </main>
+  </EventLayout>
+)}
+
+{isPreview && (
+  <script is:inline>
+    const scrollKey = "freeloader_preview_scroll_" + window.location.pathname;
+    const savedScroll = sessionStorage.getItem(scrollKey);
+    if (savedScroll !== null) {
+      const y = parseInt(savedScroll, 10);
+      if (!isNaN(y) && y > 0) {
+        window.scrollTo({ top: y, behavior: "instant" });
+        setTimeout(() => {
+          window.scrollTo({ top: y, behavior: "instant" });
+        }, 60);
+      }
+    }
+
+    window.addEventListener("scroll", () => {
+      sessionStorage.setItem(scrollKey, String(window.scrollY));
+    }, { passive: true });
+
+    window.addEventListener("message", (event) => {
+      if (event.data?.type === "FREELOADER_RELOAD_DRAFT") {
+        sessionStorage.setItem(scrollKey, String(window.scrollY));
+        window.location.reload();
+        return;
+      }
+      if (event.data?.type === "FREELOADER_PREVIEW_SYNC" && event.data.tenant) {
+        const t = event.data.tenant;
+        if (t.theme) {
+          if (t.theme.primary) {
+            document.documentElement.style.setProperty("--primary", t.theme.primary);
+            document.body.style.setProperty("--primary", t.theme.primary);
+          }
+          if (t.theme.secondary) {
+            document.documentElement.style.setProperty("--secondary", t.theme.secondary);
+            document.body.style.setProperty("--secondary", t.theme.secondary);
+          }
+          if (t.theme.tertiary) {
+            document.documentElement.style.setProperty("--tertiary", t.theme.tertiary);
+            document.body.style.setProperty("--tertiary", t.theme.tertiary);
+          }
+          if (t.theme.bg) {
+            document.documentElement.style.setProperty("--bg", t.theme.bg);
+            document.body.style.setProperty("--bg", t.theme.bg);
+            document.body.style.backgroundColor = t.theme.bg;
+          }
+        }
+        if (t.fonts) {
+          if (t.fonts.title?.family) {
+            document.documentElement.style.setProperty("--font-title", "'" + t.fonts.title.family + "', serif");
+          }
+          if (t.fonts.text?.family) {
+            document.documentElement.style.setProperty("--font-text", "'" + t.fonts.text.family + "', sans-serif");
+          }
+        }
+        if (t.celebrant) {
+          document.querySelectorAll(".quince-script-title, .celebrant-name, [data-celebrant]").forEach(el => {
+            el.textContent = t.celebrant;
+          });
+        }
+        if (t.tagline !== undefined) {
+          document.querySelectorAll(".quince-quote-text, .quince-tagline, [data-tagline]").forEach(el => {
+            el.textContent = t.tagline ? '"' + t.tagline + '"' : "";
+          });
+        }
+        if (t.age !== undefined) {
+          const ageStr = t.age.trim() === "15" ? "XV" : t.age.trim();
+          document.querySelectorAll(".quince-crest-letters, .monogram-text").forEach(el => {
+            el.textContent = ageStr;
+          });
+        }
+        if (t.title) {
+          document.querySelectorAll(".quince-serif-caps[data-badge]").forEach(el => {
+            el.textContent = t.title.toUpperCase();
+          });
+        }
+        if (t.musicConfig?.songTitle) {
+          document.querySelectorAll(".quince-song-title").forEach(el => {
+            el.textContent = t.musicConfig.songTitle;
+          });
+        }
+      }
+    });
+  </script>
+)}

@@ -190,19 +190,29 @@ const hasGodparents = Boolean(eventData.showSponsors !== false && godparentsList
 const hasSponsors = hasParents || hasGodparents;
 const sponsorsConfig = eventData.sponsorsConfig;
 
-// Fotos
+// Fotos dinámicas desde Supabase Storage
 const slug = eventData.slug || "";
-const heroPhoto = eventData.coverUrl || (slug === "luana" ? `/assets/events/${slug}/hero.jpg` : "");
+const heroPhoto = eventData.coverUrl || "";
 const middlePhoto =
   eventData.middlePhotoUrl ||
   (eventData.albumUrls && eventData.albumUrls.length > 0 ? eventData.albumUrls[0] : "") ||
-  (slug === "luana" ? `/assets/events/${slug}/tea.jpg` : "");
+  "";
 const finalPhoto =
   eventData.finalPhotoUrl ||
   (eventData.albumUrls && eventData.albumUrls.length > 1 ? eventData.albumUrls[1] : "") ||
-  (slug === "luana" ? `/assets/events/${slug}/cup.jpg` : "");
-const ribbonPhoto = (eventData as any).ribbonUrl || `/assets/events/${slug || "luana"}/lazo_plateado.png`;
-const crestFramePhoto = (eventData as any).crestUrl || `/assets/events/${slug || "luana"}/marco_flores.jpg`;
+  "";
+const ribbonPhoto =
+  (eventData as any).ribbonUrl ||
+  (eventData.features as any)?.ribbon_url ||
+  (eventData.features as any)?.ribbonUrl ||
+  (eventData as any).media?.ribbon_url ||
+  "";
+const crestFramePhoto =
+  (eventData as any).crestUrl ||
+  (eventData.features as any)?.crest_url ||
+  (eventData.features as any)?.crestUrl ||
+  (eventData as any).media?.crest_url ||
+  "";
 const crestAge = eventData.age
   ? (eventData.age.trim() === "15" ? "XV" : eventData.age.trim())
   : "XV";

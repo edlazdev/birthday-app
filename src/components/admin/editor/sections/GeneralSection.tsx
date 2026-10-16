@@ -2,10 +2,13 @@ import React from "react";
 import type { EventType } from "@/types";
 import { EVENT_TYPE_OPTIONS, STATUS_OPTIONS } from "@/constants/editor";
 import type { EditorSectionBaseProps } from "../types";
+import SocialPreviewEditor from "../components/SocialPreviewEditor";
 
 export interface GeneralSectionProps extends EditorSectionBaseProps {
   isSuperAdmin?: boolean;
   onRequestPayment?: () => void;
+  onFileUpload?: (e: React.ChangeEvent<HTMLInputElement>, type: any) => Promise<void>;
+  uploading?: string | null;
 }
 
 export default function GeneralSection({
@@ -19,6 +22,8 @@ export default function GeneralSection({
   lastSavedTime,
   isSuperAdmin = false,
   onRequestPayment,
+  onFileUpload,
+  uploading,
 }: GeneralSectionProps) {
   const isWedding = tenant.type === "wedding";
   const isQuince = tenant.type === "quinceanero";
@@ -336,6 +341,14 @@ export default function GeneralSection({
               />
             </div>
           </div>
+
+          {/* Editor y Simulador de Vista Previa para Redes Sociales y WhatsApp */}
+          <SocialPreviewEditor
+            tenant={tenant}
+            updateTenant={updateTenant}
+            onFileUpload={onFileUpload}
+            uploading={uploading}
+          />
 
           <div className="pt-2 flex justify-end">
             <button

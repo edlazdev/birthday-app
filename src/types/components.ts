@@ -343,4 +343,12 @@ export type EventData = {
   rsvpConfig?: RsvpConfig;
   /** Configuración de música para el reproductor musical de la invitación */
   musicConfig?: MusicConfig;
+  /** Título personalizado para vista previa de redes sociales y WhatsApp (og:title) */
+  ogTitle?: string;
+  /** Descripción personalizada para vista previa de redes sociales y WhatsApp (og:description) */
+  ogDescription?: string;
+  /** URL de imagen específica para la vista previa de redes sociales y WhatsApp (og:image) */
+  ogImageUrl?: string;
+  /** Origen seleccionado para la imagen de vista previa en redes ("avatar" | "cover" | "custom") */
+  ogImageSource?: "avatar" | "cover" | "custom";
 };
