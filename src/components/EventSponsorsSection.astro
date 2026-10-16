@@ -33,14 +33,14 @@ function formatCouple(names: string[]): string[] {
   if (names.length === 2) {
     const first = names[0].trim();
     const second = names[1].trim();
-    const formattedFirst = first.endsWith("&") ? first : `${first} &`;
+    const formattedFirst = first.endsWith("\n") ? first : `${first} \n`;
     return [formattedFirst, second];
   }
   // Si son más de 2 nombres
   return names.map((name, i) => {
     const trimmed = name.trim();
-    if (i < names.length - 1 && !trimmed.endsWith("&")) {
-      return `${trimmed} &`;
+    if (i < names.length - 1 && !trimmed.endsWith("\n")) {
+      return `${trimmed} \n`;
     }
     return trimmed;
   });
