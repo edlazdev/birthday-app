@@ -115,6 +115,8 @@ export interface InvitationMetadata {
   showSocialLinks?: boolean;
   ribbonUrl?: string;
   crestUrl?: string;
+  logoUrl?: string;
+  showLogoSubtitle?: boolean;
   msgRedirectAlbum?: string;
   msgTooltip?: string;
   giftRecommendations?: string[];

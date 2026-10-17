@@ -8,6 +8,7 @@ export interface Props {
   subtitle?: string;
   buttonText?: string;
   maxGuests?: number;
+  confirmationMessage?: string;
   slug?: string;
   primaryColor?: string;
   accentColor?: string;
@@ -24,6 +25,7 @@ const {
   subtitle = "",
   buttonText = "CONFIRMAR ASISTENCIA",
   maxGuests = 5,
+  confirmationMessage = "",
   slug = "",
   primaryColor = "#a85d72",
   accentColor = "#d6336c",
@@ -117,6 +119,7 @@ const uniqueId = `rsvp-modal-${Math.random().toString(36).substring(2, 9)}`;
         data-event-name={resolvedEventName}
         data-max-guests={maxGuests}
         data-slug={slug}
+        data-confirmation-message={confirmationMessage}
       >
         <!-- Contador de Asistentes -->
         <div class="flex items-center justify-between px-1 text-xs">
@@ -209,6 +212,22 @@ const uniqueId = `rsvp-modal-${Math.random().toString(36).substring(2, 9)}`;
         <!-- Banner de Error / Validación -->
         <div class="quince-form-error hidden p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-medium text-center"></div>
 
+        <!-- Vista Previa Dinámica del Mensaje de WhatsApp -->
+        <details class="quince-preview-accordion group rounded-2xl border border-emerald-300/70 bg-emerald-50/50 text-xs overflow-hidden transition-all">
+          <summary class="flex items-center justify-between px-3.5 py-2.5 font-bold text-emerald-800 cursor-pointer select-none hover:bg-emerald-100/60 transition">
+            <div class="flex items-center gap-1.5 text-[11px]">
+              <span class="text-sm">👁️</span>
+              <span>Vista previa del mensaje de WhatsApp</span>
+            </div>
+            <span class="text-[10px] text-emerald-600 transition-transform group-open:rotate-180">▼</span>
+          </summary>
+          <div class="p-3 pt-1 border-t border-emerald-200/60 bg-white/70">
+            <div class="quince-live-wa-bubble p-3 rounded-2xl rounded-tr-xs bg-[#d9fdd3] text-stone-800 text-[11px] leading-relaxed shadow-xs border border-[#c3f7b8] whitespace-pre-wrap font-sans">
+              <!-- Se actualiza en tiempo real al escribir -->
+            </div>
+          </div>
+        </details>
+
         <!-- Botón de Envío Directo a WhatsApp -->
         <button
           type="submit"
@@ -252,6 +271,12 @@ const uniqueId = `rsvp-modal-${Math.random().toString(36).substring(2, 9)}`;
 </style>
 
 <script>
+  import {
+    buildWhatsAppMessage,
+    getGenderIcon,
+    formatWhatsAppMarkdownToHtml,
+  } from '@/utils/whatsapp';
+
   function setupRsvpModal() {
     const sections = document.querySelectorAll<HTMLElement>('.event-rsvp-section');
 
@@ -267,6 +292,7 @@ const uniqueId = `rsvp-modal-${Math.random().toString(36).substring(2, 9)}`;
       const maxNotice = dialog.querySelector<HTMLElement>('.quince-max-reached-notice');
       const counterEl = dialog.querySelector<HTMLElement>('.quince-guest-counter');
       const errorBanner = dialog.querySelector<HTMLElement>('.quince-form-error');
+      const liveBubble = dialog.querySelector<HTMLElement>('.quince-live-wa-bubble');
 
       if (!form || !guestsContainer || !addGuestBtn) return;
 
@@ -276,10 +302,43 @@ const uniqueId = `rsvp-modal-${Math.random().toString(36).substring(2, 9)}`;
       const celebrant = form.dataset.celebrant || '';
       const eventName = form.dataset.eventName || 'Mis XV Años';
       const tenantSlug = form.dataset.slug || '';
+      const confirmationTemplate = form.dataset.confirmationMessage || '';
+
+      // Helper para extraer lista actual de asistentes
+      function getCurrentAttendees() {
+        const rows = guestsContainer.querySelectorAll<HTMLElement>('.quince-guest-row');
+        const list: Array<{ name: string; gender: string; icon: string }> = [];
+        rows.forEach((row, i) => {
+          const nameInput = row.querySelector<HTMLInputElement>('.quince-input-name');
+          const genderSelect = row.querySelector<HTMLSelectElement>('.quince-select-gender');
+          const name = nameInput?.value.trim() || `Invitado ${i + 1}`;
+          const gender = genderSelect?.value || 'Dama';
+          list.push({ name, gender, icon: getGenderIcon(gender) });
+        });
+        return list;
+      }
+
+      // Actualizar vista previa del mensaje de WhatsApp en tiempo real
+      function updateLivePreview() {
+        if (!liveBubble) return;
+        const attendees = getCurrentAttendees();
+        const notesInput = form.querySelector<HTMLTextAreaElement>('.quince-input-notes');
+        const notes = notesInput?.value.trim() || '';
+        const msg = buildWhatsAppMessage({
+          template: confirmationTemplate || undefined,
+          whatsappName,
+          celebrant,
+          eventName,
+          attendees,
+          notes,
+        });
+        liveBubble.innerHTML = formatWhatsAppMarkdownToHtml(msg);
+      }
 
       // Apertura del modal
       openTrigger.addEventListener('click', () => {
         dialog.showModal();
+        updateLivePreview();
       });
 
       // Cierre del modal
@@ -339,7 +398,13 @@ const uniqueId = `rsvp-modal-${Math.random().toString(36).substring(2, 9)}`;
             maxNotice?.classList.add('hidden');
           }
         }
+
+        updateLivePreview();
       }
+
+      // Escuchar cambios en los inputs para actualizar la vista previa en vivo
+      form.addEventListener('input', updateLivePreview);
+      form.addEventListener('change', updateLivePreview);
 
       // Agregar fila de invitado
       addGuestBtn.addEventListener('click', () => {
@@ -482,25 +547,15 @@ const uniqueId = `rsvp-modal-${Math.random().toString(36).substring(2, 9)}`;
         }
 
         // Construir mensaje estructurado de WhatsApp
-        const greeting = whatsappName ? `¡Hola ${whatsappName}!` : '¡Hola!';
-        const eventTitle = eventName || (celebrant ? `los XV Años de ${celebrant}` : 'el evento');
+        const fullMessage = buildWhatsAppMessage({
+          template: confirmationTemplate || undefined,
+          whatsappName,
+          celebrant,
+          eventName,
+          attendees,
+          notes,
+        });
 
-        const messageLines = [
-          `${greeting} Confirmo mi asistencia al evento *${eventTitle}* 🎉`,
-          '',
-          `📋 *Detalle de Asistentes (${attendees.length} en total):*`,
-          ...attendees.map((a, i) => `${i + 1}. ${a.icon} ${a.name} (${a.gender})`),
-        ];
-
-        if (notes) {
-          messageLines.push('');
-          messageLines.push(`💌 *Mensaje:* "${notes}"`);
-        }
-
-        messageLines.push('');
-        messageLines.push('¡Muchas gracias por la invitación! ✨');
-
-        const fullMessage = messageLines.join('\n');
         const waUrl = whatsapp
           ? `https://wa.me/${whatsapp}?text=${encodeURIComponent(fullMessage)}`
           : `https://wa.me/?text=${encodeURIComponent(fullMessage)}`;

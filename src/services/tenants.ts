@@ -44,11 +44,18 @@ export function mapDbToEventData(row: any): EventData {
       lat: Number(row.map_lat) || 0,
       lng: Number(row.map_lng) || 0,
     },
-    albumCount: media.album_count ?? (media.album_urls?.length || 0),
-    coverUrl: media.cover_url || undefined,
+    coverUrl:
+      (row.slug === "luana" && (!media.cover_url || media.cover_url.includes("1792015229484-d9xi1bx.jpeg")))
+        ? "/images/events/luana/cover_extended.jpg"
+        : (media.cover_url || undefined),
     avatarUrl: media.avatar_url || undefined,
     ribbonUrl: media.ribbon_url || (features as any)?.ribbon_url || (features as any)?.ribbonUrl || undefined,
     crestUrl: media.crest_url || (features as any)?.crest_url || (features as any)?.crestUrl || undefined,
+    logoUrl: media.logo_url || (features as any)?.logo_url || (features as any)?.logoUrl || (row as any).logo_url || undefined,
+    showLogoSubtitle: (features as any)?.show_logo_subtitle ?? (features as any)?.showLogoSubtitle ?? undefined,
+    logoOffsetTop: (features as any)?.logo_offset_top ?? (features as any)?.logoOffsetTop ?? undefined,
+    logoMaxHeight: (features as any)?.logo_max_height ?? (features as any)?.logoMaxHeight ?? undefined,
+    heroAspectRatio: (features as any)?.hero_aspect_ratio ?? (features as any)?.heroAspectRatio ?? undefined,
     albumUrls: media.album_urls || [],
     middlePhotoUrl: media.middle_photo_url || undefined,
     finalPhotoUrl: media.final_photo_url || undefined,
@@ -145,6 +152,11 @@ export function mapEventDataToDb(data: EventData): Record<string, any> {
     og_image_url: data.ogImageUrl || null,
     og_image_source: data.ogImageSource || null,
     og_site_name: data.ogSiteName || null,
+    logo_url: data.logoUrl || null,
+    show_logo_subtitle: data.showLogoSubtitle ?? null,
+    logo_offset_top: data.logoOffsetTop ?? null,
+    logo_max_height: data.logoMaxHeight ?? null,
+    hero_aspect_ratio: data.heroAspectRatio || (data.features as any)?.hero_aspect_ratio || null,
   };
 
   const media = {
@@ -157,6 +169,7 @@ export function mapEventDataToDb(data: EventData): Record<string, any> {
     middle_photo_url: data.middlePhotoUrl || "",
     final_photo_url: data.finalPhotoUrl || "",
     qr_image_url: data.qrImageUrl || data.giftConfig?.qrImageUrl || "",
+    logo_url: data.logoUrl || "",
   };
 
   return {

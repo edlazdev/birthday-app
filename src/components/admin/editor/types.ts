@@ -16,6 +16,6 @@ export interface EditorMediaSectionProps extends EditorSectionBaseProps {
   uploading: string | null;
   onFileUpload: (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "cover" | "avatar" | "album" | "middlePhoto" | "finalPhoto" | "qrImage"
+    type: "cover" | "avatar" | "album" | "middlePhoto" | "finalPhoto" | "qrImage" | "logo"
   ) => Promise<void>;
 }

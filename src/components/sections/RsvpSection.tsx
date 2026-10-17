@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import type { InvitationMetadata, InvitationTheme, RsvpConfig } from "@/types/invitation";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { buildWhatsAppMessage } from "@/utils/whatsapp";
 
 export interface RsvpSectionProps {
   data?: RsvpConfig;
@@ -35,13 +36,39 @@ export default function RsvpSection({
     const whatsappNum = metadata.whatsapp || "51902767559";
     const cleanNum = whatsappNum.replace(/\D/g, "");
     const celebrant = metadata.celebrant || "el evento";
-    const namePart = guestName.trim() ? `Soy ${guestName.trim()}. ` : "";
-    const guestsPart = `Confirmamos asistencia: ${adults} adulto(s)${
-      children > 0 ? ` y ${children} niño(s)` : ""
-    }.`;
-    const notesPart = notes.trim() ? ` Nota: ${notes.trim()}` : "";
 
-    const text = `¡Hola! ${namePart}¡Qué alegría celebrar con ${celebrant}! ${guestsPart}${notesPart}`;
+    let text = "";
+    if (data?.confirmationMessage) {
+      const attendeesList = [];
+      if (guestName.trim()) {
+        attendeesList.push({ name: guestName.trim(), gender: "Titular", icon: "👤" });
+      }
+      for (let i = 1; i < adults; i++) {
+        attendeesList.push({ name: `Acompañante ${i + 1}`, gender: "Adulto", icon: "👥" });
+      }
+      for (let i = 0; i < children; i++) {
+        attendeesList.push({ name: `Menor ${i + 1}`, gender: "Niño(a)", icon: "👧" });
+      }
+      if (attendeesList.length === 0) {
+        attendeesList.push({ name: "Invitado", gender: "Asistente", icon: "👤" });
+      }
+      text = buildWhatsAppMessage({
+        template: data.confirmationMessage,
+        whatsappName: metadata.whatsappName,
+        celebrant: metadata.celebrant,
+        eventName: metadata.title || (celebrant ? `los XV Años de ${celebrant}` : "el evento"),
+        attendees: attendeesList,
+        notes: notes.trim() || undefined,
+      });
+    } else {
+      const namePart = guestName.trim() ? `Soy ${guestName.trim()}. ` : "";
+      const guestsPart = `Confirmamos asistencia: ${adults} adulto(s)${
+        children > 0 ? ` y ${children} niño(s)` : ""
+      }.`;
+      const notesPart = notes.trim() ? ` Nota: ${notes.trim()}` : "";
+      text = `¡Hola! ${namePart}¡Qué alegría celebrar con ${celebrant}! ${guestsPart}${notesPart}`;
+    }
+
     const url = `https://api.whatsapp.com/send?phone=${cleanNum}&text=${encodeURIComponent(
       text
     )}`;

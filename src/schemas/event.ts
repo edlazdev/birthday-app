@@ -149,6 +149,8 @@ export const eventDataSchema = z.object({
   middlePhotoUrl: z.string().optional().nullable(),
   finalPhotoUrl: z.string().optional().nullable(),
   qrImageUrl: z.string().optional().nullable(),
+  logoUrl: z.string().optional().nullable(),
+  showLogoSubtitle: z.boolean().optional().nullable(),
   giftConfig: giftConfigSchema.optional(),
   rsvpConfig: rsvpConfigSchema.optional(),
   musicConfig: musicConfigSchema.optional(),

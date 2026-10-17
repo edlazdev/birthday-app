@@ -1,5 +1,6 @@
 import React from "react";
 import type { EditorSectionBaseProps } from "../types";
+import WhatsAppPreviewEditor from "../components/WhatsAppPreviewEditor";
 
 export default function RsvpSection({
   tenant,
@@ -267,6 +268,11 @@ export default function RsvpSection({
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Tarjeta de Personalización y Vista Previa en Vivo de WhatsApp */}
+            <div className="sm:col-span-2">
+              <WhatsAppPreviewEditor tenant={tenant} updateTenant={updateTenant} />
             </div>
           </div>
 

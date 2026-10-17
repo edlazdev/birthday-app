@@ -347,10 +347,10 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
     }
   };
 
-  // Upload handler for cover, avatar, album, middlePhoto, finalPhoto, qrImage, ogImage
+  // Upload handler for cover, avatar, album, middlePhoto, finalPhoto, qrImage, ogImage, logo
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "cover" | "avatar" | "album" | "middlePhoto" | "finalPhoto" | "qrImage" | "ogImage"
+    type: "cover" | "avatar" | "album" | "middlePhoto" | "finalPhoto" | "qrImage" | "ogImage" | "logo"
   ) => {
     if (!tenant || !e.target.files || e.target.files.length === 0) return;
     setUploading(type);
@@ -402,7 +402,7 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
         const maxDim = type === "avatar" || type === "ogImage" ? 1200 : type === "qrImage" ? 1000 : 1920;
         const res = await uploadMediaFile(file, folderPath, {
           maxDimension: maxDim,
-          quality: 0.85,
+          quality: type === "logo" ? 0.95 : 0.85,
         });
 
         if (res.url) {
@@ -410,6 +410,9 @@ export default function TenantEditorPage({ initialSlug }: TenantEditorPageProps)
             updateTenant((t) => ({ ...t, coverUrl: res.url }), "media");
           } else if (type === "avatar") {
             updateTenant((t) => ({ ...t, avatarUrl: res.url }), "media");
+          } else if (type === "logo") {
+            updateTenant((t) => ({ ...t, logoUrl: res.url }), "media");
+            setDirtySections((prev) => ({ ...prev, media: true }));
           } else if (type === "ogImage") {
             updateTenant((t) => ({ ...t, ogImageUrl: res.url, ogImageSource: "custom" }), "general");
             setDirtySections((prev) => ({ ...prev, general: true }));

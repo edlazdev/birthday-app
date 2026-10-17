@@ -27,27 +27,96 @@ const { eventData } = Astro.props;
 const celebrant = eventData.celebrant?.trim() || "";
 const tagline = eventData.tagline?.trim() || "";
 
+// Logo en formato imagen transparente (PNG/WebP/SVG) para el título / cabecera
+const titleLogo =
+  eventData.logoUrl ||
+  (eventData as any).titleLogoUrl ||
+  (eventData as any).titleImageUrl ||
+  (eventData as any).heroLogoUrl ||
+  (eventData.features as any)?.logoUrl ||
+  (eventData.features as any)?.logo_url ||
+  (eventData.features as any)?.titleLogoUrl ||
+  (eventData.features as any)?.title_logo_url ||
+  (eventData as any).media?.logo_url ||
+  (eventData as any).media?.logoUrl ||
+  "";
+
+// Subtítulo del título ("MIS XV AÑOS" o personalizado)
+const heroSubtitle =
+  eventData.beforeCelebrant ||
+  (eventData.title ? eventData.title.toUpperCase() : "MIS XV AÑOS");
+
+// Control de visibilidad del subtítulo cuando hay logo (por defecto false si el logo ya incluye todo el título)
+const showLogoSubtitle =
+  (eventData as any).showLogoSubtitle === true ||
+  (eventData.features as any)?.show_logo_subtitle === true ||
+  (eventData.features as any)?.showLogoSubtitle === true;
+
+// Posición y altura personalizada del logo para evitar tapar el rostro
+const logoOffsetTop =
+  (eventData as any).logoOffsetTop ??
+  (eventData.features as any)?.logo_offset_top ??
+  (eventData.features as any)?.logoOffsetTop ??
+  null;
+
+const logoMaxHeight =
+  (eventData as any).logoMaxHeight ??
+  (eventData.features as any)?.logo_max_height ??
+  (eventData.features as any)?.logoMaxHeight ??
+  null;
+
+// Proporción de la imagen de portada / hero (por defecto aspect-[9/16] para mayor altura vertical con el logo)
+const rawHeroAspect =
+  (eventData as any).heroAspectRatio ||
+  (eventData.features as any)?.hero_aspect_ratio ||
+  (eventData.features as any)?.heroAspectRatio ||
+  "9/16";
+
+const heroAspectRatioClass =
+  rawHeroAspect === "2/3" || rawHeroAspect === "2:3" || rawHeroAspect === "aspect-[2/3]"
+    ? "aspect-[2/3]"
+    : rawHeroAspect === "3/4" || rawHeroAspect === "3:4" || rawHeroAspect === "aspect-[3/4]"
+    ? "aspect-[3/4]"
+    : rawHeroAspect === "3/5" || rawHeroAspect === "3:5" || rawHeroAspect === "aspect-[3/5]"
+    ? "aspect-[3/5]"
+    : rawHeroAspect === "1/2" || rawHeroAspect === "1:2" || rawHeroAspect === "aspect-[1/2]"
+    ? "aspect-[1/2]"
+    : typeof rawHeroAspect === "string" && rawHeroAspect.startsWith("aspect-")
+    ? rawHeroAspect
+    : "aspect-[9/16]";
+
+
 // Fechas y horas dinámicas (sin fallbacks)
 const hasDate = Boolean(eventData.date && eventData.date.trim());
-const parsedDate = hasDate ? parseEventDateTime(eventData.date, eventData.time) : null;
-const initialCountdown = parsedDate ? getCountdownValues(parsedDate.date.getTime()) : null;
+const parsedDate = hasDate
+  ? parseEventDateTime(eventData.date, eventData.time)
+  : null;
+const initialCountdown = parsedDate
+  ? getCountdownValues(parsedDate.date.getTime())
+  : null;
 
 // WhatsApp y RSVP
 const hasWhatsapp = Boolean(eventData.whatsapp && eventData.whatsapp.trim());
-const whatsappDigits = hasWhatsapp ? eventData.whatsapp.replace(/[^0-9]/g, "") : "";
+const whatsappDigits = hasWhatsapp
+  ? eventData.whatsapp.replace(/[^0-9]/g, "")
+  : "";
 const showRsvp = eventData.showRsvp !== false && Boolean(whatsappDigits);
 const whatsappName = eventData.whatsappName || celebrant;
 const rsvpConfig = eventData.rsvpConfig;
 const rsvpTitle = rsvpConfig?.title || "Confirmar Asistencia";
-const rsvpSubtitle = rsvpConfig?.subtitle || (celebrant ? `Acompáñanos a celebrar los XV Años de ${celebrant}` : "Acompáñanos a celebrar este momento tan especial");
+const rsvpSubtitle =
+  rsvpConfig?.subtitle ||
+  (celebrant
+    ? `Acompáñanos a celebrar los XV Años de ${celebrant}`
+    : "Acompáñanos a celebrar este momento tan especial");
 const rsvpButtonText = rsvpConfig?.buttonText || "CONFIRMAR ASISTENCIA";
 const rsvpMaxGuests = rsvpConfig?.maxGuests || 5;
 
 // Itinerario: solo si viene explícitamente y con elementos
 const hasItinerary = Boolean(
   eventData.showItinerary !== false &&
-    Array.isArray(eventData.itinerary) &&
-    eventData.itinerary.length > 0,
+  Array.isArray(eventData.itinerary) &&
+  eventData.itinerary.length > 0,
 );
 const itineraryItems = hasItinerary ? eventData.itinerary! : [];
 const itineraryConfig = eventData.itineraryConfig;
@@ -85,26 +154,33 @@ const giftMessage =
   giftConfig?.message ??
   "El mejor detalle es tu presencia, pero si quieres tener un detalle conmigo, haz click aquí.";
 const giftButtonText = giftConfig?.buttonText ?? "Lluvia de sobres";
-const giftAccountHolder = giftConfig?.accountHolder || (celebrant ? `${celebrant} Martínez` : "");
+const giftAccountHolder =
+  giftConfig?.accountHolder || (celebrant ? `${celebrant} Martínez` : "");
 const giftBank = giftConfig?.bank || "Yape";
 const giftPhone = giftConfig?.phone || (hasWhatsapp ? eventData.whatsapp : "");
 const giftAccountNumber = giftConfig?.accountNumber ?? "";
 const giftQrImageUrl = eventData.qrImageUrl || giftConfig?.qrImageUrl || "";
-const giftNote = giftConfig?.note || "¡Muchas gracias por acompañarme en este día tan especial!";
+const giftNote =
+  giftConfig?.note ||
+  "¡Muchas gracias por acompañarme en este día tan especial!";
 
 // Ceremonia / Misa: soporta eventData.ceremony explícito o extracción del itinerario
 const hasExplicitCeremony = Boolean(
   eventData.ceremony &&
-    eventData.ceremony.enabled !== false &&
-    (eventData.ceremony.place || eventData.ceremony.address || eventData.ceremony.title)
+  eventData.ceremony.enabled !== false &&
+  (eventData.ceremony.place ||
+    eventData.ceremony.address ||
+    eventData.ceremony.title),
 );
 
-const misaItem = !hasExplicitCeremony && itineraryItems.find(
-  (i) =>
-    i.title?.toLowerCase().includes("misa") ||
-    i.title?.toLowerCase().includes("iglesia") ||
-    i.title?.toLowerCase().includes("ceremonia"),
-);
+const misaItem =
+  !hasExplicitCeremony &&
+  itineraryItems.find(
+    (i) =>
+      i.title?.toLowerCase().includes("misa") ||
+      i.title?.toLowerCase().includes("iglesia") ||
+      i.title?.toLowerCase().includes("ceremonia"),
+  );
 
 const hasMisa =
   eventData.showCeremony !== false &&
@@ -112,7 +188,9 @@ const hasMisa =
 
 let misaTitle = "Misa";
 let misaTime = "";
-let misaDate = parsedDate ? `${parsedDate.day} ${parsedDate.monthShort?.toUpperCase()}` : "";
+let misaDate = parsedDate
+  ? `${parsedDate.day} ${parsedDate.monthShort?.toUpperCase()}`
+  : "";
 let misaPlace = "";
 let misaAddress = "";
 let misaMapUrl = "";
@@ -124,7 +202,11 @@ if (hasExplicitCeremony && eventData.ceremony) {
   misaDate = eventData.ceremony.date || misaDate;
   misaPlace = eventData.ceremony.place || "";
   misaAddress = eventData.ceremony.address || "";
-  misaMapUrl = eventData.ceremony.mapUrl || (misaAddress ? `https://maps.google.com/?q=${encodeURIComponent(misaAddress)}` : "");
+  misaMapUrl =
+    eventData.ceremony.mapUrl ||
+    (misaAddress
+      ? `https://maps.google.com/?q=${encodeURIComponent(misaAddress)}`
+      : "");
   showMisaMap = eventData.ceremony.showMap !== false && Boolean(misaMapUrl);
 } else if (misaItem) {
   misaTitle = misaItem.title || "Misa";
@@ -144,15 +226,19 @@ if (hasExplicitCeremony && eventData.ceremony) {
 // Recepción: soporta eventData.reception explícito o eventData.address/time
 const hasExplicitReception = Boolean(
   eventData.reception &&
-    eventData.reception.enabled !== false &&
-    (eventData.reception.place || eventData.reception.address || eventData.reception.time)
+  eventData.reception.enabled !== false &&
+  (eventData.reception.place ||
+    eventData.reception.address ||
+    eventData.reception.time),
 );
 const hasAddress = Boolean(eventData.address && eventData.address.trim());
 const hasTime = Boolean(eventData.time && eventData.time.trim());
 const hasReception = hasExplicitReception || hasAddress || hasTime;
 
 let receptionTitle = "Recepción";
-let receptionDate = parsedDate ? `${parsedDate.day} ${parsedDate.monthShort?.toUpperCase()}` : "";
+let receptionDate = parsedDate
+  ? `${parsedDate.day} ${parsedDate.monthShort?.toUpperCase()}`
+  : "";
 let receptionTime = eventData.time || "";
 let receptionPlace = eventData.address || "";
 let receptionAddress = "";
@@ -166,49 +252,66 @@ if (hasExplicitReception && eventData.reception) {
   receptionPlace = eventData.reception.place || "";
   receptionAddress = eventData.reception.address || "";
   receptionMapUrl = eventData.reception.mapUrl || "";
-  showReceptionMap = eventData.reception.showMap !== false && Boolean(receptionMapUrl);
+  showReceptionMap =
+    eventData.reception.showMap !== false && Boolean(receptionMapUrl);
 } else {
   if (eventData.address && eventData.address.includes(" - ")) {
     const parts = eventData.address.split(" - ");
     receptionPlace = parts[0].trim();
     receptionAddress = parts.slice(1).join(" - ").trim();
   }
-  const hasMapCoords = Boolean(eventData.map && (eventData.map.lat || eventData.map.lng));
+  const hasMapCoords = Boolean(
+    eventData.map && (eventData.map.lat || eventData.map.lng),
+  );
   receptionMapUrl = hasMapCoords
     ? `https://www.google.com/maps/search/?api=1&query=${eventData.map.lat},${eventData.map.lng}`
     : hasAddress
-    ? `https://maps.google.com/?q=${encodeURIComponent(eventData.address)}`
-    : "";
+      ? `https://maps.google.com/?q=${encodeURIComponent(eventData.address)}`
+      : "";
   showReceptionMap = eventData.showMap !== false && Boolean(receptionMapUrl);
 }
 
 // Padrinos y padres (Cortejo): solo si existen
 const parentsList = (eventData.sponsors?.groom || []).filter(Boolean);
 const godparentsList = (eventData.sponsors?.bride || []).filter(Boolean);
-const hasParents = Boolean(eventData.showSponsors !== false && parentsList.length > 0);
-const hasGodparents = Boolean(eventData.showSponsors !== false && godparentsList.length > 0);
+const hasParents = Boolean(
+  eventData.showSponsors !== false && parentsList.length > 0,
+);
+const hasGodparents = Boolean(
+  eventData.showSponsors !== false && godparentsList.length > 0,
+);
 const hasSponsors = hasParents || hasGodparents;
 const sponsorsConfig = eventData.sponsorsConfig;
 
 // Fotos dinámicas desde Supabase Storage
 const slug = eventData.slug || "";
-const heroPhoto =
+const rawCover =
   eventData.coverUrl ||
   (eventData as any).media?.cover_url ||
-  (slug === "luana"
-    ? "https://gztorcrslhjeyobbykzn.supabase.co/storage/v1/object/public/freeloader-media/events/luana/hero.jpg"
-    : "");
+  "";
+
+const heroPhoto =
+  (slug === "luana" && (!rawCover || rawCover.includes("1792015229484-d9xi1bx.jpeg")))
+    ? "/images/events/luana/cover_extended.jpg"
+    : rawCover ||
+      (slug === "luana"
+        ? "/images/events/luana/cover_extended.jpg"
+        : "");
 const middlePhoto =
   eventData.middlePhotoUrl ||
   (eventData as any).media?.middle_photo_url ||
-  (eventData.albumUrls && eventData.albumUrls.length > 0 ? eventData.albumUrls[0] : "") ||
+  (eventData.albumUrls && eventData.albumUrls.length > 0
+    ? eventData.albumUrls[0]
+    : "") ||
   (slug === "luana"
     ? "https://gztorcrslhjeyobbykzn.supabase.co/storage/v1/object/public/freeloader-media/events/luana/tea.jpg"
     : "");
 const finalPhoto =
   eventData.finalPhotoUrl ||
   (eventData as any).media?.final_photo_url ||
-  (eventData.albumUrls && eventData.albumUrls.length > 1 ? eventData.albumUrls[1] : "") ||
+  (eventData.albumUrls && eventData.albumUrls.length > 1
+    ? eventData.albumUrls[1]
+    : "") ||
   (slug === "luana"
     ? "https://gztorcrslhjeyobbykzn.supabase.co/storage/v1/object/public/freeloader-media/events/luana/cup.jpg"
     : "");
@@ -225,7 +328,9 @@ const crestFramePhoto =
   (eventData as any).media?.crest_url ||
   "https://gztorcrslhjeyobbykzn.supabase.co/storage/v1/object/public/freeloader-media/events/luana/marco_flores.jpg";
 const crestAge = eventData.age
-  ? (eventData.age.trim() === "15" ? "XV" : eventData.age.trim())
+  ? eventData.age.trim() === "15"
+    ? "XV"
+    : eventData.age.trim()
   : "XV";
 
 // ==========================================
@@ -273,21 +378,22 @@ const playerBg = "#fff8fa";
 // ========================================================
 const isScriptConfigured = Boolean(
   eventData.fonts?.title?.family &&
-    (eventData.fonts.title.family.includes("Vibes") ||
-      eventData.fonts.title.family.includes("Script") ||
-      eventData.fonts.title.family.includes("Brush") ||
-      eventData.fonts.title.family.includes("Pacifico")),
+  (eventData.fonts.title.family.includes("Vibes") ||
+    eventData.fonts.title.family.includes("Script") ||
+    eventData.fonts.title.family.includes("Brush") ||
+    eventData.fonts.title.family.includes("Pacifico")),
 );
 
-const scriptFontFamily = isScriptConfigured && eventData.fonts!.title.family !== "Great Vibes"
-  ? `'${eventData.fonts!.title.family}', 'Great Vibes', 'Alex Brush', cursive`
-  : `'Great Vibes', 'Alex Brush', 'Pinyon Script', cursive`;
+const scriptFontFamily =
+  isScriptConfigured && eventData.fonts!.title.family !== "Great Vibes"
+    ? `'${eventData.fonts!.title.family}', 'Great Vibes', 'Alex Brush', cursive`
+    : `'Great Vibes', 'Alex Brush', 'Pinyon Script', cursive`;
 
 const isSerifConfigured = Boolean(
   eventData.fonts?.title?.family &&
-    !isScriptConfigured &&
-    eventData.fonts.title.family !== "Playfair Display" &&
-    eventData.fonts.title.family !== "Cinzel",
+  !isScriptConfigured &&
+  eventData.fonts.title.family !== "Playfair Display" &&
+  eventData.fonts.title.family !== "Cinzel",
 );
 
 const serifFontFamily = isSerifConfigured
@@ -298,9 +404,9 @@ const quoteFontFamily = `'Cormorant Garamond', 'Cinzel', 'Playfair Display', ser
 
 const isCustomSans = Boolean(
   eventData.fonts?.text?.family &&
-    eventData.fonts.text.family !== "Montserrat" &&
-    eventData.fonts.text.family !== "Poppins" &&
-    eventData.fonts.text.family !== "Playfair Display",
+  eventData.fonts.text.family !== "Montserrat" &&
+  eventData.fonts.text.family !== "Poppins" &&
+  eventData.fonts.text.family !== "Playfair Display",
 );
 
 const sansFontFamily = isCustomSans
@@ -319,8 +425,12 @@ const customSectionOrder =
 const activeOrder: string[] =
   Array.isArray(customSectionOrder) && customSectionOrder.length > 0
     ? [
-        ...customSectionOrder.filter((k: string) => DEFAULT_QUINCE_SECTION_ORDER.includes(k)),
-        ...DEFAULT_QUINCE_SECTION_ORDER.filter((k) => !customSectionOrder.includes(k)),
+        ...customSectionOrder.filter((k: string) =>
+          DEFAULT_QUINCE_SECTION_ORDER.includes(k),
+        ),
+        ...DEFAULT_QUINCE_SECTION_ORDER.filter(
+          (k) => !customSectionOrder.includes(k),
+        ),
       ]
     : [...DEFAULT_QUINCE_SECTION_ORDER];
 ---
@@ -333,18 +443,22 @@ const activeOrder: string[] =
   rel="stylesheet"
 />
 
-{eventData.fonts?.title?.type === "google" && eventData.fonts.title.family && (
-  <link
-    rel="stylesheet"
-    href={`https://fonts.googleapis.com/css2?family=${eventData.fonts.title.family.replace(/\s+/g, "+")}:wght@400;600;700&display=swap`}
-  />
-)}
-{eventData.fonts?.text?.type === "google" && eventData.fonts.text.family && (
-  <link
-    rel="stylesheet"
-    href={`https://fonts.googleapis.com/css2?family=${eventData.fonts.text.family.replace(/\s+/g, "+")}:wght@300;400;500;600;700&display=swap`}
-  />
-)}
+{
+  eventData.fonts?.title?.type === "google" && eventData.fonts.title.family && (
+    <link
+      rel="stylesheet"
+      href={`https://fonts.googleapis.com/css2?family=${eventData.fonts.title.family.replace(/\s+/g, "+")}:wght@400;600;700&display=swap`}
+    />
+  )
+}
+{
+  eventData.fonts?.text?.type === "google" && eventData.fonts.text.family && (
+    <link
+      rel="stylesheet"
+      href={`https://fonts.googleapis.com/css2?family=${eventData.fonts.text.family.replace(/\s+/g, "+")}:wght@300;400;500;600;700&display=swap`}
+    />
+  )
+}
 
 <div
   class="quince-page-wrapper min-h-screen flex justify-center py-0 pt-0 pb-0 px-2 sm:px-4"
@@ -360,358 +474,397 @@ const activeOrder: string[] =
       class="quince-mobile-card w-full flex flex-col relative text-center bg-white shadow-xs"
       style={`background-color: ${cardBg};`}
     >
-      {activeOrder.map((secKey) => {
-        switch (secKey) {
-          case "hero":
-            return (
-              <>
-                {/* ==============================================================
+      {
+        activeOrder.map((secKey) => {
+          switch (secKey) {
+            case "hero":
+              return (
+                <>
+                  {/* ==============================================================
                      COMPONENTE 1: PORTADA & HERO CON CORTINAS
                      ============================================================== */}
-                <header class="relative w-full overflow-hidden bg-slate-100">
-                  <div
-                    class={`hero-image-container relative w-full ${heroPhoto ? "aspect-[2/3]" : "py-16"} overflow-hidden flex flex-col justify-center`}
-                  >
-                    {heroPhoto && (
-                      <img
-                        src={heroPhoto}
-                        alt={`Mis XV Años${celebrant ? ` - ${celebrant}` : ""}`}
-                        class="w-full h-full object-cover object-top"
-                        loading="eager"
-                      />
-                    )}
+                  <header class="relative w-full overflow-hidden bg-slate-100">
                     <div
-                      class="absolute inset-0 pointer-events-none"
-                      style="background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 25%, transparent 45%, rgba(255,255,255,0.7) 92%, #ffffff 100%);"
-                    />
-
-                    <div class={`${heroPhoto ? "absolute top-3.5 sm:top-4 left-0 right-0" : "relative"} px-4 text-center z-10`}>
-                      {celebrant && (
-                        <h1
-                          class="quince-script-title text-4xl sm:text-5xl text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] leading-none font-normal"
-                        >
-                          {celebrant}
-                        </h1>
+                      class={`hero-image-container relative w-full ${heroPhoto ? heroAspectRatioClass : "py-16"} overflow-hidden flex flex-col justify-center`}
+                      style={heroPhoto ? `aspect-ratio: ${rawHeroAspect === "3/4" ? "3/4" : rawHeroAspect === "2/3" ? "2/3" : "9/16"};` : undefined}
+                    >
+                      {heroPhoto && (
+                        <img
+                          src={heroPhoto}
+                          alt={`Mis XV Años${celebrant ? ` - ${celebrant}` : ""}`}
+                          class="w-full h-full object-cover object-top"
+                          loading="eager"
+                        />
                       )}
-                      <p
-                        class="quince-serif-caps text-[11px] sm:text-xs tracking-[0.3em] uppercase font-semibold mt-1 text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]"
+                      <div
+                        class="absolute inset-0 pointer-events-none"
+                        style={
+                          titleLogo
+                            ? "background: linear-gradient(180deg, rgba(0,0,0,0.18) 0%, transparent 40%, rgba(255,255,255,0.7) 92%, #ffffff 100%);"
+                            : "background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 25%, transparent 45%, rgba(255,255,255,0.7) 92%, #ffffff 100%);"
+                        }
+                      />
+
+                      <div
+                        class={`${heroPhoto ? (titleLogo ? "absolute top-3 sm:top-4 left-0 right-0" : "absolute top-3.5 sm:top-4 left-0 right-0") : "relative"} px-3 sm:px-4 text-center z-10 flex flex-col items-center justify-center`}
+                        style={
+                          titleLogo && logoOffsetTop !== null
+                            ? `top: ${typeof logoOffsetTop === "number" ? `${logoOffsetTop}px` : logoOffsetTop};`
+                            : undefined
+                        }
                       >
-                        {eventData.beforeCelebrant || (eventData.title ? eventData.title.toUpperCase() : "MIS XV AÑOS")}
-                      </p>
+                        {titleLogo ? (
+                          <div class="quince-hero-logo-wrapper flex flex-col items-center justify-center max-w-[85%] sm:max-w-[75%] mx-auto">
+                            <img
+                              src={titleLogo}
+                              alt={celebrant || heroSubtitle || "Logo"}
+                              class="quince-hero-logo max-h-24 sm:max-h-20 w-auto max-w-full object-contain object-top drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]"
+                              style={
+                                logoMaxHeight !== null
+                                  ? `max-height: ${typeof logoMaxHeight === "number" ? `${logoMaxHeight}px` : logoMaxHeight};`
+                                  : undefined
+                              }
+                              loading="eager"
+                            />
+                            {showLogoSubtitle && heroSubtitle && (
+                              <p class="quince-serif-caps text-[11px] sm:text-xs tracking-[0.3em] uppercase font-semibold mt-0.5 text-black drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
+                                {heroSubtitle}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <>
+                            {celebrant && (
+                              <h1 class="quince-script-title text-4xl sm:text-5xl text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] leading-none font-normal">
+                                {celebrant}
+                              </h1>
+                            )}
+                            {heroSubtitle && (
+                              <p class="quince-serif-caps text-[11px] sm:text-xs tracking-[0.3em] uppercase font-semibold mt-1 text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
+                                {heroSubtitle}
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </header>
-                {ribbonPhoto && (
-                  /* ==============================================================
+                  </header>
+                  {ribbonPhoto && (
+                    /* ==============================================================
                        COMPONENTE 2: LAZO DIVISOR SUPERIOR
                        ============================================================== */
-                  <div class="quince-ribbon-divider-full relative w-full flex items-center justify-center -mt-8 sm:-mt-10 mb-0 z-10 pointer-events-none select-none">
-                    <img
-                      src={ribbonPhoto}
-                      alt="Lazo plateado"
-                      class="w-full h-auto object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.12)]"
-                      loading="eager"
-                    />
-                  </div>
-                )}
-              </>
-            );
+                    <div class="quince-ribbon-divider-full relative w-full flex items-center justify-center -mt-8 sm:-mt-10 mb-0 z-10 pointer-events-none select-none">
+                      <img
+                        src={ribbonPhoto}
+                        alt="Lazo plateado"
+                        class="w-full h-auto object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.12)]"
+                        loading="eager"
+                      />
+                    </div>
+                  )}
+                </>
+              );
 
-          case "crest":
-            return (
-              /* ==============================================================
+            case "crest":
+              return (
+                /* ==============================================================
                    COMPONENTE 3: ESCUDO MONOGRAMA & PENSAMIENTO
                    ============================================================== */
-              <EventCrestSection
-                tagline={tagline}
-                celebrant={celebrant}
-                crestFrameUrl={crestFramePhoto}
-                monogramText={crestAge}
-                badgeText={eventData.title || "QUINCEAÑERA"}
-                primaryColor={primaryRose}
-                textColor={textDark}
-                textMutedColor={textMuted}
-                borderColor={borderSoft}
-              />
-            );
-
-          case "music":
-            return (
-              <>
-                {/* ==============================================================
-                     COMPONENTE 4: REPRODUCTOR MUSICAL "DALE PLAY"
-                     ============================================================== */}
-                <EventMusicPlayer
-                  title="DALE PLAY"
-                  youtubeUrl={eventData.musicConfig?.youtubeUrl}
-                  startSecond={eventData.musicConfig?.startSecond}
-                  songTitle={eventData.musicConfig?.songTitle}
-                  autoplay={eventData.musicConfig?.autoplay ?? true}
+                <EventCrestSection
+                  tagline={tagline}
+                  celebrant={celebrant}
+                  crestFrameUrl={crestFramePhoto}
+                  monogramText={crestAge}
+                  badgeText={eventData.title || "QUINCEAÑERA"}
                   primaryColor={primaryRose}
-                  accentColor={accentPink}
-                  bgColor={playerBg}
+                  textColor={textDark}
+                  textMutedColor={textMuted}
                   borderColor={borderSoft}
                 />
-                <EventRibbonDivider color={silver} />
-              </>
-            );
+              );
 
-          case "sponsors":
-            return hasSponsors ? (
-              /* ==============================================================
+            case "music":
+              return (
+                <>
+                  {/* ==============================================================
+                     COMPONENTE 4: REPRODUCTOR MUSICAL "DALE PLAY"
+                     ============================================================== */}
+                  <EventMusicPlayer
+                    title="DALE PLAY"
+                    youtubeUrl={eventData.musicConfig?.youtubeUrl}
+                    startSecond={eventData.musicConfig?.startSecond}
+                    songTitle={eventData.musicConfig?.songTitle}
+                    autoplay={eventData.musicConfig?.autoplay ?? true}
+                    primaryColor={primaryRose}
+                    accentColor={accentPink}
+                    bgColor={playerBg}
+                    borderColor={borderSoft}
+                  />
+                  <EventRibbonDivider color={silver} />
+                </>
+              );
+
+            case "sponsors":
+              return hasSponsors ? (
+                /* ==============================================================
                    COMPONENTE 5: CORTEJO DE HONOR (PADRES & PADRINOS)
                    ============================================================== */
-              <section class="px-6 py-1">
-                <EventSponsorsSection
-                  introText={sponsorsConfig?.introText}
-                  parentsLabel={sponsorsConfig?.parentsLabel}
-                  parents={parentsList}
-                  godparentsLabel={sponsorsConfig?.godparentsLabel}
-                  godparents={godparentsList}
-                  primaryColor={primaryRose}
-                  textColor={textDark}
-                />
-              </section>
-            ) : null;
+                <section class="px-6 py-1">
+                  <EventSponsorsSection
+                    introText={sponsorsConfig?.introText}
+                    parentsLabel={sponsorsConfig?.parentsLabel}
+                    parents={parentsList}
+                    godparentsLabel={sponsorsConfig?.godparentsLabel}
+                    godparents={godparentsList}
+                    primaryColor={primaryRose}
+                    textColor={textDark}
+                  />
+                </section>
+              ) : null;
 
-          case "date_calendar":
-            return hasDate && parsedDate ? (
-              /* ==============================================================
+            case "date_calendar":
+              return hasDate && parsedDate ? (
+                /* ==============================================================
                    COMPONENTE 6: BANNER DE FECHA & CALENDARIO MENSUAL
                    ============================================================== */
-              <div class="px-5 py-3 space-y-5">
-                <EventDateBanner
-                  date={eventData.date}
-                  time={eventData.time}
-                  month={eventData.dateBanner?.month}
-                  dayOfWeek={eventData.dateBanner?.dayOfWeek}
-                  day={eventData.dateBanner?.day}
-                  year={eventData.dateBanner?.year}
-                  primaryColor={primaryRose}
-                  dayColor={silver}
-                  lineColor={silver}
-                />
-                <EventCalendarSection
-                  title="El gran día"
-                  monthName={parsedDate.monthName}
-                  year={parsedDate.year}
-                  day={parsedDate.day}
-                  daysInMonth={parsedDate.daysInMonth}
-                  startOffsetMonday={parsedDate.startOffsetMonday}
-                  highlightIcon="🤍"
-                  primaryColor={primaryRose}
-                  accentColor={accentPink}
-                  textColor={textBody}
-                  subtleColor={textSubtle}
-                />
-              </div>
-            ) : null;
+                <div class="px-5 py-3 space-y-5">
+                  <EventDateBanner
+                    date={eventData.date}
+                    time={eventData.time}
+                    month={eventData.dateBanner?.month}
+                    dayOfWeek={eventData.dateBanner?.dayOfWeek}
+                    day={eventData.dateBanner?.day}
+                    year={eventData.dateBanner?.year}
+                    primaryColor={primaryRose}
+                    dayColor={silver}
+                    lineColor={silver}
+                  />
+                  <EventCalendarSection
+                    title="El gran día"
+                    monthName={parsedDate.monthName}
+                    year={parsedDate.year}
+                    day={parsedDate.day}
+                    daysInMonth={parsedDate.daysInMonth}
+                    startOffsetMonday={parsedDate.startOffsetMonday}
+                    highlightIcon="🤍"
+                    primaryColor={primaryRose}
+                    accentColor={accentPink}
+                    textColor={textBody}
+                    subtleColor={textSubtle}
+                  />
+                </div>
+              ) : null;
 
-          case "middle_photo":
-            return middlePhoto ? (
-              /* ==============================================================
+            case "middle_photo":
+              return middlePhoto ? (
+                /* ==============================================================
                    COMPONENTE 7: FOTO INTERMEDIA DE SESIÓN
                    ============================================================== */
-              <div class="px-5 py-3">
-                <QuinceSectionImage
-                  src={middlePhoto}
-                  alt={`Sesión de fotos${celebrant ? ` de ${celebrant}` : ""}`}
-                  aspectRatio="square"
-                />
-                <EventRibbonDivider color={silver} />
-              </div>
-            ) : null;
+                <div class="px-5 py-3">
+                  <QuinceSectionImage
+                    src={middlePhoto}
+                    alt={`Sesión de fotos${celebrant ? ` de ${celebrant}` : ""}`}
+                    aspectRatio="square"
+                  />
+                  <EventRibbonDivider color={silver} />
+                </div>
+              ) : null;
 
-          case "ceremony":
-            return hasMisa ? (
-              /* ==============================================================
+            case "ceremony":
+              return hasMisa ? (
+                /* ==============================================================
                    COMPONENTE 8: CEREMONIA RELIGIOSA (MISA)
                    ============================================================== */
-              <div class="px-5 py-3">
-                <EventLocationSection
-                  type="ceremony"
-                  icon="church"
-                  iconColor={silver}
-                  title={misaTitle}
-                  date={misaDate}
-                  time={misaTime}
-                  place={misaPlace}
-                  address={misaAddress}
-                  mapUrl={misaMapUrl}
-                  showMap={showMisaMap}
-                  primaryColor={primaryRose}
-                  accentColor={primaryRose}
-                  textColor={textDark}
-                  textMutedColor={textMuted}
-                />
-              </div>
-            ) : null;
+                <div class="px-5 py-3">
+                  <EventLocationSection
+                    type="ceremony"
+                    icon="church"
+                    iconColor={silver}
+                    title={misaTitle}
+                    date={misaDate}
+                    time={misaTime}
+                    place={misaPlace}
+                    address={misaAddress}
+                    mapUrl={misaMapUrl}
+                    showMap={showMisaMap}
+                    primaryColor={primaryRose}
+                    accentColor={primaryRose}
+                    textColor={textDark}
+                    textMutedColor={textMuted}
+                  />
+                </div>
+              ) : null;
 
-          case "reception":
-            return hasReception ? (
-              /* ==============================================================
+            case "reception":
+              return hasReception ? (
+                /* ==============================================================
                    COMPONENTE 9: RECEPCIÓN & SALÓN DE FIESTA
                    ============================================================== */
-              <div class="px-5 py-3">
-                <EventLocationSection
-                  type="reception"
-                  icon="reception"
-                  iconColor={silver}
-                  title={receptionTitle}
-                  date={receptionDate}
-                  time={receptionTime}
-                  place={receptionPlace}
-                  address={receptionAddress}
-                  mapUrl={receptionMapUrl}
-                  showMap={showReceptionMap}
-                  primaryColor={primaryRose}
-                  accentColor={primaryRose}
-                  textColor={textDark}
-                  textMutedColor={textMuted}
-                />
-              </div>
-            ) : null;
+                <div class="px-5 py-3">
+                  <EventLocationSection
+                    type="reception"
+                    icon="reception"
+                    iconColor={silver}
+                    title={receptionTitle}
+                    date={receptionDate}
+                    time={receptionTime}
+                    place={receptionPlace}
+                    address={receptionAddress}
+                    mapUrl={receptionMapUrl}
+                    showMap={showReceptionMap}
+                    primaryColor={primaryRose}
+                    accentColor={primaryRose}
+                    textColor={textDark}
+                    textMutedColor={textMuted}
+                  />
+                </div>
+              ) : null;
 
-          case "itinerary":
-            return hasItinerary ? (
-              /* ==============================================================
+            case "itinerary":
+              return hasItinerary ? (
+                /* ==============================================================
                    COMPONENTE 10: ITINERARIO DE ACTIVIDADES (TARJETA EN ARCO)
                    ============================================================== */
-              <div class="px-5 py-3">
-                <EventRibbonDivider color={silver} />
-                <EventItineraryArcSection
-                  itinerary={itineraryItems}
-                  title={itineraryTitle}
-                  subtitle={itinerarySubtitle}
-                  archBg={archBg}
-                  textColor="#ffffff"
-                />
-              </div>
-            ) : null;
+                <div class="px-5 py-3">
+                  <EventRibbonDivider color={silver} />
+                  <EventItineraryArcSection
+                    itinerary={itineraryItems}
+                    title={itineraryTitle}
+                    subtitle={itinerarySubtitle}
+                    archBg={archBg}
+                    textColor="#ffffff"
+                  />
+                </div>
+              ) : null;
 
-          case "dress_code":
-            return showDressCode ? (
-              /* ==============================================================
+            case "dress_code":
+              return showDressCode ? (
+                /* ==============================================================
                    COMPONENTE 11: CÓDIGO DE VESTIMENTA (DRESS CODE)
                    ============================================================== */
-              <div class="px-5 py-3">
-                <EventRibbonDivider color={silver} />
-                <EventDressCodeSection
-                  title={dressCodeTitle}
-                  category={dressCodeCategory}
-                  message={dressCodeMessage}
-                  showColors={dressCodeShowColors}
-                  reservedColors={dressCodeColors}
-                  primaryColor={primaryRose}
-                  textColor={textDark}
-                  textMutedColor={textMuted}
-                />
-              </div>
-            ) : null;
+                <div class="px-5 py-3">
+                  <EventRibbonDivider color={silver} />
+                  <EventDressCodeSection
+                    title={dressCodeTitle}
+                    category={dressCodeCategory}
+                    message={dressCodeMessage}
+                    showColors={dressCodeShowColors}
+                    reservedColors={dressCodeColors}
+                    primaryColor={primaryRose}
+                    textColor={textDark}
+                    textMutedColor={textMuted}
+                  />
+                </div>
+              ) : null;
 
-          case "countdown":
-            return hasDate && parsedDate && initialCountdown ? (
-              /* ==============================================================
+            case "countdown":
+              return hasDate && parsedDate && initialCountdown ? (
+                /* ==============================================================
                    COMPONENTE 12: CUENTA REGRESIVA ("SOLO FALTAN")
                    ============================================================== */
-              <div class="px-5 py-3">
-                <EventCountdownSection
-                  title="Solo faltan"
-                  targetIso={parsedDate.targetIso}
-                  initialDays={initialCountdown.days}
-                  initialHours={initialCountdown.hours}
-                  initialMinutes={initialCountdown.minutes}
-                  initialSeconds={initialCountdown.seconds}
-                  hasPassed={parsedDate.hasPassed}
-                  celebrationText="🎉 ¡Llegó el gran día!"
-                  primaryColor={primaryRose}
-                  textColor={textDark}
-                  subtleColor={textSubtle}
-                  accentColor={accentPink}
-                />
-              </div>
-            ) : null;
+                <div class="px-5 py-3">
+                  <EventCountdownSection
+                    title="Solo faltan"
+                    targetIso={parsedDate.targetIso}
+                    initialDays={initialCountdown.days}
+                    initialHours={initialCountdown.hours}
+                    initialMinutes={initialCountdown.minutes}
+                    initialSeconds={initialCountdown.seconds}
+                    hasPassed={parsedDate.hasPassed}
+                    celebrationText="🎉 ¡Llegó el gran día!"
+                    primaryColor={primaryRose}
+                    textColor={textDark}
+                    subtleColor={textSubtle}
+                    accentColor={accentPink}
+                  />
+                </div>
+              ) : null;
 
-          case "gifts":
-            return showGifts ? (
-              /* ==============================================================
+            case "gifts":
+              return showGifts ? (
+                /* ==============================================================
                    COMPONENTE 13: SUGERENCIA DE REGALOS (LLUVIA DE SOBRES & QR)
                    ============================================================== */
-              <div class="px-5 py-3">
-                <EventRibbonDivider color={silver} />
-                <EventGiftSection
-                  title={giftTitle}
-                  message={giftMessage}
-                  buttonText={giftButtonText}
-                  accountHolder={giftAccountHolder}
-                  bank={giftBank}
-                  phone={giftPhone}
-                  accountNumber={giftAccountNumber}
-                  qrImageUrl={giftQrImageUrl}
-                  note={giftNote}
-                  primaryColor={primaryRose}
-                  accentColor={accentPink}
-                  textColor={textDark}
-                />
-              </div>
-            ) : null;
+                <div class="px-5 py-3">
+                  <EventRibbonDivider color={silver} />
+                  <EventGiftSection
+                    title={giftTitle}
+                    message={giftMessage}
+                    buttonText={giftButtonText}
+                    accountHolder={giftAccountHolder}
+                    bank={giftBank}
+                    phone={giftPhone}
+                    accountNumber={giftAccountNumber}
+                    qrImageUrl={giftQrImageUrl}
+                    note={giftNote}
+                    primaryColor={primaryRose}
+                    accentColor={accentPink}
+                    textColor={textDark}
+                  />
+                </div>
+              ) : null;
 
-          case "final_photo":
-            return finalPhoto ? (
-              /* ==============================================================
+            case "final_photo":
+              return finalPhoto ? (
+                /* ==============================================================
                    COMPONENTE 14: FOTO FINAL DE SESIÓN
                    ============================================================== */
-              <div class="px-5 py-3">
-                <QuinceSectionImage
-                  src={finalPhoto}
-                  alt={`Recuerdo${celebrant ? ` de ${celebrant}` : ""}`}
-                  aspectRatio="portrait"
-                />
-              </div>
-            ) : null;
+                <div class="px-5 py-3">
+                  <QuinceSectionImage
+                    src={finalPhoto}
+                    alt={`Recuerdo${celebrant ? ` de ${celebrant}` : ""}`}
+                    aspectRatio="portrait"
+                  />
+                </div>
+              ) : null;
 
-          case "rsvp":
-            return showRsvp ? (
-              /* ==============================================================
+            case "rsvp":
+              return showRsvp ? (
+                /* ==============================================================
                    COMPONENTE 15: CONFIRMACIÓN DE ASISTENCIA (RSVP & WHATSAPP)
                    ============================================================== */
-              <div class="px-5 py-3">
-                <EventRsvpModalSection
-                  whatsapp={whatsappDigits}
-                  whatsappName={whatsappName}
-                  celebrant={celebrant}
-                  eventName={eventData.title || (celebrant ? `Mis XV Años - ${celebrant}` : "Mis XV Años")}
-                  title={rsvpTitle}
-                  subtitle={rsvpSubtitle}
-                  buttonText={rsvpButtonText}
-                  maxGuests={rsvpMaxGuests}
-                  slug={slug}
-                  primaryColor={primaryRose}
-                  accentColor={accentPink}
-                  textColor={textDark}
-                />
-              </div>
-            ) : null;
+                <div class="px-5 py-3">
+                  <EventRsvpModalSection
+                    whatsapp={whatsappDigits}
+                    whatsappName={whatsappName}
+                    celebrant={celebrant}
+                    eventName={
+                      eventData.title ||
+                      (celebrant ? `Mis XV Años - ${celebrant}` : "Mis XV Años")
+                    }
+                    title={rsvpTitle}
+                    subtitle={rsvpSubtitle}
+                    buttonText={rsvpButtonText}
+                    maxGuests={rsvpMaxGuests}
+                    confirmationMessage={rsvpConfig?.confirmationMessage}
+                    slug={slug}
+                    primaryColor={primaryRose}
+                    accentColor={accentPink}
+                    textColor={textDark}
+                  />
+                </div>
+              ) : null;
 
-          case "farewell":
-            return showFarewell ? (
-              /* ==============================================================
+            case "farewell":
+              return showFarewell ? (
+                /* ==============================================================
                    COMPONENTE 16: MENSAJE DE DESPEDIDA & CIERRE ELEGANTE
                    ============================================================== */
-              <div class="px-5 py-3">
-                <EventFarewellSection
-                  message={farewellMessage}
-                  signature={farewellSignature}
-                  primaryColor={primaryRose}
-                  textColor={textDark}
-                />
-              </div>
-            ) : null;
+                <div class="px-5 py-3">
+                  <EventFarewellSection
+                    message={farewellMessage}
+                    signature={farewellSignature}
+                    primaryColor={primaryRose}
+                    textColor={textDark}
+                  />
+                </div>
+              ) : null;
 
-          default:
-            return null;
-        }
-      })}
+            default:
+              return null;
+          }
+        })
+      }
 
       <!-- ==============================================================
            COMPONENTE 17: PIE DE PÁGINA (FOOTER)
@@ -768,10 +921,6 @@ const activeOrder: string[] =
   }
 
   .quince-sans {
-    font-family: var(
-      --font-quince-sans,
-      "Montserrat",
-      sans-serif
-    ) !important;
+    font-family: var(--font-quince-sans, "Montserrat", sans-serif) !important;
   }
 </style>

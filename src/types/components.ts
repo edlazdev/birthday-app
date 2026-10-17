@@ -227,6 +227,16 @@ export type EventFeatures = {
   musicConfig?: MusicConfig;
   sectionOrder?: string[];
   section_order?: string[];
+  logo_url?: string;
+  logoUrl?: string;
+  show_logo_subtitle?: boolean;
+  showLogoSubtitle?: boolean;
+  logo_offset_top?: number | string;
+  logoOffsetTop?: number | string;
+  logo_max_height?: number | string;
+  logoMaxHeight?: number | string;
+  hero_aspect_ratio?: string;
+  heroAspectRatio?: string;
 };
 
 export type EventData = {
@@ -296,6 +306,16 @@ export type EventData = {
   middlePhotoUrl?: string;
   finalPhotoUrl?: string;
   qrImageUrl?: string;
+  /** URL de imagen transparente (PNG/WebP/SVG) para usar como logo en el título / cabecera */
+  logoUrl?: string;
+  /** Si es true, muestra el subtítulo/lema debajo del logo (por defecto false si el logo ya incluye todo el título) */
+  showLogoSubtitle?: boolean;
+  /** Desplazamiento superior opcional del logo (ej: 4 o "4px" o "-10px") */
+  logoOffsetTop?: number | string;
+  /** Altura máxima opcional del logo (ej: 75 o "75px") */
+  logoMaxHeight?: number | string;
+  /** Proporción de aspecto para la portada hero (ej: "9/16", "3/5", "2/3") */
+  heroAspectRatio?: string;
   backgroundVideo?: {
     // Video único para todas las páginas (compatibilidad hacia atrás)
     youtubeId?: string;

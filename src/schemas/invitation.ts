@@ -93,6 +93,8 @@ export const invitationMetadataSchema = z.object({
   showSocialLinks: z.boolean().optional().default(true),
   ribbonUrl: z.string().optional().nullable(),
   crestUrl: z.string().optional().nullable(),
+  logoUrl: z.string().optional().nullable(),
+  showLogoSubtitle: z.boolean().optional().nullable(),
   msgRedirectAlbum: z.string().optional().nullable(),
   msgTooltip: z.string().optional().nullable(),
   giftRecommendations: z.array(z.string()).optional(),
@@ -454,6 +456,15 @@ export function eventDataToInvitationConfig(event: EventData): InvitationConfig 
         (event.features as any)?.crest_url ||
         (event.features as any)?.crestUrl ||
         (event as any).media?.crest_url,
+      logoUrl:
+        (event as any).logoUrl ||
+        (event.features as any)?.logo_url ||
+        (event.features as any)?.logoUrl ||
+        (event as any).media?.logo_url,
+      showLogoSubtitle:
+        (event as any).showLogoSubtitle ??
+        (event.features as any)?.show_logo_subtitle ??
+        (event.features as any)?.showLogoSubtitle,
       features: event.features || {},
     },
     theme: {
@@ -520,10 +531,22 @@ export function invitationConfigToEventData(config: InvitationConfig): EventData
     (meta.features as any)?.crest_url ||
     (meta.features as any)?.crestUrl;
 
+  const logoUrl =
+    meta.logoUrl ||
+    (meta.features as any)?.logo_url ||
+    (meta.features as any)?.logoUrl;
+
+  const showLogoSubtitle =
+    meta.showLogoSubtitle ??
+    (meta.features as any)?.show_logo_subtitle ??
+    (meta.features as any)?.showLogoSubtitle;
+
   const features: Record<string, any> = {
     ...(meta.features || {}),
     ...(ribbonUrl ? { ribbon_url: ribbonUrl, ribbonUrl } : {}),
     ...(crestUrl ? { crest_url: crestUrl, crestUrl } : {}),
+    ...(logoUrl ? { logo_url: logoUrl, logoUrl } : {}),
+    ...(showLogoSubtitle !== undefined ? { show_logo_subtitle: showLogoSubtitle, showLogoSubtitle } : {}),
     show_invitation: meta.showInvitation !== false && (heroSec ? heroSec.enabled !== false : true),
     show_album: meta.showAlbum !== false && (gallerySec ? gallerySec.enabled !== false : true),
     show_avatar: meta.showAvatar !== false && (heroSec?.data?.showAvatar !== false),
@@ -633,5 +656,7 @@ export function invitationConfigToEventData(config: InvitationConfig): EventData
     sectionOrder: config.sections.map((s) => s.id),
     ...(ribbonUrl ? { ribbonUrl } : {}),
     ...(crestUrl ? { crestUrl } : {}),
+    ...(logoUrl ? { logoUrl } : {}),
+    ...(showLogoSubtitle !== undefined ? { showLogoSubtitle } : {}),
   };
 }

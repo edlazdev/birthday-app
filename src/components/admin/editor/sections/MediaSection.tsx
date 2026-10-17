@@ -106,6 +106,30 @@ export default function MediaSection({
                   </button>
                 </div>
               )}
+              <div className="pt-1">
+                <label className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">
+                  Proporción de la Portada
+                </label>
+                <select
+                  value={tenant.heroAspectRatio || (tenant.features as any)?.hero_aspect_ratio || "9/16"}
+                  onChange={(e) =>
+                    updateTenant(
+                      (t) => ({
+                        ...t,
+                        heroAspectRatio: e.target.value,
+                        features: { ...(t.features || {}), hero_aspect_ratio: e.target.value },
+                      }),
+                      "media"
+                    )
+                  }
+                  className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
+                >
+                  <option value="9/16">9:16 (Alta / Pantalla completa móvil - Ideal para logo)</option>
+                  <option value="3/5">3:5 (Vertical Intermedia)</option>
+                  <option value="2/3">2:3 (Estándar compacta)</option>
+                  <option value="3/4">3:4 (Corta)</option>
+                </select>
+              </div>
             </div>
 
             {/* Avatar Photo */}
@@ -142,6 +166,109 @@ export default function MediaSection({
                   </button>
                 </div>
               )}
+            </div>
+
+            {/* Logo / Título en Imagen Transparente */}
+            <div className="p-4 bg-stone-50/70 dark:bg-slate-950/60 border border-stone-200/80 dark:border-slate-800/80 rounded-xl space-y-2.5 md:col-span-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <span>✨</span>
+                    <span>Logo / Título en Imagen (PNG Transparente)</span>
+                  </label>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Sube un logo con fondo transparente. Reemplaza el título textual en la portada.
+                  </p>
+                </div>
+                {uploading === "logo" && <span className="text-xs text-amber-500 animate-pulse">Subiendo...</span>}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={tenant.logoUrl || ""}
+                    onChange={(e) => updateTenant((t) => ({ ...t, logoUrl: e.target.value }), "media")}
+                    placeholder="URL directa o sube archivo PNG/WebP"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                  />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-stone-200 hover:bg-stone-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs text-slate-800 dark:text-slate-200 rounded-lg transition border border-stone-300 dark:border-slate-700">
+                      <span>📤</span> Subir Logo Transparente
+                      <input
+                        type="file"
+                        accept="image/png,image/webp,image/svg+xml,image/*"
+                        onChange={(e) => onFileUpload(e, "logo")}
+                        className="hidden"
+                      />
+                    </label>
+                    {tenant.logoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => updateTenant((t) => ({ ...t, logoUrl: "" }), "media")}
+                        className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60 rounded-lg text-xs transition cursor-pointer"
+                      >
+                        Quitar
+                      </button>
+                    )}
+                  </div>
+                  {tenant.logoUrl && (
+                    <>
+                      <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer pt-1">
+                        <input
+                          type="checkbox"
+                          checked={tenant.showLogoSubtitle === true}
+                          onChange={(e) => updateTenant((t) => ({ ...t, showLogoSubtitle: e.target.checked }), "media")}
+                          className="rounded border-stone-300 text-amber-500 focus:ring-amber-500"
+                        />
+                        <span>Mostrar subtítulo de texto ("MIS XV AÑOS") debajo del logo</span>
+                      </label>
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <div>
+                          <label className="text-[11px] text-slate-500 dark:text-slate-400 block mb-0.5">
+                            Posición desde arriba (px)
+                          </label>
+                          <input
+                            type="number"
+                            value={tenant.logoOffsetTop ?? 4}
+                            onChange={(e) => updateTenant((t) => ({ ...t, logoOffsetTop: e.target.value === "" ? undefined : Number(e.target.value) }), "media")}
+                            placeholder="Ej: 4"
+                            className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] text-slate-500 dark:text-slate-400 block mb-0.5">
+                            Altura máxima (px)
+                          </label>
+                          <input
+                            type="number"
+                            value={tenant.logoMaxHeight ?? 75}
+                            onChange={(e) => updateTenant((t) => ({ ...t, logoMaxHeight: e.target.value === "" ? undefined : Number(e.target.value) }), "media")}
+                            placeholder="Ej: 75"
+                            className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+                {tenant.logoUrl ? (
+                  <div className="h-24 sm:h-28 rounded-lg overflow-hidden border border-stone-300 dark:border-slate-700 relative bg-slate-900 flex items-center justify-center p-3 shadow-inner">
+                    <img
+                      src={tenant.logoUrl}
+                      alt="Vista previa Logo"
+                      className="max-h-full max-w-full object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]"
+                    />
+                    <span className="absolute bottom-1 right-2 text-[10px] text-slate-400 bg-black/60 px-1.5 py-0.5 rounded">
+                      Fondo transparente
+                    </span>
+                  </div>
+                ) : (
+                  <div className="h-24 sm:h-28 rounded-lg border-2 border-dashed border-stone-300 dark:border-slate-800 flex flex-col items-center justify-center text-slate-400 p-2 text-center text-xs">
+                    <span>Sin logo cargado</span>
+                    <span className="text-[10px] text-slate-500 mt-0.5">Se mostrará el nombre en tipografía caligráfica</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Section & Special Photos: Middle, Final & QR */}
