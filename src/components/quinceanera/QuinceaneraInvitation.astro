@@ -290,13 +290,20 @@ const rawCover =
   (eventData as any).media?.cover_url ||
   "";
 
-const heroPhoto =
-  (slug === "luana" && (!rawCover || rawCover.includes("1792015229484-d9xi1bx.jpeg")))
-    ? "/images/events/luana/cover_extended.jpg"
-    : rawCover ||
-      (slug === "luana"
-        ? "/images/events/luana/cover_extended.jpg"
-        : "");
+const isLuanaStudioCover =
+  slug === "luana" &&
+  (!rawCover ||
+    rawCover.includes("/luana/cover/") ||
+    rawCover.includes("1792015229484") ||
+    rawCover.includes("1792251883979") ||
+    rawCover.includes("cover_extended"));
+
+const heroPhoto = isLuanaStudioCover
+  ? "/images/events/luana/cover_extended.jpg"
+  : rawCover ||
+    (slug === "luana"
+      ? "/images/events/luana/cover_extended.jpg"
+      : "");
 const middlePhoto =
   eventData.middlePhotoUrl ||
   (eventData as any).media?.middle_photo_url ||
@@ -506,7 +513,7 @@ const activeOrder: string[] =
                       />
 
                       <div
-                        class={`${heroPhoto ? (titleLogo ? "absolute top-3 sm:top-4 left-0 right-0" : "absolute top-3.5 sm:top-4 left-0 right-0") : "relative"} px-3 sm:px-4 text-center z-10 flex flex-col items-center justify-center`}
+                        class={`${heroPhoto ? (titleLogo ? "absolute top-1 sm:top-3 left-0 right-0" : "absolute top-3 sm:top-4 left-0 right-0") : "relative"} px-3 sm:px-4 text-center z-10 flex flex-col items-center justify-center`}
                         style={
                           titleLogo && logoOffsetTop !== null
                             ? `top: ${typeof logoOffsetTop === "number" ? `${logoOffsetTop}px` : logoOffsetTop};`
@@ -514,11 +521,11 @@ const activeOrder: string[] =
                         }
                       >
                         {titleLogo ? (
-                          <div class="quince-hero-logo-wrapper flex flex-col items-center justify-center max-w-[85%] sm:max-w-[75%] mx-auto">
+                          <div class="quince-hero-logo-wrapper flex flex-col items-center justify-center max-w-[76%] sm:max-w-[65%] mx-auto">
                             <img
                               src={titleLogo}
                               alt={celebrant || heroSubtitle || "Logo"}
-                              class="quince-hero-logo max-h-24 sm:max-h-20 w-auto max-w-full object-contain object-top drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]"
+                              class="quince-hero-logo max-h-16 sm:max-h-20 w-auto max-w-full object-contain object-top drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]"
                               style={
                                 logoMaxHeight !== null
                                   ? `max-height: ${typeof logoMaxHeight === "number" ? `${logoMaxHeight}px` : logoMaxHeight};`
@@ -527,7 +534,7 @@ const activeOrder: string[] =
                               loading="eager"
                             />
                             {showLogoSubtitle && heroSubtitle && (
-                              <p class="quince-serif-caps text-[11px] sm:text-xs tracking-[0.3em] uppercase font-semibold mt-0.5 text-black drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
+                              <p class="quince-serif-caps text-[10px] sm:text-xs tracking-[0.22em] sm:tracking-[0.3em] uppercase font-semibold mt-0.5 text-black drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
                                 {heroSubtitle}
                               </p>
                             )}

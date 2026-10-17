@@ -45,7 +45,7 @@ export function mapDbToEventData(row: any): EventData {
       lng: Number(row.map_lng) || 0,
     },
     coverUrl:
-      (row.slug === "luana" && (!media.cover_url || media.cover_url.includes("1792015229484-d9xi1bx.jpeg")))
+      (row.slug === "luana" && (!media.cover_url || media.cover_url.includes("/luana/cover/") || media.cover_url.includes("1792015229484") || media.cover_url.includes("1792251883979")))
         ? "/images/events/luana/cover_extended.jpg"
         : (media.cover_url || undefined),
     avatarUrl: media.avatar_url || undefined,
