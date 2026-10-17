@@ -17,7 +17,7 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
-      include: ["@supabase/ssr", "@supabase/supabase-js", "react", "react-dom"],
+      include: ["@supabase/ssr", "@supabase/supabase-js"],
     },
     resolve: {
       alias: [
