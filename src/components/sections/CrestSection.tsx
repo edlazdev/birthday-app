@@ -6,6 +6,7 @@ export interface CrestSectionData {
   monogramText?: string;
   badgeText?: string;
   crestFrameUrl?: string;
+  logoUrl?: string;
 }
 
 export interface CrestSectionProps {
@@ -33,6 +34,29 @@ export default function CrestSection({
     (metadata as any).crestUrl ||
     "https://gztorcrslhjeyobbykzn.supabase.co/storage/v1/object/public/freeloader-media/events/luana/marco_flores.jpg";
 
+  const isImageUrl = (str?: string) => {
+    if (!str || typeof str !== "string") return false;
+    const clean = str.trim();
+    return (
+      clean.startsWith("http://") ||
+      clean.startsWith("https://") ||
+      clean.startsWith("data:image/") ||
+      clean.startsWith("/storage/") ||
+      clean.startsWith("/images/") ||
+      clean.startsWith("/") ||
+      /\.(png|jpe?g|webp|svg|gif|avif)(\?.*)?$/i.test(clean)
+    );
+  };
+
+  const logoUrl =
+    data.logoUrl ||
+    metadata.logoUrl ||
+    (metadata as any).titleLogoUrl ||
+    (metadata.features as any)?.logoUrl ||
+    (metadata.features as any)?.logo_url ||
+    (isImageUrl(celebrant) ? celebrant : "");
+
+  const celebrantDisplayName = isImageUrl(celebrant) ? "" : celebrant;
   const primaryColor = theme.primary || "#a85d72";
 
   return (
@@ -49,17 +73,28 @@ export default function CrestSection({
         </p>
       )}
 
-      {/* 2. Nombre Caligráfico / Título Central */}
-      {celebrant && (
-        <h2
-          className="text-4xl sm:text-5xl font-normal leading-tight drop-shadow-xs font-invitation-heading text-invitation-primary"
-          style={{
-            color: "var(--color-primary, var(--primary, #a85d72))",
-            fontFamily: "var(--font-heading, var(--font-title, 'Great Vibes', cursive))",
-          }}
-        >
-          {celebrant}
-        </h2>
+      {/* 2. Nombre Caligráfico o Logo de Evento */}
+      {logoUrl ? (
+        <div className="flex justify-center items-center my-2 sm:my-3">
+          <img
+            src={logoUrl}
+            alt={celebrantDisplayName || "Logo del evento"}
+            className="max-h-16 sm:max-h-20 w-auto max-w-[85%] sm:max-w-[70%] object-contain mx-auto drop-shadow-xs pointer-events-none select-none transition-all duration-300"
+            loading="lazy"
+          />
+        </div>
+      ) : (
+        celebrantDisplayName && (
+          <h2
+            className="text-4xl sm:text-5xl font-normal leading-tight drop-shadow-xs font-invitation-heading text-invitation-primary"
+            style={{
+              color: "var(--color-primary, var(--primary, #a85d72))",
+              fontFamily: "var(--font-heading, var(--font-title, 'Great Vibes', cursive))",
+            }}
+          >
+            {celebrantDisplayName}
+          </h2>
+        )
       )}
 
       {/* 3. Escudo Ornamental con Tiara y Marco Floral */}

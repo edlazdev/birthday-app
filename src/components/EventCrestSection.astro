@@ -2,6 +2,8 @@
 export interface Props {
   tagline?: string;
   celebrant?: string;
+  logoUrl?: string;
+  logo?: string;
   crestFrameUrl?: string;
   monogramText?: string;
   badgeText?: string;
@@ -15,6 +17,8 @@ export interface Props {
 const {
   tagline = "",
   celebrant = "",
+  logoUrl = "",
+  logo = "",
   crestFrameUrl = "https://gztorcrslhjeyobbykzn.supabase.co/storage/v1/object/public/freeloader-media/events/luana/marco_flores.jpg",
   monogramText = "XV",
   badgeText = "QUINCEAÑERA",
@@ -24,11 +28,30 @@ const {
   borderColor = "#edd6dc",
   className = "",
 } = Astro.props;
+
+// Lógica de detección de logo para el nombre del evento
+const isImageUrl = (str?: string) => {
+  if (!str || typeof str !== "string") return false;
+  const clean = str.trim();
+  return (
+    clean.startsWith("http://") ||
+    clean.startsWith("https://") ||
+    clean.startsWith("data:image/") ||
+    clean.startsWith("/storage/") ||
+    clean.startsWith("/images/") ||
+    clean.startsWith("/") ||
+    /\.(png|jpe?g|webp|svg|gif|avif)(\?.*)?$/i.test(clean)
+  );
+};
+
+// Si se recibe logoUrl/logo o si celebrant fue configurado directamente como una URL de logo:
+const resolvedLogoUrl = (logoUrl || logo || (isImageUrl(celebrant) ? celebrant : "")).trim();
+const celebrantDisplayName = isImageUrl(celebrant) ? "" : celebrant.trim();
 ---
 
 <section
   class={`event-crest-section px-4 sm:px-6 py-4 text-center select-none space-y-3 ${className}`}
-  aria-label={`Monograma de ${celebrant || monogramText}`}
+  aria-label={`Monograma de ${celebrantDisplayName || monogramText || "evento"}`}
 >
   <!-- 1. Pensamiento / Dedicatoria Emotiva -->
   {tagline && (
@@ -40,15 +63,24 @@ const {
     </p>
   )}
 
-  <!-- 2. Nombre del Celebrante en Caligrafía Script Grande -->
-  {celebrant && (
-    <div class="my-2 sm:my-3">
-      <span
-        class="quince-script-title text-4xl sm:text-5xl tracking-wide block drop-shadow-xs"
-        style={`color: ${primaryColor};`}
-      >
-        {celebrant}
-      </span>
+  <!-- 2. Nombre del Celebrante en Caligrafía Script Grande o Logo Transparente -->
+  {(resolvedLogoUrl || celebrantDisplayName) && (
+    <div class="my-2 sm:my-3 flex justify-center items-center">
+      {resolvedLogoUrl ? (
+        <img
+          src={resolvedLogoUrl}
+          alt={celebrantDisplayName || "Logo del evento"}
+          class="max-h-16 sm:max-h-20 w-auto max-w-[85%] sm:max-w-[70%] object-contain mx-auto drop-shadow-xs pointer-events-none select-none transition-all duration-300"
+          loading="lazy"
+        />
+      ) : (
+        <span
+          class="quince-script-title text-4xl sm:text-5xl tracking-wide block drop-shadow-xs"
+          style={`color: ${primaryColor};`}
+        >
+          {celebrantDisplayName}
+        </span>
+      )}
     </div>
   )}
 
